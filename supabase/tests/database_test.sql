@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(21);
+select plan(23);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -19,6 +19,20 @@ create function pg_temp.logout() returns void language sql as $$
   select set_config('role', 'postgres', true),
          set_config('request.jwt.claims', '', true);
 $$;
+
+-- ---------- Guards against future mistakes ----------
+-- A table added by a later migration without RLS would be readable by any
+-- signed-in user. These two tests fail the build if that ever happens.
+select is(
+  (select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity),
+  0, 'every table in public has RLS enabled');
+
+select is(
+  (select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.prosecdef
+     and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')),
+  0, 'every SECURITY DEFINER function pins its search_path');
 
 -- ---------- Setup: three users sign up ----------
 insert into auth.users (id, email, raw_user_meta_data) values
