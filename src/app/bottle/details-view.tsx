@@ -1,0 +1,77 @@
+"use client";
+
+import { DRINK_STATES, drinkState } from "@/lib/drink-state";
+import { formatPrice, type BottleDetails } from "./details";
+
+export function DetailsView({
+  details: d,
+  onDrink,
+  onMove,
+  onEdit,
+  onClose,
+}: {
+  details: BottleDetails;
+  onDrink: () => void;
+  onMove: () => void;
+  onEdit: () => void;
+  onClose: () => void;
+}) {
+  const state = drinkState({ drinkFrom: d.drinkFrom, drinkTo: d.drinkTo }, new Date().getFullYear());
+  const rating = d.vintageRating ?? d.wineRating;
+  const canDrink = d.status !== "consumed";
+
+  return (
+    <>
+      <header className="flex flex-col gap-1">
+        <p className="text-sm text-muted">{d.winery}</p>
+        <h2 className="text-2xl font-bold">
+          {d.name} <span className="font-normal text-muted">{d.year ?? "NV"}</span>
+        </h2>
+      </header>
+
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+        <dt className="text-muted">בשלות</dt>
+        <dd className="flex items-center gap-2">
+          <span className="size-3 rounded-sm" style={{ backgroundColor: DRINK_STATES[state].color }} aria-hidden="true" />
+          {DRINK_STATES[state].label}
+          {(d.drinkFrom || d.drinkTo) && (
+            // dir="ltr": inside Hebrew text the browser would show "2019–2025"
+            // as "2025–2019" (number ranges are a classic RTL trap).
+            <span className="text-muted" dir="ltr">
+              ({d.drinkFrom ?? "?"}–{d.drinkTo ?? "?"})
+            </span>
+          )}
+        </dd>
+        <dt className="text-muted">מחיר</dt>
+        <dd>{formatPrice(d)}</dd>
+        <dt className="text-muted">ציון</dt>
+        <dd>{rating ? `${rating} / 5` : "עוד אין"}</dd>
+        {d.note && (
+          <>
+            <dt className="text-muted">הערה</dt>
+            <dd>{d.note}</dd>
+          </>
+        )}
+      </dl>
+
+      {canDrink && (
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" onClick={onDrink} className="rounded-full bg-accent px-4 py-3 font-medium text-white dark:text-black">
+            🍷 שתינו
+          </button>
+          <button type="button" onClick={onMove} className="rounded-full border border-muted/40 px-4 py-3">
+            {d.status === "stored" ? "הזזה" : "שיבוץ במקרר"}
+          </button>
+        </div>
+      )}
+      <div className="flex justify-center gap-6 text-sm">
+        <button type="button" onClick={onEdit} className="underline underline-offset-2">
+          עריכה
+        </button>
+        <button type="button" onClick={onClose} className="text-muted underline underline-offset-2">
+          סגירה
+        </button>
+      </div>
+    </>
+  );
+}
