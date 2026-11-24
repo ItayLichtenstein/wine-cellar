@@ -36,6 +36,10 @@ export function CellarView({
   const [movingId, setMovingId] = useState<string | null>(known(moveParam) ? moveParam : null);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useFridgeView();
+  // Several fridges: one at a time, with tabs (a long page of fridges is
+  // hard to use on a phone). A moved bottle can still go to another fridge.
+  const [fridgeId, setFridgeId] = useState<string | null>(null);
+  const shown = fridges.length > 1 ? fridges.filter((f) => f.id === (fridgeId ?? fridges[0].id)) : fridges;
 
   function refresh() {
     setOpenId(null);
@@ -98,7 +102,27 @@ export function CellarView({
         </button>
       </div>
 
-      {fridges.map((fridge) => (
+      {fridges.length > 1 && (
+        <div role="tablist" aria-label="המקררים" className="flex gap-1 overflow-x-auto">
+          {fridges.map((f) => {
+            const on = f.id === (fridgeId ?? fridges[0].id);
+            return (
+              <button
+                key={f.id}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => setFridgeId(f.id)}
+                className={`shrink-0 rounded-full border px-3 py-1 text-sm ${on ? "border-accent bg-accent text-white dark:text-black" : "border-muted/40"}`}
+              >
+                <span dir="auto">{f.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {shown.map((fridge) => (
         <article key={fridge.id} className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-2">
             <h2 className="text-lg font-semibold">{fridge.name}</h2>
