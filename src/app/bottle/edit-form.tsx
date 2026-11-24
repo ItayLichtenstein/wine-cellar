@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { WINE_TYPES, inputClass, type BottleDetails, type WineType } from "./details";
+import { validateExtra } from "@/lib/wine-extra";
+import { WINE_TYPES, inputClass, saveExtra, type BottleDetails, type WineType } from "./details";
+import { ExtraFields } from "./extra-fields";
 import { ErrorNote } from "./error-note";
 
 const numOrNull = (s: string) => (s.trim() === "" ? null : Number(s));
@@ -22,6 +24,7 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
   const [regular, setRegular] = useState(d.regular !== null ? String(d.regular) : "");
   const [isGift, setIsGift] = useState(d.isGift);
   const [note, setNote] = useState(d.note);
+  const [extra, setExtra] = useState(d.extra);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +39,11 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
       return;
     }
     const [y, from, to, p, r] = numbers;
+    const extraProblem = validateExtra(extra);
+    if (extraProblem) {
+      setError(extraProblem);
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -61,6 +69,16 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
           ? "כבר יש במרתף יין בשם הזה מאותו יקב."
           : "לא הצלחנו לשמור. בדקו את הפרטים ונסו שוב.",
       );
+      return;
+    }
+    // The year may have moved the bottle to another vintage – save the
+    // vintage details there.
+    const supabase = createClient();
+    const { data: moved } = await supabase.from("bottles").select("vintage_id").eq("id", d.id).single();
+    const ok = await saveExtra(d.wineId, moved?.vintage_id ?? d.vintageId, [d.id], extra);
+    if (!ok) {
+      setSaving(false);
+      setError("הפרטים הבסיסיים נשמרו, אבל הפרטים הנוספים לא. נסו שוב.");
       return;
     }
     onDone();
@@ -110,6 +128,8 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
       <Field label="הערה">
         <textarea value={note} onChange={(e) => setNote(e.target.value)} dir="auto" rows={2} maxLength={1000} className={inputClass} />
       </Field>
+
+      <ExtraFields value={extra} onChange={setExtra} />
 
       <ErrorNote message={error} />
 

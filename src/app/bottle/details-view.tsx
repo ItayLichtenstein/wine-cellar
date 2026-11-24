@@ -1,5 +1,6 @@
 "use client";
 
+import { criticSummary, linkLabel } from "@/lib/wine-extra";
 import { DRINK_STATES, drinkState } from "@/lib/drink-state";
 import { formatPrice, type BottleDetails } from "./details";
 
@@ -54,6 +55,28 @@ export function DetailsView({
             </dd>
           </>
         )}
+        {[
+          ["זן", d.extra.grape],
+          ["מקור", [d.extra.region, d.extra.country].filter(Boolean).join(", ")],
+          ["מבקרים", criticSummary(d.extra.critics) ?? ""],
+          ["אלכוהול", d.extra.alcohol ? `${d.extra.alcohol}%` : ""],
+          ["כשרות", d.extra.kosher === "yes" ? "כשר" : d.extra.kosher === "no" ? "לא כשר" : ""],
+          ["צורה", d.extra.shape === "burgundy" ? "בורגון" : ""],
+        ]
+          .filter(([, v]) => v)
+          .map(([k, v]) => (
+            <Row key={k} label={k}>
+              <span dir="auto">{v}</span>
+            </Row>
+          ))}
+        {d.extra.link && linkLabel(d.extra.link) && (
+          <Row label="קישור">
+            {/* rel=noopener noreferrer: the opened site can't control this tab or see where it came from. */}
+            <a href={d.extra.link} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+              {linkLabel(d.extra.link)}
+            </a>
+          </Row>
+        )}
         <dt className="text-muted">מחיר</dt>
         <dd>{formatPrice(d)}</dd>
         <dt className="text-muted">ציון</dt>
@@ -84,6 +107,15 @@ export function DetailsView({
           סגירה
         </button>
       </div>
+    </>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <>
+      <dt className="text-muted">{label}</dt>
+      <dd>{children}</dd>
     </>
   );
 }

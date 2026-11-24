@@ -6,6 +6,9 @@ import { FridgePreview, type Place } from "@/components/fridge-preview";
 import { clamp } from "@/lib/fridge-layout";
 import type { FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/client";
+import { EMPTY_EXTRA, validateExtra } from "@/lib/wine-extra";
+import { saveExtra } from "@/app/bottle/details";
+import { ExtraFields } from "@/app/bottle/extra-fields";
 
 type WineType = "red" | "white" | "rose" | "orange" | "sparkling" | "dessert" | "fortified" | "other";
 type Destination = "fridge" | "unplaced" | "in_transit";
@@ -50,6 +53,7 @@ export function AddBottlesForm({
   const [drinkTo, setDrinkTo] = useState("");
   const [destination, setDestination] = useState<Destination>(fridges.length ? "fridge" : "unplaced");
   const [picked, setPicked] = useState<Place[]>(initialPlace ? [initialPlace] : []);
+  const [extra, setExtra] = useState(EMPTY_EXTRA);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,9 +94,16 @@ export function AddBottlesForm({
       return;
     }
 
+    const extraProblem = validateExtra(extra);
+    if (extraProblem) {
+      setError(extraProblem);
+      return;
+    }
+
     setSaving(true);
     const places = destination === "fridge" ? picked : [];
-    const { error: rpcError } = await createClient().rpc("add_bottles", {
+    const supabase = createClient();
+    const { data: ids, error: rpcError } = await supabase.rpc("add_bottles", {
       p_winery: winery,
       p_name: name,
       p_quantity: quantity,
@@ -115,6 +126,16 @@ export function AddBottlesForm({
           : "לא הצלחנו לשמור. בדקו את הפרטים ונסו שוב.",
       );
       return;
+    }
+    // Extra details only if something was filled in (same wine + vintage for all new bottles).
+    if (JSON.stringify(extra) !== JSON.stringify(EMPTY_EXTRA) && ids?.length) {
+      const { data: v } = await supabase.from("bottles").select("vintage_id, wine_vintages(wine_id)").eq("id", ids[0]).single();
+      const ok = v?.wine_vintages && (await saveExtra(v.wine_vintages.wine_id, v.vintage_id, ids, extra));
+      if (!ok) {
+        setSaving(false);
+        setError("הבקבוקים נשמרו, אבל הפרטים הנוספים לא. אפשר להשלים אותם בעריכה.");
+        return;
+      }
     }
     router.push("/");
     router.refresh();
@@ -174,6 +195,7 @@ export function AddBottlesForm({
           </Field>
           <span className="pb-2 text-sm text-muted">{year.trim() ? "" : "ריק = ללא בציר (NV)"}</span>
         </div>
+        <ExtraFields value={extra} onChange={setExtra} />
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
