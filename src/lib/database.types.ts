@@ -366,6 +366,9 @@ isOneToOne: false
 "update_bottle":
 { Args: { "p_bottle_id": string,"p_drink_from": number,"p_drink_to": number,"p_is_gift": boolean,"p_name": string,"p_note": string,"p_paid": number,"p_regular": number,"p_type": Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year": number }; Returns: undefined
                            },
+"update_fridge":
+{ Args: { "p_brand"?: string,"p_fridge_id": string,"p_model"?: string,"p_name": string,"p_shelves": Json }; Returns: undefined
+                           },
 "update_wine_details":
 { Args: { "p_alcohol": number,"p_country": string,"p_critics"?: Json,"p_grape": string,"p_kosher": Database["public"]['Enums']["kosher_status"],"p_peak_from": number,"p_peak_to": number,"p_region": string,"p_shape": Database["public"]['Enums']["bottle_shape"],"p_vintage_id": string,"p_window_source": Database["public"]['Enums']["window_source"],"p_wine_id": string }; Returns: undefined
                            }

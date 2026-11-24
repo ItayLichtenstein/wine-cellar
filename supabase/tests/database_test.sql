@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(65);
+select plan(69);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -362,6 +362,31 @@ select is((select count(*)::int from tastings t join wines w on w.id = t.wine_id
 select throws_ok(
   $$ select log_tasting('x', 'y', 'red', null, current_date + 2) $$,
   '23514', null, 'a tasting in the future is rejected');
+
+-- update_fridge: reorder shelves keeping ids – bottles stay put
+select set_config('test.stored_before', (select count(*)::text from bottles where status = 'stored'), true);
+select set_config('test.bottles_before', (select count(*)::text from bottles), true);
+select lives_ok(
+  $$ select update_fridge((select id from fridges limit 1), 'מקרר יין', (
+       select jsonb_agg(jsonb_build_object('id', s.id, 'zones', (
+                select jsonb_agg(jsonb_build_object('id', z.id, 'kind', z.kind, 'capacity', z.capacity, 'label', z.label)
+                                 order by z.position)
+                  from shelf_zones z where z.shelf_id = s.id)) order by s.position desc)
+         from shelves s)) $$,
+  'update_fridge reorders shelves');
+select is((select z.kind::text from shelf_zones z join shelves s on s.id = z.shelf_id
+            where s.position = 1 and z.position = 1), 'stack', 'the former bottom shelf is now on top');
+select is((select count(*)::text from bottles where status = 'stored'), current_setting('test.stored_before'),
+          'reordering kept every bottle in place');
+
+-- dropping the top shelf (with the stack) moves its bottles out, deletes none
+select update_fridge((select id from fridges limit 1), 'מקרר יין', (
+  select jsonb_agg(jsonb_build_object('id', s.id, 'zones', (
+           select jsonb_agg(jsonb_build_object('id', z.id, 'kind', z.kind, 'capacity', z.capacity) order by z.position)
+             from shelf_zones z where z.shelf_id = s.id)))
+    from shelves s where s.position > 1));
+select is((select count(*)::text from bottles), current_setting('test.bottles_before'),
+          'removing a shelf never deletes bottles');
 
 -- a viewer cannot create fridges
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
