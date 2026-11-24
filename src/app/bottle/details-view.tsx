@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { criticSummary, linkLabel, vintageBreakdown } from "@/lib/wine-extra";
+import { LabelPhoto } from "./label-photo";
 import { DRINK_STATES, drinkState } from "@/lib/drink-state";
 import { formatPrice, type BottleDetails } from "./details";
 
@@ -37,6 +38,8 @@ export function DetailsView({
           {d.name} <span className="font-normal text-muted">{d.year ?? "NV"}</span>
         </h2>
       </header>
+
+      <LabelPhoto wineId={d.wineId} cellarId={d.cellarId} path={d.labelPath} canEdit={d.status !== "consumed"} />
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
         <dt className="text-muted">בשלות</dt>
