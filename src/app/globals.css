@@ -6,6 +6,12 @@
   --background: #f7f2ec;
   --foreground: #2a1f1d;
   --muted: #7d6e69;
+  --surface: #fffdf9;
+  --accent: #6d1a2a;
+  /* The fridge drawing is dark in both themes, like a real wine fridge. */
+  --fridge: #24201f;
+  --shelf: #3a3331;
+  --on-fridge: #f2ebe6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -13,6 +19,8 @@
     --background: #171312;
     --foreground: #f2ebe6;
     --muted: #a8998f;
+    --surface: #221c1a;
+    --accent: #e0a3ad;
   }
 }
 
@@ -20,6 +28,11 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  --color-fridge: var(--fridge);
+  --color-shelf: var(--shelf);
+  --color-on-fridge: var(--on-fridge);
   --font-sans: var(--font-heebo);
 }
 
