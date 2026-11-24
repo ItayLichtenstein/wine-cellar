@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
-import { getLooseBottles, getMyFridges } from "@/lib/fridges";
+import { drinkNow } from "@/lib/bottle-list";
+import { getCellarBottles, getLooseBottles, getMyFridges } from "@/lib/fridges";
 import { CellarView } from "./cellar-view";
 
 export default function Home() {
@@ -28,7 +29,7 @@ async function Header() {
 }
 
 async function Fridges() {
-  const [fridges, loose] = await Promise.all([getMyFridges(), getLooseBottles()]);
+  const [fridges, loose, all] = await Promise.all([getMyFridges(), getLooseBottles(), getCellarBottles()]);
 
   if (fridges.length === 0) {
     return (
@@ -60,7 +61,7 @@ async function Fridges() {
         </Link>
       </div>
 
-      <CellarView fridges={fridges} loose={loose} />
+      <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} />
 
       {(stored.length > 0 || loose.length > 0) && <Legend />}
     </section>

@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
+import type { ListRow } from "@/lib/bottle-list";
 import { DRINK_STATES } from "@/lib/drink-state";
 import { fridgeCapacity } from "@/lib/fridge-layout";
 import type { FridgeView, LooseBottle } from "@/lib/fridges";
@@ -14,7 +15,15 @@ import { useFridgeView } from "./use-fridge-view";
  * The interactive part of the home page:
  * tap a bottle → its card; "move" → tap a new place (an occupied slot swaps).
  */
-export function CellarView({ fridges, loose }: { fridges: FridgeView[]; loose: LooseBottle[] }) {
+export function CellarView({
+  fridges,
+  loose,
+  drinkNow,
+}: {
+  fridges: FridgeView[];
+  loose: LooseBottle[];
+  drinkNow: ListRow[];
+}) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
   // "?move=<id>" (from the list page's "move" button) starts in move mode –
@@ -72,6 +81,8 @@ export function CellarView({ fridges, loose }: { fridges: FridgeView[]; loose: L
           {error}
         </p>
       )}
+
+      {drinkNow.length > 0 && !movingId && <DrinkNow rows={drinkNow} onOpen={setOpenId} />}
 
       <div className="flex justify-end">
         {/* One on/off button: labels are on unless the user turns them off. */}
@@ -152,6 +163,42 @@ function LooseList({ title, bottles, onOpen }: { title: string; bottles: LooseBo
                 {b.year ?? "NV"}
               </span>
               <span className="flex-1">{b.title}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** "What to drink now": the 3 most urgent wines, above the fridge (spec). */
+function DrinkNow({ rows, onOpen }: { rows: ListRow[]; onOpen: (id: string) => void }) {
+  return (
+    <section className="flex flex-col gap-2" aria-labelledby="drink-now">
+      <h2 id="drink-now" className="text-lg font-semibold">
+        מה לשתות עכשיו
+      </h2>
+      <ul className="grid grid-cols-3 gap-2">
+        {rows.map(({ key, first: b, bottles }) => (
+          <li key={key}>
+            <button
+              type="button"
+              onClick={() => onOpen(b.id)}
+              className="flex h-full w-full flex-col items-start gap-1 rounded-xl bg-surface p-2 text-start shadow-sm"
+            >
+              <span
+                className="rounded-sm px-1 text-xs font-bold leading-5 text-black tabular-nums"
+                style={{ backgroundColor: DRINK_STATES[b.state].color }}
+              >
+                {b.year ?? "NV"}
+              </span>
+              <span dir="auto" className="line-clamp-2 text-sm leading-tight">
+                {b.name}
+              </span>
+              <span className="text-xs text-muted">
+                {DRINK_STATES[b.state].label}
+                {bottles.length > 1 ? ` · ×${bottles.length}` : ""}
+              </span>
             </button>
           </li>
         ))}

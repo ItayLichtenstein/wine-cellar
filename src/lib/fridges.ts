@@ -167,6 +167,7 @@ export async function getCellarBottles(): Promise<import("./bottle-list").ListBo
         kosher: w.kosher,
         shape: w.shape,
         state: drinkState({ drinkFrom: v.drink_from, drinkTo: v.drink_to, peakFrom: v.peak_from, peakTo: v.peak_to }, year),
+        drinkBy: v.peak_to ?? v.drink_to,
         price: price?.regular ?? price?.paid ?? null,
         where: status === "stored" ? (shelf ? `מדף ${shelf.position}` : "במקרר") : WHERE[status],
       },
