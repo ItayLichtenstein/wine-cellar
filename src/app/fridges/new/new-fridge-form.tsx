@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview } from "@/components/fridge-preview";
+import { CATALOG, estimateShelves, type ModelSpec } from "@/lib/fridge-catalog";
 import { createClient } from "@/lib/supabase/client";
 import {
   LIMITS,
@@ -28,11 +29,21 @@ function makeShelf(preset: PresetKey): FormShelf {
   return { preset, ...SHELF_PRESETS[preset].make(DEFAULT_SIZE[preset]) };
 }
 
+/** Which dropdown entry a catalog shelf matches. */
+function presetOf(shelf: Shelf): PresetKey {
+  if (shelf.zones.every((z) => z.kind === "stack")) return "doubleStack";
+  return shelf.zones.length === 2 ? "twoRows" : "oneRow";
+}
+
+const OTHER = "other";
+
 export function NewFridgeForm() {
   const router = useRouter();
   const [name, setName] = useState("מקרר יין");
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
+  const [brandChoice, setBrandChoice] = useState(""); // catalog brand, OTHER, or "" (not chosen)
+  const [spec, setSpec] = useState<ModelSpec | null>(null); // the catalog model the layout came from
   const [shelves, setShelves] = useState<FormShelf[]>(() =>
     Array.from({ length: 6 }, () => makeShelf("twoRows")),
   );
@@ -46,6 +57,21 @@ export function NewFridgeForm() {
         ? [...prev, ...Array.from({ length: n - prev.length }, () => makeShelf("twoRows"))]
         : prev.slice(0, n),
     );
+  }
+
+  function chooseBrand(value: string) {
+    setBrandChoice(value);
+    setSpec(null);
+    setModel("");
+    setBrand(value === OTHER ? "" : value);
+  }
+
+  /** A catalog model replaces the shelves with its starting layout; everything stays editable. */
+  function chooseModel(modelName: string) {
+    const found = CATALOG.find((b) => b.brand === brandChoice)?.models.find((m) => m.model === modelName) ?? null;
+    setSpec(found);
+    setModel(modelName);
+    if (found) setShelves(estimateShelves(found).map((s) => ({ preset: presetOf(s), ...s })));
   }
 
   function changePreset(index: number, preset: PresetKey) {
@@ -95,9 +121,51 @@ export function NewFridgeForm() {
         <legend className="mb-2 text-lg font-semibold">פרטי המקרר</legend>
         <TextField label="שם" value={name} onChange={setName} required />
         <div className="grid grid-cols-2 gap-3">
-          <TextField label="יצרן (לא חובה)" value={brand} onChange={setBrand} />
-          <TextField label="דגם (לא חובה)" value={model} onChange={setModel} />
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-muted">יצרן</span>
+            <select value={brandChoice} onChange={(e) => chooseBrand(e.target.value)} className={selectClass}>
+              <option value="">בחרו (לא חובה)</option>
+              {CATALOG.map((b) => (
+                <option key={b.brand} value={b.brand}>
+                  {b.brand}
+                </option>
+              ))}
+              <option value={OTHER}>יצרן אחר</option>
+            </select>
+          </label>
+          {brandChoice && brandChoice !== OTHER && (
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-muted">דגם</span>
+              <select value={model} onChange={(e) => chooseModel(e.target.value)} className={selectClass} dir="ltr">
+                <option value="">בחרו דגם</option>
+                {CATALOG.find((b) => b.brand === brandChoice)?.models.map((m) => (
+                  <option key={m.model} value={m.model}>
+                    {m.model} · {m.capacity}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
+        {brandChoice === OTHER && (
+          <div className="grid grid-cols-2 gap-3">
+            <TextField label="שם היצרן" value={brand} onChange={setBrand} />
+            <TextField label="דגם (לא חובה)" value={model} onChange={setModel} />
+          </div>
+        )}
+        {spec && (
+          <p className="rounded-lg bg-surface px-3 py-2 text-sm text-muted">
+            <span className="inline-block">
+              לפי היצרן: {spec.capacity} בקבוקים, {spec.shelves} מדפים{spec.bottom ? " ואזור תחתון" : ""}.
+            </span>{" "}
+            <span className="inline-block">כמה בקבוקים בכל מדף – זו הערכה שלנו.</span>{" "}
+            <span className="inline-block">בדקו מול המקרר ושנו מה שצריך.</span>{" "}
+            {spec.note && <span className="inline-block">({spec.note})</span>}{" "}
+            <a href={spec.source} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+              עמוד הדגם
+            </a>
+          </p>
+        )}
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
@@ -150,7 +218,10 @@ export function NewFridgeForm() {
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">כך זה ייראה</h2>
-        <p className="text-sm text-muted">סך הכול מקום ל־{fridgeCapacity(shelves)} בקבוקים.</p>
+        <p className="text-sm text-muted">
+          סך הכול מקום ל־{fridgeCapacity(shelves)} בקבוקים
+          {spec && fridgeCapacity(shelves) !== spec.capacity ? ` (היצרן: ${spec.capacity})` : ""}.
+        </p>
         <FridgePreview shelves={shelves} />
       </section>
 
@@ -170,6 +241,8 @@ export function NewFridgeForm() {
     </form>
   );
 }
+
+const selectClass = "rounded-lg border border-muted/40 bg-surface px-3 py-2 text-base";
 
 function TextField({
   label,
