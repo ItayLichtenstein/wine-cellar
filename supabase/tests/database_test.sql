@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(46);
+select plan(53);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -294,6 +294,29 @@ select throws_ok(
             p_places => '[{"zone_id":"%s","slot":1}]'::jsonb) $$, current_setting('test.maya_row')),
   '23505', null, 'a taken slot is rejected');
 select is((select count(*)::int from bottles), 4, 'the rejected call added nothing');
+
+-- ---------- move_bottle() and set_rating() ----------
+-- the bottle in row slot 1 moves to slot 2 (empty)
+select lives_ok(
+  format($$ select move_bottle((select id from bottles where slot = 1), '%s', 2) $$, current_setting('test.maya_row')),
+  'move a bottle to an empty slot');
+
+-- put the unplaced 2021 bottle in slot 2 -> it swaps with the bottle there
+select lives_ok(
+  format($$ select move_bottle((select b.id from bottles b join wine_vintages v on v.id = b.vintage_id
+                                where b.status = 'unplaced' and v.year = 2021), '%s', 2) $$,
+         current_setting('test.maya_row')),
+  'move onto a taken slot swaps the two bottles');
+select is((select count(*)::int from bottles where zone_id::text = current_setting('test.maya_row') and slot = 2), 1,
+          'after the swap the slot holds exactly one bottle');
+select is((select count(*)::int from bottles where status = 'unplaced'), 1,
+          'the bottle that was there took the other bottle''s old place (outside the fridge)');
+
+-- ratings: insert, then replace
+select lives_ok($$ select set_rating((select id from wines), 4.46) $$, 'set a shared rating');
+select lives_ok($$ select set_rating((select id from wines), 4.8) $$, 'set it again');
+select is((select count(*)::int || '/' || max(score)::text from ratings where rater_id is null and vintage_id is null),
+          '1/4.8', 'setting a rating again replaces it (one row, latest score)');
 
 -- a viewer cannot create fridges
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
