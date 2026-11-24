@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { drinkNow } from "@/lib/bottle-list";
+import { cellarTitle } from "@/lib/cellar-title";
+import { createClient } from "@/lib/supabase/server";
 import { getCellarBottles, getLooseBottles, getMyFridges } from "@/lib/fridges";
 import { CellarView } from "./cellar-view";
 import { NamePrompt } from "./name-prompt";
@@ -20,10 +22,19 @@ export default function Home() {
 }
 
 async function Header() {
-  const user = await getCurrentUser();
+  const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
+  // Full members only, in joining order (RLS: the user's own cellar).
+  const { data: members } = await supabase
+    .from("cellar_members")
+    .select("role, profiles(display_name)")
+    .eq("role", "member")
+    .order("joined_at");
+  const names = (members ?? []).map((m) => m.profiles?.display_name ?? "");
   return (
     <header>
-      <h1 className="text-2xl font-bold">מרתף יין</h1>
+      <h1 className="text-2xl font-bold" dir="auto">
+        {cellarTitle(names)}
+      </h1>
       <p className="text-sm text-muted">שלום {user.displayName}</p>
       {!user.onboarded && <NamePrompt userId={user.id} initial={user.displayName === "משתמש חדש" ? "" : user.displayName} />}
     </header>
