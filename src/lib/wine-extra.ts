@@ -73,3 +73,13 @@ export function validateExtra(e: WineExtra): string | null {
   if (e.link.trim() && !linkLabel(e.link.trim())) return "הקישור צריך להתחיל ב־https://";
   return null;
 }
+
+/** "4 × 2021, 1 × 2020, 2 × NV": how many bottles of each vintage, newest first. */
+export function vintageBreakdown(years: (number | null)[]): string {
+  const counts = new Map<number | null, number>();
+  for (const y of years) counts.set(y, (counts.get(y) ?? 0) + 1);
+  return [...counts.entries()]
+    .sort(([a], [b]) => (b ?? -Infinity) - (a ?? -Infinity))
+    .map(([y, n]) => `${n} × ${y ?? "NV"}`)
+    .join(", ");
+}

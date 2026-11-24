@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 export type CurrentUser = {
   id: string;
   displayName: string;
+  /** False until the user confirmed a name (first sign-in). */
+  onboarded: boolean;
 };
 
 /**
@@ -22,9 +24,9 @@ export async function getCurrentUser(): Promise<CurrentUser> {
   // RLS lets a user read their own profile only (and their household's).
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name")
+    .select("display_name, onboarded_at")
     .eq("id", userId)
     .single();
 
-  return { id: userId, displayName: profile?.display_name ?? "" };
+  return { id: userId, displayName: profile?.display_name ?? "", onboarded: Boolean(profile?.onboarded_at) };
 }
