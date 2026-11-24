@@ -1,0 +1,44 @@
+# Runs on every pull request and on main: the same checks as locally.
+# Free for public repositories.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only token: CI only checks code, it never writes to the repo.
+permissions:
+  contents: read
+
+jobs:
+  app:
+    name: Types, lint, unit tests, build
+    runs-on: ubuntu-latest
+    env:
+      # Dummy public values so the build can run; no real keys in CI.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx eslint src
+      - run: npm test
+      - run: npx next build
+
+  database:
+    name: Database tests (pgTAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # Only the database is needed: migrations + seed, then the tests.
+      - run: supabase db start
+      - run: supabase test db
