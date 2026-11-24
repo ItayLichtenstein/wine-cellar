@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>כיווני עיצוב</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&family=Frank+Ruhl+Libre:wght@500;700&family=Rubik:wght@400;600&family=Assistant:wght@400;700&family=Secular+One&display=swap" rel="stylesheet">
+<style>
+  :root { --page:#f4f1ec; --ink:#222; --muted:#6b6560; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page:#151413; --ink:#eee; --muted:#a39d97; } }
+  :root[data-theme="dark"] { --page:#151413; --ink:#eee; --muted:#a39d97; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--page); color:var(--ink); font-family:Heebo, sans-serif; padding:24px 16px 48px; }
+  h1 { margin:0 0 4px; font-size:28px; }
+  .lead { color:var(--muted); max-width:760px; margin:0 0 24px; line-height:1.6; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:28px; }
+  .dir h2 { margin:0; font-size:19px; }
+  .dir p.why { margin:4px 0 10px; color:var(--muted); font-size:14px; line-height:1.5; min-height:63px; }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .tags span { font-size:12px; border:1px solid currentColor; border-radius:99px; padding:1px 8px; color:var(--muted); }
+
+  /* ---------- the phone mock: everything inside reads the theme variables ---------- */
+  .phone { border-radius:28px; padding:18px 14px 16px; background:var(--bg); color:var(--fg); font-family:var(--font);
+           box-shadow:0 10px 30px rgba(0,0,0,.18); border:1px solid rgba(0,0,0,.08); }
+  .phone .title { font-family:var(--title-font); font-size:24px; font-weight:800; margin:0; color:var(--title, var(--fg)); }
+  .phone .hello { color:var(--muted-c); font-size:13px; margin:2px 0 12px; }
+  .phone .sect { font-weight:600; font-size:15px; margin:12px 0 6px; font-family:var(--title-font); }
+  .strip { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
+  .tile { background:var(--surface); border-radius:var(--r); padding:7px; font-size:12px; line-height:1.25; box-shadow:var(--shadow); }
+  .tile b { display:block; font-weight:600; margin:4px 0 2px; }
+  .tile small { color:var(--muted-c); }
+  .yr { display:inline-block; font-size:10px; font-weight:800; color:#111; border-radius:3px; padding:0 4px; line-height:16px; }
+  .fridge { background:var(--fridge); border-radius:calc(var(--r) + 6px); padding:8px; display:flex; flex-direction:column; gap:6px; }
+  .shelf { background:var(--shelf); border-radius:var(--r); padding:6px; display:flex; flex-direction:column; gap:5px; border-bottom:var(--shelf-edge, none); }
+  .row { display:flex; gap:4px; justify-content:flex-start; }
+  .slot { width:44px; height:40px; border-radius:calc(var(--r) - 2px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+  .slot.full { background:var(--bottle); color:#111; font-size:8.5px; font-weight:600; box-shadow:var(--bottle-shadow, none); }
+  .slot.empty { border:1.5px solid var(--slot-line); }
+  .btn { display:inline-block; background:var(--accent); color:var(--on-accent); border-radius:99px; padding:6px 14px; font-size:13px; font-weight:600; }
+  .card { margin-top:10px; background:var(--surface); border-radius:var(--r); padding:10px 12px; font-size:12.5px; box-shadow:var(--shadow); }
+  .card .w { color:var(--muted-c); font-size:12px; }
+  .card .n { font-family:var(--title-font); font-size:18px; font-weight:700; margin:0 0 6px; }
+  .card dl { display:grid; grid-template-columns:auto 1fr; gap:3px 12px; margin:0; }
+  .card dt { color:var(--muted-c); }
+  .card dd { margin:0; }
+  .nav { display:flex; justify-content:space-around; margin-top:12px; padding-top:8px; border-top:1px solid var(--line); font-size:11px; color:var(--muted-c); }
+  .nav b { color:var(--fg); }
+
+  /* ---------- the directions ---------- */
+  .t-current  { --bg:#1d1a18; --fg:#ede6df; --muted-c:#a89f97; --surface:#282421; --fridge:#24201e; --shelf:#3a3532; --bottle:#d9d2cb; --slot-line:#6e6660; --accent:#d9a3ab; --on-accent:#1d1a18; --line:#3a3532; --r:10px; --font:Heebo; --title-font:Heebo; --shadow:none; }
+  .t-paper    { --bg:#f7f1e6; --fg:#2b2320; --muted-c:#7d6f66; --surface:#fffaf1; --fridge:#e9dfcf; --shelf:#f3eadb; --bottle:#fff; --slot-line:#cdbfa9; --accent:#7a1f2b; --on-accent:#fff; --line:#e3d7c4; --r:6px; --font:Assistant; --title-font:"Frank Ruhl Libre"; --title:#7a1f2b; --shadow:0 1px 2px rgba(80,50,30,.12); --bottle-shadow:0 1px 2px rgba(0,0,0,.15); }
+  .t-bordeaux { --bg:#2a0f17; --fg:#f6e7d8; --muted-c:#c9a99a; --surface:#3a1621; --fridge:#21090f; --shelf:#46202b; --bottle:#f3e3cf; --slot-line:#7d4652; --accent:#c9a24a; --on-accent:#2a0f17; --line:#4b2530; --r:12px; --font:Heebo; --title-font:"Frank Ruhl Libre"; --title:#e3c27a; --shadow:none; }
+  .t-nordic   { --bg:#ffffff; --fg:#111; --muted-c:#7a7a7a; --surface:#f5f5f4; --fridge:#f0efed; --shelf:#ffffff; --bottle:#e9e4df; --slot-line:#d6d3cf; --accent:#a3132b; --on-accent:#fff; --line:#ececec; --r:14px; --font:Rubik; --title-font:Rubik; --shadow:none; --shelf-edge:1px solid #e4e2df; }
+  .t-oak      { --bg:#f3e9dc; --fg:#33251b; --muted-c:#80695a; --surface:#fbf5ec; --fridge:#5b3b24; --shelf:#c9965f; --bottle:#2a2320; --slot-line:#8a5b33; --accent:#5b3b24; --on-accent:#fbf5ec; --line:#e0d1bd; --r:8px; --font:Assistant; --title-font:"Secular One"; --shadow:0 1px 3px rgba(60,35,15,.15); --shelf-edge:3px solid #9c6b3c; }
+  .t-oak .slot.full { color:#f3e9dc; }
+  .t-med      { --bg:#eef0e6; --fg:#27301f; --muted-c:#6d7560; --surface:#fbfbf6; --fridge:#4a5a3a; --shelf:#dfe3d2; --bottle:#fff; --slot-line:#a8b293; --accent:#c4643b; --on-accent:#fff; --line:#dde1d0; --r:16px; --font:Rubik; --title-font:Rubik; --title:#3e5230; --shadow:0 1px 2px rgba(40,50,30,.1); }
+</style>
+</head>
+<body>
+  <h1>שישה כיווני עיצוב למרתף</h1>
+  <p class="lead">
+    אותו מסך בכל הכיוונים: כותרת, "מה לשתות עכשיו", מדף במקרר וכרטיס בקבוק.
+    צבעי הבשלות (התגית עם השנה) נשארים קבועים בכל הכיוונים – הם מידע, לא קישוט.
+    כל כיוון יקבל גם גרסה בהירה וגם כהה; כאן מוצגת הגרסה הטבעית שלו.
+  </p>
+  <div class="grid" id="grid"></div>
+
+<script>
+// Each direction: a theme class, a name, why wine lovers might like it, and tags.
+const DIRS = [
+  ["t-current",  "1. מרתף לילה (היום)", "חום כהה וחם, כמו מרתף בלי אור. נוח בערב ולא מסנוור, אבל קצת כבד וחסר אופי.", ["כהה", "שקט", "Heebo"]],
+  ["t-paper",    "2. תווית על נייר", "קרם של נייר תווית, בורדו עמוק וכותרות בגופן עם סריפים – מרגיש כמו תווית של יקב או תפריט יין. קלאסי, נקי וקריא ביום.", ["בהיר", "קלאסי", "Frank Ruhl Libre"]],
+  ["t-bordeaux", "3. בורדו וזהב", "סגול־בורדו כהה עם נגיעות זהב – יוקרתי, ערבי, \"חדר טעימות\". יפה מאוד לחובבים, אבל קל להגזים בזהב.", ["כהה", "יוקרתי", "ניגודיות גבוהה"]],
+  ["t-nordic",   "4. מינימליסטי לבן", "לבן, אפור עדין ונקודת צבע אחת אדומה – הכיוון של אפליקציות מודרניות כמו Vivino. הכי \"מקצועי\" ונקי, פחות רומנטי.", ["בהיר", "נקי", "Rubik"]],
+  ["t-oak",      "5. מדפי עץ", "המקרר נראה כמו מתלה עץ אמיתי: מדפי אלון ובקבוקים כהים. הכי מוחשי ומשחקי, אבל תוויות בהירות על בקבוק כהה קטנות לקריאה.", ["חם", "מוחשי", "Secular One"]],
+  ["t-med",      "6. כרם ים־תיכוני", "ירוק זית וטרקוטה – כרם, אדמה, שמש. רענן ולא צפוי, מתאים למי שמחבר יין לטיולים ויקבים.", ["בהיר", "טבעי", "רענן"]],
+];
+
+// Same content for every mock. Year badges use the app's ripeness colors.
+const BADGE = { past:"#f2a23c", now:"#2e9e4a", soon:"#7bd877", hold:"#4fc3d4", young:"#8f8885" };
+const yr = (y, s) => `<span class="yr" style="background:${BADGE[s]}">${y}</span>`;
+const slot = (name, y, s) => `<span class="slot full">${name}${yr(y, s)}</span>`;
+const empty = () => `<span class="slot empty"></span>`;
+
+const mock = () => `
+  <p class="title">מרתף יין</p>
+  <p class="hello">שלום נועה · 82 בקבוקים במקרר</p>
+  <span class="btn">+ הוספת בקבוקים</span>
+  <p class="sect">מה לשתות עכשיו</p>
+  <div class="strip">
+    <div class="tile">${yr(2012, "past")}<b>מרקס דה אריינסו</b><small>עבר את השיא</small></div>
+    <div class="tile">${yr(2017, "now")}<b>טרה רוורי</b><small>בשיא</small></div>
+    <div class="tile">${yr(2018, "now")}<b>קברנה סוביניון</b><small>בשיא</small></div>
+  </div>
+  <p class="sect">מקרר יין</p>
+  <div class="fridge">
+    <div class="shelf">
+      <div class="row">${slot("קומטו", "21", "hold")}${slot("לה פליסה", "23", "hold")}${slot("אמנקאיה", "20", "now")}${empty()}${empty()}</div>
+      <div class="row">${slot("ריסרבה", "19", "soon")}${slot("ברולו", "16", "young")}${empty()}${empty()}</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="w">קלוס מוגדור</div>
+    <p class="n">קום טו 2021</p>
+    <dl>
+      <dt>בשלות</dt><dd>בשיא, אפשר להחזיק כמה שנים</dd>
+      <dt>מבקרים</dt><dd>94 · 3 מבקרים</dd>
+      <dt>מחיר</dt><dd>₪260 (₪220)</dd>
+    </dl>
+  </div>
+  <div class="nav"><b>🍷 מקרר</b><span>☰ רשימה</span><span>🕘 היסטוריה</span><span>⋯ עוד</span></div>`;
+
+document.getElementById("grid").innerHTML = DIRS.map(([cls, name, why, tags]) => `
+  <section class="dir">
+    <h2>${name}</h2>
+    <p class="why">${why}</p>
+    <div class="tags">${tags.map((t) => `<span>${t}</span>`).join("")}</div>
+    <div class="phone ${cls}">${mock()}</div>
+  </section>`).join("");
+</script>
+</body>
+</html>
