@@ -26,6 +26,8 @@ export type BottleDetails = {
   wineRating: number | null;
   /** Grape, country, critics, link… (the "more details" part of the forms). */
   extra: WineExtra;
+  /** Years of every bottle of this wine still in the cellar (this one included). */
+  wineYears: (number | null)[];
 };
 
 export const WINE_TYPES: { value: WineType; label: string; other?: true }[] = [
@@ -64,11 +66,14 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
   if (error || !b.wine_vintages) throw new Error("not found");
 
   const v = b.wine_vintages;
-  const { data: ratings } = await supabase
-    .from("ratings")
-    .select("score, vintage_id")
-    .eq("wine_id", v.wine_id)
-    .is("rater_id", null);
+  const [{ data: ratings }, { data: siblings }] = await Promise.all([
+    supabase.from("ratings").select("score, vintage_id").eq("wine_id", v.wine_id).is("rater_id", null),
+    supabase
+      .from("bottles")
+      .select("wine_vintages!inner(year, wine_id)")
+      .eq("wine_vintages.wine_id", v.wine_id)
+      .neq("status", "consumed"),
+  ]);
 
   // One price per bottle, but the composite foreign key makes the generated
   // type a list – accept both shapes.
@@ -111,6 +116,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
       critics: v.critic_scores ?? [],
       link: b.link_url ?? "",
     },
+    wineYears: (siblings ?? []).map((x) => x.wine_vintages.year),
   };
 }
 

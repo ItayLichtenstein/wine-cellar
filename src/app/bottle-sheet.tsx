@@ -58,6 +58,7 @@ export function BottleSheet({ bottleId, onClose, onMove, onChanged }: Props) {
             onMove={onMove}
             onEdit={() => setStep("edit")}
             onClose={onClose}
+            onDeleted={onChanged}
           />
         )}
         {details && step === "drink" && <DrinkForm details={details} onCancel={() => setStep("details")} onDone={onChanged} />}

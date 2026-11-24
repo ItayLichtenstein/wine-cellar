@@ -5,6 +5,7 @@ import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { drinkNow } from "@/lib/bottle-list";
 import { getCellarBottles, getLooseBottles, getMyFridges } from "@/lib/fridges";
 import { CellarView } from "./cellar-view";
+import { NamePrompt } from "./name-prompt";
 
 export default function Home() {
   return (
@@ -24,6 +25,7 @@ async function Header() {
     <header>
       <h1 className="text-2xl font-bold">מרתף יין</h1>
       <p className="text-sm text-muted">שלום {user.displayName}</p>
+      {!user.onboarded && <NamePrompt userId={user.id} initial={user.displayName === "משתמש חדש" ? "" : user.displayName} />}
     </header>
   );
 }
@@ -36,7 +38,10 @@ async function Fridges() {
       <section className="flex flex-col items-center gap-4 rounded-2xl bg-surface p-8 text-center shadow-sm">
         <div className="text-4xl" aria-hidden="true">🧊</div>
         <h2 className="text-xl font-semibold">עוד אין כאן מקרר</h2>
-        <p className="text-muted">נתחיל מהבסיס: כמה מדפים יש, ואיך כל מדף מסודר.</p>
+        <p className="text-muted">
+          <span className="inline-block">נתחיל מהבסיס:</span>{" "}
+          <span className="inline-block">כמה מדפים יש, ואיך כל מדף מסודר.</span>
+        </p>
         <Link href="/fridges/new" className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
           הגדרת המקרר הראשון
         </Link>

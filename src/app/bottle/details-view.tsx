@@ -1,6 +1,8 @@
 "use client";
 
-import { criticSummary, linkLabel } from "@/lib/wine-extra";
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { criticSummary, linkLabel, vintageBreakdown } from "@/lib/wine-extra";
 import { DRINK_STATES, drinkState } from "@/lib/drink-state";
 import { formatPrice, type BottleDetails } from "./details";
 
@@ -10,12 +12,14 @@ export function DetailsView({
   onMove,
   onEdit,
   onClose,
+  onDeleted,
 }: {
   details: BottleDetails;
   onDrink: () => void;
   onMove: () => void;
   onEdit: () => void;
   onClose: () => void;
+  onDeleted: () => void;
 }) {
   // Same inputs as the fridge badge (including the peak), so both always agree.
   const state = drinkState(
@@ -77,6 +81,11 @@ export function DetailsView({
             </a>
           </Row>
         )}
+        {d.wineYears.length > 1 && (
+          <Row label="במרתף">
+            <span dir="ltr">{vintageBreakdown(d.wineYears)}</span>
+          </Row>
+        )}
         <dt className="text-muted">מחיר</dt>
         <dd>{formatPrice(d)}</dd>
         <dt className="text-muted">ציון</dt>
@@ -103,6 +112,7 @@ export function DetailsView({
         <button type="button" onClick={onEdit} className="underline underline-offset-2">
           עריכה
         </button>
+        <DeleteButton bottleId={d.id} onDeleted={onDeleted} />
         <button type="button" onClick={onClose} className="text-muted underline underline-offset-2">
           סגירה
         </button>
@@ -117,5 +127,44 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
       <dt className="text-muted">{label}</dt>
       <dd>{children}</dd>
     </>
+  );
+}
+
+/**
+ * Deleting is for a bottle entered by mistake (a drunk bottle is "שתינו").
+ * Two steps, so one stray tap never deletes anything.
+ */
+function DeleteButton({ bottleId, onDeleted }: { bottleId: string; onDeleted: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function remove() {
+    setBusy(true);
+    const { error } = await createClient().from("bottles").delete().eq("id", bottleId);
+    if (error) {
+      setBusy(false);
+      setFailed(true);
+      return;
+    }
+    onDeleted();
+  }
+
+  if (!confirming) {
+    return (
+      <button type="button" onClick={() => setConfirming(true)} className="text-muted underline underline-offset-2">
+        מחיקה
+      </button>
+    );
+  }
+  return (
+    <span className="flex items-center gap-2">
+      <button type="button" onClick={remove} disabled={busy} className="font-medium text-red-700 underline underline-offset-2 dark:text-red-400">
+        {failed ? "לא הצליח – לנסות שוב?" : "למחוק לגמרי?"}
+      </button>
+      <button type="button" onClick={() => setConfirming(false)} className="text-muted underline underline-offset-2">
+        לא
+      </button>
+    </span>
   );
 }

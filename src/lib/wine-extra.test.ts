@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_EXTRA, criticSummary, linkLabel, validateExtra } from "./wine-extra";
+import { EMPTY_EXTRA, criticSummary, linkLabel, validateExtra, vintageBreakdown } from "./wine-extra";
 
 describe("criticSummary", () => {
   it("rounds the average and counts the critics", () => {
@@ -31,4 +31,8 @@ describe("validateExtra", () => {
     expect(validateExtra({ ...EMPTY_EXTRA, critics: [{ critic: "X", score: 120 }] })).toMatch(/מבקר/);
     expect(validateExtra({ ...EMPTY_EXTRA, link: "ftp://x" })).toMatch(/קישור/);
   });
+});
+
+it("vintageBreakdown: counts per year, newest first, NV last", () => {
+  expect(vintageBreakdown([2020, 2021, null, 2021, 2021, 2021])).toBe("4 × 2021, 1 × 2020, 1 × NV");
 });
