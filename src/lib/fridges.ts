@@ -96,13 +96,35 @@ export async function getMyWineNames(): Promise<{ winery: string; name: string }
   return data;
 }
 
-/** How many bottles are outside the fridge / on their way. */
-export async function getLooseBottleCounts(): Promise<{ unplaced: number; inTransit: number }> {
+/** A bottle that is not in a fridge: outside it, or still on its way. */
+export type LooseBottle = {
+  id: string;
+  status: "unplaced" | "in_transit";
+  year: number | null;
+  state: DrinkState;
+  title: string;
+};
+
+export async function getLooseBottles(): Promise<LooseBottle[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("bottles").select("status").in("status", ["unplaced", "in_transit"]);
+  const { data, error } = await supabase
+    .from("bottles")
+    .select("id, status, wine_vintages(year, drink_from, drink_to, peak_from, peak_to, wines(winery, name))")
+    .in("status", ["unplaced", "in_transit"])
+    .order("added_on", { ascending: false });
   if (error) throw new Error("Could not load bottles");
-  return {
-    unplaced: data.filter((b) => b.status === "unplaced").length,
-    inTransit: data.filter((b) => b.status === "in_transit").length,
-  };
+
+  const year = new Date().getFullYear();
+  return data.map((b) => {
+    const v = b.wine_vintages;
+    return {
+      id: b.id,
+      status: b.status as LooseBottle["status"],
+      year: v?.year ?? null,
+      state: v
+        ? drinkState({ drinkFrom: v.drink_from, drinkTo: v.drink_to, peakFrom: v.peak_from, peakTo: v.peak_to }, year)
+        : "none",
+      title: v?.wines ? `${v.wines.winery} – ${v.wines.name}` : "",
+    };
+  });
 }

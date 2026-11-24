@@ -351,8 +351,14 @@ isOneToOne: false
 "is_member_of":
 { Args: { "p_cellar_id": string,"p_user_id": string }; Returns: boolean
                            },
+"move_bottle":
+{ Args: { "p_bottle_id": string,"p_slot"?: number,"p_zone_id": string }; Returns: undefined
+                           },
 "my_cellar_id":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"set_rating":
+{ Args: { "p_rater_id"?: string,"p_score": number,"p_vintage_id"?: string,"p_wine_id": string }; Returns: undefined
                            }
           }
           Enums: {

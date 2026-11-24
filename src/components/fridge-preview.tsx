@@ -16,6 +16,10 @@ type Props = {
   onPick?: (place: Place) => void;
   /** Places already picked (shown highlighted). */
   picked?: Place[];
+  /** When set, bottles become buttons (open the card, or swap while moving). */
+  onBottleClick?: (bottle: PlacedBottle, place: Place) => void;
+  /** The bottle being moved, drawn highlighted. */
+  activeBottleId?: string;
 };
 
 /**
@@ -23,7 +27,7 @@ type Props = {
  * Bottles are neutral; only the small year badge carries the drink-window
  * color (never red frames – red reads as "bad wine").
  */
-export function FridgePreview({ shelves, onPick, picked = [] }: Props) {
+export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, activeBottleId }: Props) {
   return (
     <ol className="flex flex-col gap-2 rounded-2xl bg-fridge p-3" aria-label="שרטוט המקרר">
       {shelves.map((shelf, i) => (
@@ -33,7 +37,15 @@ export function FridgePreview({ shelves, onPick, picked = [] }: Props) {
           </span>
           <div className="flex flex-1 flex-col gap-1.5">
             {shelf.zones.map((zone, j) => (
-              <ZoneLine key={zone.id ?? j} zone={zone} shelfNo={i + 1} onPick={onPick} picked={picked} />
+              <ZoneLine
+                key={zone.id ?? j}
+                zone={zone}
+                shelfNo={i + 1}
+                onPick={onPick}
+                picked={picked}
+                onBottleClick={onBottleClick}
+                activeBottleId={activeBottleId}
+              />
             ))}
           </div>
         </li>
@@ -47,11 +59,15 @@ function ZoneLine({
   shelfNo,
   onPick,
   picked,
+  onBottleClick,
+  activeBottleId,
 }: {
   zone: DrawnZone;
   shelfNo: number;
   onPick?: (p: Place) => void;
   picked: Place[];
+  onBottleClick?: (bottle: PlacedBottle, place: Place) => void;
+  activeBottleId?: string;
 }) {
   const bottles = zone.bottles ?? [];
   const pickedHere = picked.filter((p) => p.zoneId === zone.id);
@@ -65,9 +81,24 @@ function ZoneLine({
           {zone.label || "ערימה"} · {used}/{zone.capacity}
         </span>
         <span className="flex flex-wrap gap-0.5">
-          {bottles.map((b) => (
-            <YearBadge key={b.id} bottle={b} />
-          ))}
+          {bottles.map((b) =>
+            onBottleClick && zone.id ? (
+              <button
+                key={b.id}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBottleClick(b, { zoneId: zone.id!, slot: null });
+                }}
+                aria-label={`${b.title} ${b.year ?? "NV"}`}
+                className={b.id === activeBottleId ? "rounded-sm ring-2 ring-on-fridge" : ""}
+              >
+                <YearBadge bottle={b} />
+              </button>
+            ) : (
+              <YearBadge key={b.id} bottle={b} />
+            ),
+          )}
           {pickedHere.map((_, k) => (
             <span key={k} className="h-4 w-7 rounded-sm bg-on-fridge" aria-hidden="true" />
           ))}
@@ -76,7 +107,7 @@ function ZoneLine({
     );
     const className =
       "flex flex-wrap items-center gap-2 rounded-md border border-dashed border-on-fridge/40 px-2 py-1 text-xs text-on-fridge/80";
-    return canPick ? (
+    return canPick && !onBottleClick ? (
       <button
         type="button"
         onClick={() => onPick({ zoneId: zone.id!, slot: null })}
@@ -85,6 +116,19 @@ function ZoneLine({
       >
         {content}
       </button>
+    ) : canPick ? (
+      // Bottles inside are buttons, so the stack itself can't be one.
+      <div className={className}>
+        {content}
+        <button
+          type="button"
+          onClick={() => onPick({ zoneId: zone.id!, slot: null })}
+          className="rounded-full border border-on-fridge/50 px-2 leading-5 hover:border-on-fridge"
+          aria-label={`הוספה ל${zone.label || "ערימה"}, מדף ${shelfNo}`}
+        >
+          +
+        </button>
+      </div>
     ) : (
       <div className={className}>{content}</div>
     );
@@ -95,7 +139,21 @@ function ZoneLine({
       {Array.from({ length: zone.capacity }, (_, k) => {
         const slot = k + 1;
         const bottle = bottles.find((b) => b.slot === slot);
-        if (bottle) return <BottleSlot key={slot} bottle={bottle} />;
+        if (bottle) {
+          return onBottleClick && zone.id ? (
+            <button
+              key={slot}
+              type="button"
+              onClick={() => onBottleClick(bottle, { zoneId: zone.id!, slot })}
+              className={`rounded-full ${bottle.id === activeBottleId ? "ring-2 ring-on-fridge ring-offset-2 ring-offset-shelf" : ""}`}
+              aria-label={`${bottle.title} ${bottle.year ?? "NV"}, מדף ${shelfNo}, מקום ${slot}`}
+            >
+              <BottleSlot bottle={bottle} />
+            </button>
+          ) : (
+            <BottleSlot key={slot} bottle={bottle} />
+          );
+        }
 
         const isPicked = pickedHere.some((p) => p.slot === slot);
         if (onPick && zone.id) {
