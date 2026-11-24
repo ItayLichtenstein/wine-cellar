@@ -44,8 +44,11 @@
   .card dl { display:grid; grid-template-columns:auto 1fr; gap:3px 12px; margin:0; }
   .card dt { color:var(--muted-c); }
   .card dd { margin:0; }
-  .nav { display:flex; justify-content:space-around; margin-top:12px; padding-top:8px; border-top:1px solid var(--line); font-size:11px; color:var(--muted-c); }
-  .nav b { color:var(--fg); }
+  .nav { display:flex; margin-top:12px; padding-top:8px; border-top:1px solid var(--line); font-size:11px; color:var(--muted-c); }
+  .nav span { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; line-height:1; }
+  .nav svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .nav .on { color:var(--fg); font-weight:600; }
+  .nav .on svg { stroke-width:2.2; }
 
   /* ---------- the directions ---------- */
   .t-current  { --bg:#1d1a18; --fg:#ede6df; --muted-c:#a89f97; --surface:#282421; --fridge:#24201e; --shelf:#3a3532; --bottle:#d9d2cb; --slot-line:#6e6660; --accent:#d9a3ab; --on-accent:#1d1a18; --line:#3a3532; --r:10px; --font:Heebo; --title-font:Heebo; --shadow:none; }
@@ -109,7 +112,12 @@ const mock = () => `
       <dt>מחיר</dt><dd>₪260 (₪220)</dd>
     </dl>
   </div>
-  <div class="nav"><b>🍷 מקרר</b><span>☰ רשימה</span><span>🕘 היסטוריה</span><span>⋯ עוד</span></div>`;
+  <div class="nav">
+    <span class="on"><svg viewBox="0 0 24 24"><path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm-1 7h12M9 6v2m0 5v3"/></svg>מקרר</span>
+    <span><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>רשימה</span>
+    <span><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4m5-1v5l3 2"/></svg>היסטוריה</span>
+    <span><svg viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg>עוד</span>
+  </div>`;
 
 document.getElementById("grid").innerHTML = DIRS.map(([cls, name, why, tags]) => `
   <section class="dir">
