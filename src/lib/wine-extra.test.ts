@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_EXTRA, criticSummary, linkLabel, validateExtra, vintageBreakdown } from "./wine-extra";
+import { EMPTY_EXTRA, criticSummary, linkLabel, ratingLine, validateExtra, vintageBreakdown } from "./wine-extra";
 
 describe("criticSummary", () => {
   it("rounds the average and counts the critics", () => {
@@ -35,4 +35,16 @@ describe("validateExtra", () => {
 
 it("vintageBreakdown: counts per year, newest first, NV last", () => {
   expect(vintageBreakdown([2020, 2021, null, 2021, 2021, 2021])).toBe("4 × 2021, 1 × 2020, 1 × NV");
+});
+
+describe("ratingLine", () => {
+  const p = (name: string, score: number, vintageId: string | null) => ({ raterId: name, name, score, vintageId });
+  it("separate ratings win over the shared one, the vintage's own first", () => {
+    expect(ratingLine([p("נועה", 4.5, "v1"), p("יונתן", 3.8, "v1"), p("נועה", 3, null)], 4, "v1")).toBe("נועה 4.5 · יונתן 3.8");
+    expect(ratingLine([p("נועה", 3, null)], null, "v1")).toBe("נועה 3");
+  });
+  it("falls back to the shared score, or nothing", () => {
+    expect(ratingLine([], 4.5, "v1")).toBe("4.5 / 5");
+    expect(ratingLine([], null, "v1")).toBeNull();
+  });
 });
