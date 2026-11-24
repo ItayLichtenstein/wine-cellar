@@ -351,6 +351,9 @@ isOneToOne: false
 "is_member_of":
 { Args: { "p_cellar_id": string,"p_user_id": string }; Returns: boolean
                            },
+"log_tasting":
+{ Args: { "p_name": string,"p_notes"?: string,"p_place"?: string,"p_score"?: number,"p_tasted_on"?: string,"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: string
+                           },
 "move_bottle":
 { Args: { "p_bottle_id": string,"p_slot"?: number,"p_zone_id": string }; Returns: undefined
                            },

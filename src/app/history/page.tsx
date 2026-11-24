@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { getHistory } from "@/lib/fridges";
 
@@ -7,7 +8,12 @@ export const metadata: Metadata = { title: "היסטוריה · מרתף יין"
 export default function HistoryPage() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 py-8">
-      <h1 className="text-2xl font-bold">מה ששתינו</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold">מה ששתינו</h1>
+        <Link href="/history/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
+          + שתינו מחוץ לבית
+        </Link>
+      </div>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <History />
       </Suspense>
@@ -23,7 +29,7 @@ async function History() {
 
   return (
     <>
-      <p className="text-sm text-muted">{entries.length} בקבוקים</p>
+      <p className="text-sm text-muted">{entries.length === 1 ? "בקבוק אחד" : `${entries.length} בקבוקים`}</p>
       <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
         {entries.map((e) => (
           <li key={e.id} className="flex flex-col gap-0.5 px-4 py-3">
