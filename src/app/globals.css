@@ -41,3 +41,12 @@ body {
   color: var(--foreground);
   font-family: var(--font-heebo), system-ui, sans-serif;
 }
+
+/* Readable line breaks: headings get lines of even length, paragraphs
+   avoid a lone word on the last line. */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+p, li {
+  text-wrap: pretty;
+}

@@ -13,8 +13,11 @@ export default function LoginPage() {
         <div className="text-5xl" aria-hidden="true">🍷</div>
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold">מרתף יין</h1>
+          {/* Each span is one unit of meaning; lines break only between them. */}
           <p className="text-muted">
-            כל הבקבוקים שלכם במקום אחד: מה יש במקרר, מה בשל לשתייה, ומה כדאי לפתוח הערב.
+            <span className="inline-block">כל הבקבוקים שלכם במקום אחד:</span>{" "}
+            <span className="inline-block">מה יש במקרר, מה בשל לשתייה,</span>{" "}
+            <span className="inline-block">ומה כדאי לפתוח הערב.</span>
           </p>
         </div>
 
@@ -26,10 +29,13 @@ export default function LoginPage() {
         <GoogleSignInButton />
 
         <p className="text-sm text-muted">
-          אנחנו שומרים רק את השם והמייל מחשבון הגוגל, והמייל לא מוצג לאף אחד.{" "}
-          <Link href="/privacy" className="underline underline-offset-2">
-            מדיניות הפרטיות
-          </Link>
+          <span className="inline-block">אנחנו שומרים רק את השם והמייל מחשבון הגוגל,</span>{" "}
+          <span className="inline-block">
+            והמייל לא מוצג לאף אחד.{" "}
+            <Link href="/privacy" className="underline underline-offset-2">
+              מדיניות הפרטיות
+            </Link>
+          </span>
         </p>
       </div>
     </main>
