@@ -20,7 +20,6 @@ type FormShelf = Shelf & { preset: PresetKey };
 const DEFAULT_SIZE: Record<PresetKey, number> = {
   twoRows: 5,
   oneRow: 5,
-  stack: 8,
   doubleStack: 8,
   stacksAndRow: 8,
 };

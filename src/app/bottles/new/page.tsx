@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getMyFridges, getMyWineNames } from "@/lib/fridges";
+import type { Place } from "@/components/fridge-preview";
+import { getMyFridges, getMyWineNames, type FridgeView } from "@/lib/fridges";
 import { AddBottlesForm } from "./add-bottles-form";
 
 export const metadata: Metadata = { title: "הוספת בקבוקים · מרתף יין" };
 
-export default function AddBottlesPage() {
+type SearchParams = Promise<{ zone?: string; slot?: string }>;
+
+export default function AddBottlesPage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-1">
@@ -17,13 +20,27 @@ export default function AddBottlesPage() {
       </header>
       {/* Loads the user's fridges and wines, so it streams in behind Suspense. */}
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
-        <FormWithData />
+        <FormWithData searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function FormWithData() {
-  const [fridges, wines] = await Promise.all([getMyFridges(), getMyWineNames()]);
-  return <AddBottlesForm fridges={fridges} wines={wines} />;
+async function FormWithData({ searchParams }: { searchParams: SearchParams }) {
+  const [fridges, wines, params] = await Promise.all([getMyFridges(), getMyWineNames(), searchParams]);
+  return <AddBottlesForm fridges={fridges} wines={wines} initialPlace={findEmptyPlace(fridges, params)} />;
+}
+
+/**
+ * ?zone=…&slot=… comes from tapping an empty slot on the home page.
+ * The URL is user input, so it is used only if it names an empty place
+ * in one of the user's own fridges; anything else is ignored.
+ */
+function findEmptyPlace(fridges: FridgeView[], { zone, slot }: { zone?: string; slot?: string }): Place | undefined {
+  const z = fridges.flatMap((f) => f.shelves.flatMap((s) => s.zones)).find((x) => x.id === zone);
+  if (!z) return undefined;
+  if (z.kind === "stack") return z.bottles.length < z.capacity ? { zoneId: z.id, slot: null } : undefined;
+  const n = Number(slot);
+  if (!Number.isInteger(n) || n < 1 || n > z.capacity || z.bottles.some((b) => b.slot === n)) return undefined;
+  return { zoneId: z.id, slot: n };
 }

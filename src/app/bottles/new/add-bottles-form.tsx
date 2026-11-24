@@ -28,9 +28,12 @@ const THIS_YEAR = new Date().getFullYear();
 export function AddBottlesForm({
   fridges,
   wines,
+  initialPlace,
 }: {
   fridges: FridgeView[];
   wines: { winery: string; name: string }[];
+  /** An empty slot tapped on the home page: start with it already picked. */
+  initialPlace?: Place;
 }) {
   const router = useRouter();
 
@@ -38,7 +41,6 @@ export function AddBottlesForm({
   const [name, setName] = useState("");
   const [type, setType] = useState<WineType>("red");
   const [year, setYear] = useState("");
-  const [nonVintage, setNonVintage] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [paid, setPaid] = useState("");
   const [morePrice, setMorePrice] = useState(false);
@@ -47,7 +49,7 @@ export function AddBottlesForm({
   const [drinkFrom, setDrinkFrom] = useState("");
   const [drinkTo, setDrinkTo] = useState("");
   const [destination, setDestination] = useState<Destination>(fridges.length ? "fridge" : "unplaced");
-  const [picked, setPicked] = useState<Place[]>([]);
+  const [picked, setPicked] = useState<Place[]>(initialPlace ? [initialPlace] : []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,9 +83,10 @@ export function AddBottlesForm({
       setError("צריך למלא יקב ושם יין.");
       return;
     }
-    const yearNum = nonVintage ? null : Number(year) || null;
-    if (!nonVintage && (!yearNum || yearNum < 1900 || yearNum > THIS_YEAR + 1)) {
-      setError("צריך שנת בציר תקינה, או לסמן 'ללא בציר'.");
+    // An empty year means a non-vintage wine (NV); only a typed, wrong year is an error.
+    const yearNum = year.trim() ? Number(year) : null;
+    if (yearNum !== null && !(Number.isInteger(yearNum) && yearNum >= 1900 && yearNum <= THIS_YEAR + 1)) {
+      setError(`שנת הבציר צריכה להיות בין 1900 ל־${THIS_YEAR + 1}.`);
       return;
     }
 
@@ -159,22 +162,17 @@ export function AddBottlesForm({
             </select>
           </Field>
         )}
-        <div className="flex items-end gap-4">
+        <div className="flex items-end gap-3">
           <Field label="בציר">
             <input
               value={year}
               onChange={(e) => setYear(e.target.value)}
               inputMode="numeric"
-              placeholder={String(THIS_YEAR - 4)}
-              disabled={nonVintage}
               maxLength={4}
-              className={`${inputClass} w-24 disabled:opacity-40`}
+              className={`${inputClass} w-24`}
             />
           </Field>
-          <label className="flex items-center gap-2 pb-2 text-sm">
-            <input type="checkbox" checked={nonVintage} onChange={(e) => setNonVintage(e.target.checked)} />
-            ללא בציר (NV)
-          </label>
+          <span className="pb-2 text-sm text-muted">{year.trim() ? "" : "ריק = ללא בציר (NV)"}</span>
         </div>
       </fieldset>
 
@@ -214,8 +212,21 @@ export function AddBottlesForm({
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-2 text-lg font-semibold">איפה הם?</legend>
-        <div className="flex flex-wrap gap-2">
-          {fridges.length > 0 && <Choice value="fridge" current={destination} onChange={setDestination} label="במקרר" />}
+        {/* The fridge is the usual answer, so it is the big choice; the rare ones sit below it. */}
+        {fridges.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setDestination("fridge")}
+            aria-pressed={destination === "fridge"}
+            className={`rounded-xl border-2 px-4 py-3 text-base font-medium ${
+              destination === "fridge" ? "border-accent bg-accent text-white dark:text-black" : "border-muted/40"
+            }`}
+          >
+            במקרר
+          </button>
+        )}
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          {fridges.length > 0 && <span className="text-muted">או:</span>}
           <Choice value="unplaced" current={destination} onChange={setDestination} label="מחוץ למקרר" />
           <Choice value="in_transit" current={destination} onChange={setDestination} label="בדרך אלינו" />
         </div>
@@ -223,8 +234,11 @@ export function AddBottlesForm({
         {destination === "fridge" && (
           <>
             <p className="text-sm text-muted">
-              לחצו על מקומות פנויים (נבחרו {picked.length} מתוך {quantity}). לחיצה נוספת מבטלת.
-              {leftOver > 0 && ` ${leftOver} שלא ישובצו יישמרו כ"מחוץ למקרר".`}
+              <span className="inline-block">
+                לחצו על מקומות פנויים (נבחרו {picked.length} מתוך {quantity}).
+              </span>{" "}
+              <span className="inline-block">לחיצה נוספת מבטלת.</span>
+              {leftOver > 0 && <span className="inline-block">{` ${leftOver} שלא ישובצו יישמרו כ"מחוץ למקרר".`}</span>}
             </p>
             {picked.length > 0 && (
               <button type="button" onClick={() => setPicked([])} className="self-start text-sm underline underline-offset-2">
@@ -282,7 +296,7 @@ function Choice({
       type="button"
       onClick={() => onChange(value)}
       aria-pressed={on}
-      className={`rounded-full border px-4 py-2 text-sm ${on ? "border-accent bg-accent text-white dark:text-black" : "border-muted/40"}`}
+      className={`rounded-full border px-3 py-1 text-sm ${on ? "border-accent bg-accent text-white dark:text-black" : "border-muted/40 text-muted"}`}
     >
       {label}
     </button>

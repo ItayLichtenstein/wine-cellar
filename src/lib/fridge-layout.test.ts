@@ -29,7 +29,7 @@ describe("shelf presets", () => {
 describe("capacity", () => {
   it("adds up zones and shelves", () => {
     const twoRows = SHELF_PRESETS.twoRows.make(5); // 10
-    const stack = SHELF_PRESETS.stack.make(8); // 8
+    const stack = SHELF_PRESETS.doubleStack.make(4); // 8
     expect(shelfCapacity(twoRows)).toBe(10);
     expect(fridgeCapacity([twoRows, twoRows, stack])).toBe(28);
   });
