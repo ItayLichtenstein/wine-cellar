@@ -8,6 +8,7 @@ import { fridgeCapacity } from "@/lib/fridge-layout";
 import type { FridgeView, LooseBottle } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/client";
 import { BottleSheet } from "./bottle-sheet";
+import { useFridgeView } from "./use-fridge-view";
 
 /**
  * The interactive part of the home page:
@@ -18,6 +19,7 @@ export function CellarView({ fridges, loose }: { fridges: FridgeView[]; loose: L
   const [openId, setOpenId] = useState<string | null>(null);
   const [movingId, setMovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useFridgeView();
 
   function refresh() {
     setOpenId(null);
@@ -64,6 +66,22 @@ export function CellarView({ fridges, loose }: { fridges: FridgeView[]; loose: L
         </p>
       )}
 
+      <div className="flex justify-end">
+        <div role="group" aria-label="תצוגת המקרר" className="inline-flex rounded-full border border-muted/40 p-0.5 text-sm">
+          {(["labels", "dots"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              aria-pressed={view === v}
+              className={`rounded-full px-3 py-1 ${view === v ? "bg-accent text-white dark:text-black" : "text-muted"}`}
+            >
+              {v === "labels" ? "תוויות" : "נקודות"}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {fridges.map((fridge) => (
         <article key={fridge.id} className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-2">
@@ -76,6 +94,7 @@ export function CellarView({ fridges, loose }: { fridges: FridgeView[]; loose: L
           </div>
           <FridgePreview
             shelves={fridge.shelves}
+            view={view}
             activeBottleId={movingId ?? undefined}
             onPick={movingId ? (p) => moveTo(p) : undefined}
             onBottleClick={(bottle, place) => {

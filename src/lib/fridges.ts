@@ -9,6 +9,7 @@ export type PlacedBottle = {
   year: number | null;
   state: DrinkState;
   title: string; // "יקב – שם"
+  label: string; // short text for the labels view: the wine's name
 };
 
 export type ZoneView = {
@@ -63,6 +64,7 @@ export async function getMyFridges(): Promise<FridgeView[]> {
         year,
       ),
       title: v.wines ? `${v.wines.winery} – ${v.wines.name}` : "",
+      label: v.wines?.name ?? "",
     });
     byZone.set(b.zone_id, list);
   }

@@ -10,6 +10,15 @@ type DrawnZone = Zone & { id?: string; bottles?: PlacedBottle[] };
 /** A place the user picked: a row slot, or a stack (slot = null). */
 export type Place = { zoneId: string; slot: number | null };
 
+/** "labels": wine name + year in each slot (the default). "dots": year only, compact. */
+export type FridgeViewMode = "labels" | "dots";
+
+// Slot size per view. Labels are 3rem wide so 5 slots still fit a phone row.
+const SLOT_SHAPE: Record<FridgeViewMode, string> = {
+  labels: "h-11 w-12 rounded-lg",
+  dots: "size-9 rounded-full",
+};
+
 type Props = {
   shelves: { zones: DrawnZone[] }[];
   /** When set, empty slots and stacks with room become buttons. */
@@ -20,6 +29,7 @@ type Props = {
   onBottleClick?: (bottle: PlacedBottle, place: Place) => void;
   /** The bottle being moved, drawn highlighted. */
   activeBottleId?: string;
+  view?: FridgeViewMode;
 };
 
 /**
@@ -27,7 +37,7 @@ type Props = {
  * Bottles are neutral; only the small year badge carries the drink-window
  * color (never red frames – red reads as "bad wine").
  */
-export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, activeBottleId }: Props) {
+export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, activeBottleId, view = "labels" }: Props) {
   return (
     <ol className="flex flex-col gap-2 rounded-2xl bg-fridge p-3" aria-label="שרטוט המקרר">
       {shelves.map((shelf, i) => (
@@ -45,6 +55,7 @@ export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, act
                 picked={picked}
                 onBottleClick={onBottleClick}
                 activeBottleId={activeBottleId}
+                view={view}
               />
             ))}
           </div>
@@ -61,6 +72,7 @@ function ZoneLine({
   picked,
   onBottleClick,
   activeBottleId,
+  view,
 }: {
   zone: DrawnZone;
   shelfNo: number;
@@ -68,7 +80,9 @@ function ZoneLine({
   picked: Place[];
   onBottleClick?: (bottle: PlacedBottle, place: Place) => void;
   activeBottleId?: string;
+  view: FridgeViewMode;
 }) {
+  const shape = SLOT_SHAPE[view];
   const bottles = zone.bottles ?? [];
   const pickedHere = picked.filter((p) => p.zoneId === zone.id);
 
@@ -93,10 +107,10 @@ function ZoneLine({
                 aria-label={`${b.title} ${b.year ?? "NV"}`}
                 className={b.id === activeBottleId ? "rounded-sm ring-2 ring-on-fridge" : ""}
               >
-                <YearBadge bottle={b} />
+                <StackBottle bottle={b} view={view} />
               </button>
             ) : (
-              <YearBadge key={b.id} bottle={b} />
+              <StackBottle key={b.id} bottle={b} view={view} />
             ),
           )}
           {pickedHere.map((_, k) => (
@@ -145,13 +159,13 @@ function ZoneLine({
               key={slot}
               type="button"
               onClick={() => onBottleClick(bottle, { zoneId: zone.id!, slot })}
-              className={`rounded-full ${bottle.id === activeBottleId ? "ring-2 ring-on-fridge ring-offset-2 ring-offset-shelf" : ""}`}
+              className={`${shape} ${bottle.id === activeBottleId ? "ring-2 ring-on-fridge ring-offset-2 ring-offset-shelf" : ""}`}
               aria-label={`${bottle.title} ${bottle.year ?? "NV"}, מדף ${shelfNo}, מקום ${slot}`}
             >
-              <BottleSlot bottle={bottle} />
+              <BottleSlot bottle={bottle} view={view} />
             </button>
           ) : (
-            <BottleSlot key={slot} bottle={bottle} />
+            <BottleSlot key={slot} bottle={bottle} view={view} />
           );
         }
 
@@ -164,27 +178,52 @@ function ZoneLine({
               onClick={() => onPick({ zoneId: zone.id!, slot })}
               aria-pressed={isPicked}
               aria-label={`מדף ${shelfNo}, ${zone.label}, מקום ${slot}`}
-              className={`size-9 rounded-full border-2 ${
+              className={`${shape} border-2 ${
                 isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/35 hover:border-on-fridge/80"
               }`}
             />
           );
         }
-        return <span key={slot} className="size-9 rounded-full border-2 border-on-fridge/25" aria-hidden="true" />;
+        return <span key={slot} className={`${shape} border-2 border-on-fridge/25`} aria-hidden="true" />;
       })}
-      {zone.label && <span className="ms-1 text-[10px] text-on-fridge/50">{zone.label}</span>}
+      {/* In the labels view the slots fill the row; the back row is always drawn first. */}
+      {zone.label && view === "dots" && <span className="ms-1 text-[10px] text-on-fridge/50">{zone.label}</span>}
     </div>
   );
 }
 
-/** An occupied row slot: a neutral bottle top with the colored year badge. */
-function BottleSlot({ bottle }: { bottle: PlacedBottle }) {
+/**
+ * An occupied row slot: a neutral bottle with the colored year badge.
+ * In the labels view the wine's name sits above the badge.
+ */
+function BottleSlot({ bottle, view }: { bottle: PlacedBottle; view: FridgeViewMode }) {
   return (
     <span
-      className="flex size-9 items-center justify-center rounded-full bg-[#d9d2cb]"
+      className={`flex flex-col items-center justify-center gap-0.5 bg-[#d9d2cb] ${SLOT_SHAPE[view]}`}
       title={`${bottle.title} · ${bottle.year ?? "NV"} · ${DRINK_STATES[bottle.state].label}`}
     >
+      {view === "labels" && <WineLabel text={bottle.label} className="w-full px-0.5" />}
       <YearBadge bottle={bottle} />
+    </span>
+  );
+}
+
+/** A bottle inside a stack: the badge, plus the name in the labels view. */
+function StackBottle({ bottle, view }: { bottle: PlacedBottle; view: FridgeViewMode }) {
+  if (view === "dots") return <YearBadge bottle={bottle} />;
+  return (
+    <span className="flex items-center gap-1 rounded bg-[#d9d2cb] py-0.5 ps-1 pe-0.5">
+      <WineLabel text={bottle.label} className="max-w-16" />
+      <YearBadge bottle={bottle} />
+    </span>
+  );
+}
+
+/** One line of wine name, cut with "…" when too long. dir=auto: Hebrew or Latin. */
+function WineLabel({ text, className = "" }: { text: string; className?: string }) {
+  return (
+    <span dir="auto" className={`truncate text-center text-[9px] font-medium leading-tight text-black ${className}`}>
+      {text}
     </span>
   );
 }
