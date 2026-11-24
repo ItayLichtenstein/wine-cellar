@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LIMITS, SHELF_PRESETS, clamp, fridgeCapacity, shelfCapacity } from "./fridge-layout";
+import { LIMITS, SHELF_PRESETS, bottlesLeaving, clamp, fridgeCapacity, shelfCapacity } from "./fridge-layout";
 
 describe("shelf presets", () => {
   it("every preset stays within the database limits", () => {
@@ -44,5 +44,25 @@ describe("clamp", () => {
     [Number.NaN, 1, 10, 1],
   ])("clamp(%d, %d, %d) = %d", (value, min, max, expected) => {
     expect(clamp(value, min, max)).toBe(expected);
+  });
+});
+
+
+describe("bottlesLeaving", () => {
+  const before = [
+    { id: "r", kind: "row" as const, capacity: 5, bottles: [{ slot: 1 }, { slot: 4 }, { slot: 5 }] },
+    { id: "s", kind: "stack" as const, capacity: 6, bottles: [{ slot: null }, { slot: null }, { slot: null }] },
+  ];
+  const row = (capacity: number, id?: string) => ({ id, kind: "row" as const, capacity, label: "" });
+  const stack = (capacity: number, id?: string) => ({ id, kind: "stack" as const, capacity, label: "" });
+
+  it("nothing leaves when the zones stay", () => {
+    expect(bottlesLeaving(before, [[row(5, "r")], [stack(6, "s")]])).toBe(0);
+  });
+  it("a shorter row loses the bottles past its end; a smaller stack its extra bottles", () => {
+    expect(bottlesLeaving(before, [[row(3, "r")], [stack(2, "s")]])).toBe(3);
+  });
+  it("a removed zone, or one switched between row and stack, loses all its bottles", () => {
+    expect(bottlesLeaving(before, [[stack(5, "r")]])).toBe(6);
   });
 });

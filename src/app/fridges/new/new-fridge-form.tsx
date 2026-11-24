@@ -3,11 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview } from "@/components/fridge-preview";
+import type { FridgeView } from "@/lib/fridges";
 import { CATALOG, estimateShelves, type ModelSpec } from "@/lib/fridge-catalog";
 import { createClient } from "@/lib/supabase/client";
 import {
   LIMITS,
   SHELF_PRESETS,
+  bottlesLeaving,
   clamp,
   fridgeCapacity,
   type PresetKey,
@@ -15,8 +17,10 @@ import {
 } from "@/lib/fridge-layout";
 
 // A shelf in the form remembers which preset it came from, so the
-// dropdown can show it. Only `zones` is sent to the database.
-type FormShelf = Shelf & { preset: PresetKey };
+// dropdown can show it. When editing, shelves and zones also keep their
+// database ids: a kept id means "same place, its bottles stay".
+type FormZone = Shelf["zones"][number] & { id?: string };
+type FormShelf = { id?: string; preset: PresetKey; zones: FormZone[] };
 
 const DEFAULT_SIZE: Record<PresetKey, number> = {
   twoRows: 5,
@@ -32,21 +36,38 @@ function makeShelf(preset: PresetKey): FormShelf {
 /** Which dropdown entry a catalog shelf matches. */
 function presetOf(shelf: Shelf): PresetKey {
   if (shelf.zones.every((z) => z.kind === "stack")) return "doubleStack";
+  if (shelf.zones.some((z) => z.kind === "stack")) return "stacksAndRow";
   return shelf.zones.length === 2 ? "twoRows" : "oneRow";
 }
 
 const OTHER = "other";
 
-export function NewFridgeForm() {
+/** The new-fridge form; with `existing` it edits that fridge instead. */
+export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
   const router = useRouter();
-  const [name, setName] = useState("מקרר יין");
-  const [brand, setBrand] = useState("");
-  const [model, setModel] = useState("");
-  const [brandChoice, setBrandChoice] = useState(""); // catalog brand, OTHER, or "" (not chosen)
+  const [name, setName] = useState(existing?.name ?? "מקרר יין");
+  const [brand, setBrand] = useState(existing?.brand ?? "");
+  const [model, setModel] = useState(existing?.model ?? "");
+  const knownBrand = CATALOG.some((b) => b.brand === existing?.brand);
+  // catalog brand, OTHER, or "" (not chosen)
+  const [brandChoice, setBrandChoice] = useState(existing?.brand ? (knownBrand ? existing.brand : OTHER) : "");
   const [spec, setSpec] = useState<ModelSpec | null>(null); // the catalog model the layout came from
   const [shelves, setShelves] = useState<FormShelf[]>(() =>
-    Array.from({ length: 6 }, () => makeShelf("twoRows")),
+    existing
+      ? existing.shelves.map((s) => ({
+          id: s.id,
+          preset: presetOf(s),
+          zones: s.zones.map(({ id, kind, capacity, label }) => ({ id, kind, capacity, label })),
+        }))
+      : Array.from({ length: 6 }, () => makeShelf("twoRows")),
   );
+  const [confirmed, setConfirmed] = useState(false);
+  const leaving = existing
+    ? bottlesLeaving(
+        existing.shelves.flatMap((s) => s.zones),
+        shelves.map((s) => s.zones),
+      )
+    : 0;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,15 +116,29 @@ export function NewFridgeForm() {
       setError("צריך לתת למקרר שם.");
       return;
     }
+    // Moving bottles out of the fridge needs a second, explicit tap.
+    if (leaving > 0 && !confirmed) {
+      setConfirmed(true);
+      return;
+    }
     setSaving(true);
     setError(null);
 
-    const { error: rpcError } = await createClient().rpc("create_fridge", {
-      p_name: name,
-      p_brand: brand || undefined,
-      p_model: model || undefined,
-      p_shelves: shelves.map(({ zones }) => ({ zones })),
-    });
+    const supabase = createClient();
+    const { error: rpcError } = existing
+      ? await supabase.rpc("update_fridge", {
+          p_fridge_id: existing.id,
+          p_name: name,
+          p_brand: brand || undefined,
+          p_model: model || undefined,
+          p_shelves: shelves.map(({ id, zones }) => ({ ...(id && { id }), zones })),
+        })
+      : await supabase.rpc("create_fridge", {
+          p_name: name,
+          p_brand: brand || undefined,
+          p_model: model || undefined,
+          p_shelves: shelves.map(({ zones }) => ({ zones })),
+        });
 
     if (rpcError) {
       setSaving(false);
@@ -231,12 +266,21 @@ export function NewFridgeForm() {
         </p>
       )}
 
+      {leaving > 0 && (
+        <p role="alert" className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          <span className="inline-block">
+            {leaving === 1 ? "בקבוק אחד יעבור" : `${leaving} בקבוקים יעברו`} ל״מחוץ למקרר״.
+          </span>{" "}
+          <span className="inline-block">שום בקבוק לא נמחק, ואפשר לשבץ אותם מחדש אחר כך.</span>
+        </p>
+      )}
+
       <button
         type="submit"
         disabled={saving}
         className="rounded-full bg-accent px-5 py-3 font-medium text-white disabled:opacity-60 dark:text-black"
       >
-        {saving ? "שומר…" : "שמירת המקרר"}
+        {saving ? "שומר…" : leaving > 0 && confirmed ? "כן, לשמור ולהוציא אותם" : "שמירת המקרר"}
       </button>
     </form>
   );

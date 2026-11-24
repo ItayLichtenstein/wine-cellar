@@ -33,7 +33,12 @@ async function Fridges() {
         <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
           {fridges.map((f) => (
             <li key={f.id} className="flex items-baseline justify-between gap-2 px-4 py-3">
-              <span>{f.name}</span>
+              <span>
+                {f.name}{" "}
+                <Link href={`/fridges/${f.id}/edit`} className="text-sm underline underline-offset-2">
+                  עריכה
+                </Link>
+              </span>
               <span className="text-sm text-muted">
                 {[f.brand, f.model].filter(Boolean).join(" ")}
                 {f.brand || f.model ? " · " : ""}

@@ -77,3 +77,25 @@ export function clamp(value: number, min: number, max: number): number {
   if (Number.isNaN(value)) return min;
   return Math.min(max, Math.max(min, Math.round(value)));
 }
+
+/** A zone as it is now, with the slots its bottles occupy. */
+export type ExistingZone = { id: string; kind: ZoneKind; capacity: number; bottles: { slot: number | null }[] };
+
+/**
+ * How many bottles an edit would move out of the fridge – the warning
+ * shown before saving. Mirrors what the database does (update_fridge and
+ * the zone triggers): a removed zone or a row↔stack switch sends all its
+ * bottles out; a shorter row sends out the bottles past its end; a smaller
+ * stack sends out the extra bottles.
+ */
+export function bottlesLeaving(before: ExistingZone[], after: (Zone & { id?: string })[][]): number {
+  const kept = new Map(after.flat().filter((z) => z.id).map((z) => [z.id!, z]));
+  let leaving = 0;
+  for (const old of before) {
+    const now = kept.get(old.id);
+    if (!now || now.kind !== old.kind) leaving += old.bottles.length;
+    else if (now.kind === "row") leaving += old.bottles.filter((b) => (b.slot ?? 0) > now.capacity).length;
+    else leaving += Math.max(0, old.bottles.length - now.capacity);
+  }
+  return leaving;
+}
