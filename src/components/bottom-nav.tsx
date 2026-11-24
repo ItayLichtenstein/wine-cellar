@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { RealtimeRefresh } from "./realtime-refresh";
 
 // Sections of the app. Wishlist and stats join this list when they are built
 // (spec: fridge · list · wishlist · stats · more).
@@ -23,7 +24,10 @@ export function BottomNav() {
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <nav
+    <>
+      {/* Signed-in pages only (same rule as the navigation itself). */}
+      <RealtimeRefresh />
+      <nav
       aria-label="ניווט ראשי"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-muted/20 bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
     >
@@ -46,6 +50,7 @@ export function BottomNav() {
           );
         })}
       </ul>
-    </nav>
+      </nav>
+    </>
   );
 }

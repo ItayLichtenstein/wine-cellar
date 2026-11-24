@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(86);
+select plan(87);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -453,6 +453,10 @@ select lives_ok($$ select remove_member('33333333-3333-3333-3333-333333333333') 
 select throws_ok($$ select set_member_role(auth.uid(), 'viewer') $$, '23514', null,
                  'the last full member cannot become a viewer');
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
+
+-- realtime: every cellar table is streamed (and RLS filters who hears what)
+select is((select count(*)::int from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public'),
+          11, 'the cellar tables are published for real-time sync');
 
 -- ---------- Anonymous visitors get nothing ----------
 select pg_temp.logout();
