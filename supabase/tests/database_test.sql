@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(62);
+select plan(65);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -351,6 +351,17 @@ select throws_ok(
   $$ select update_wine_details(gen_random_uuid(), (select id from wine_vintages limit 1),
        null, null, null, null, null, null, null, null, null, '[]') $$,
   'P0002', null, 'a vintage of another wine is rejected');
+
+-- log_tasting: a tasting without a bottle, with its score
+select lives_ok(
+  $$ select log_tasting('יקב מסעדה', 'יין מסעדה', 'white', 2021, current_date, 'מסעדה', 'טוב', 4.5) $$,
+  'log a tasting outside the cellar');
+select is((select count(*)::int from tastings t join wines w on w.id = t.wine_id
+            where w.name = 'יין מסעדה' and t.bottle_id is null and t.place = 'מסעדה'), 1,
+          'the tasting has no bottle and keeps the place');
+select throws_ok(
+  $$ select log_tasting('x', 'y', 'red', null, current_date + 2) $$,
+  '23514', null, 'a tasting in the future is rejected');
 
 -- a viewer cannot create fridges
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
