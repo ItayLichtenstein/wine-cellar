@@ -16,7 +16,11 @@ export function DetailsView({
   onEdit: () => void;
   onClose: () => void;
 }) {
-  const state = drinkState({ drinkFrom: d.drinkFrom, drinkTo: d.drinkTo }, new Date().getFullYear());
+  // Same inputs as the fridge badge (including the peak), so both always agree.
+  const state = drinkState(
+    { drinkFrom: d.drinkFrom, drinkTo: d.drinkTo, peakFrom: d.peakFrom, peakTo: d.peakTo },
+    new Date().getFullYear(),
+  );
   const rating = d.vintageRating ?? d.wineRating;
   const canDrink = d.status !== "consumed";
 
@@ -42,6 +46,14 @@ export function DetailsView({
             </span>
           )}
         </dd>
+        {(d.peakFrom || d.peakTo) && (
+          <>
+            <dt className="text-muted">שיא</dt>
+            <dd dir="ltr" className="text-end">
+              {d.peakFrom ?? "?"}–{d.peakTo ?? "?"}
+            </dd>
+          </>
+        )}
         <dt className="text-muted">מחיר</dt>
         <dd>{formatPrice(d)}</dd>
         <dt className="text-muted">ציון</dt>
