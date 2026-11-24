@@ -4,7 +4,9 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { fridgeCapacity } from "@/lib/fridge-layout";
 import { getMyFridges } from "@/lib/fridges";
+import { createClient } from "@/lib/supabase/server";
 import { ExportButton } from "./export-button";
+import { Household, type Member } from "./household";
 import { SignOutButton } from "./sign-out-button";
 
 export const metadata: Metadata = { title: "עוד · מרתף יין" };
@@ -16,6 +18,7 @@ export default function MorePage() {
       <h1 className="text-2xl font-bold">עוד</h1>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <Fridges />
+        <Members />
         <Account />
       </Suspense>
       <Link href="/privacy" className="self-start text-sm text-muted underline underline-offset-2">
@@ -54,6 +57,18 @@ async function Fridges() {
       </Link>
     </section>
   );
+}
+
+async function Members() {
+  const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
+  // RLS returns only the members of the user's own cellar.
+  const { data } = await supabase.from("cellar_members").select("user_id, role, profiles(display_name)").order("joined_at");
+  const members: Member[] = (data ?? []).map((m) => ({
+    userId: m.user_id,
+    name: m.profiles?.display_name ?? "",
+    role: m.role,
+  }));
+  return <Household members={members} me={user.id} />;
 }
 
 async function Account() {

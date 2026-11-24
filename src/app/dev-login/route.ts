@@ -38,6 +38,10 @@ export async function GET(request: NextRequest) {
     // Back to a fresh sign-up. Runs as the user itself, so RLS limits the
     // deletes to its own cellar. Deleting wines cascades to vintages,
     // bottles, prices, ratings and tastings; fridges cascade to shelves.
+    // If it joined someone's cellar (invite tests), leave first – otherwise
+    // the reset below would empty the SHARED cellar. Leaving gives it a
+    // fresh cellar of its own; if it is alone this fails harmlessly.
+    await supabase.rpc("leave_cellar");
     const { data: cellarId } = await supabase.rpc("my_cellar_id");
     if (cellarId) {
       await supabase.from("wines").delete().eq("cellar_id", cellarId);

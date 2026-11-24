@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(73);
+select plan(86);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -408,6 +408,51 @@ select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 select throws_ok(
   $$ select create_fridge('של צופה', '[{"zones":[{"kind":"row","capacity":3}]}]'::jsonb) $$,
   '42501', null, 'a viewer cannot create a fridge');
+
+-- ---------- Household invites (stage 2) ----------
+-- still the viewer: viewers cannot invite
+select throws_ok($$ select create_invite() $$, '42501', null, 'a viewer cannot create an invite');
+
+select pg_temp.login_as('11111111-1111-1111-1111-111111111111');
+select set_config('test.token', create_invite('member'), true);
+select matches(current_setting('test.token'), '^[0-9a-f]{64}$', 'an invite token is 32 random bytes (64 hex)');
+select is((select count(*)::int from cellar_invites where token_hash = current_setting('test.token')), 0,
+          'the raw token is never stored, only its hash');
+
+-- a brand-new user (empty cellar) joins Yonatan's cellar
+select pg_temp.logout();
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('44444444-4444-4444-4444-444444444444', 'partner@example.com', '{"full_name":"בן זוג"}'),
+  ('55555555-5555-5555-5555-555555555555', 'other@example.com', '{"full_name":"אחר"}');
+select pg_temp.login_as('44444444-4444-4444-4444-444444444444');
+select lives_ok(format($$ select accept_invite('%s') $$, current_setting('test.token')), 'a new user accepts the invite');
+select is(my_cellar_id()::text, current_setting('test.yonatan_cellar'), 'the new user now shares Yonatan''s cellar');
+
+select pg_temp.login_as('55555555-5555-5555-5555-555555555555');
+select throws_ok(format($$ select accept_invite('%s') $$, current_setting('test.token')),
+                 'P0002', null, 'an invite works only once');
+select throws_ok($$ select accept_invite('not-a-real-token') $$, 'P0002', null, 'a wrong token is rejected');
+
+-- Maya already has bottles: refused until moving bottles is built
+select pg_temp.login_as('11111111-1111-1111-1111-111111111111');
+select set_config('test.token2', create_invite('member'), true);
+select pg_temp.login_as('22222222-2222-2222-2222-222222222222');
+select throws_ok(format($$ select accept_invite('%s') $$, current_setting('test.token2')),
+                 '23514', null, 'joining with a cellar that has data is refused (for now)');
+
+-- leaving: the user gets a new empty cellar, the shared data stays
+select pg_temp.login_as('44444444-4444-4444-4444-444444444444');
+select set_config('test.yonatan_bottles', (select count(*)::text from bottles), true);
+select lives_ok($$ select leave_cellar() $$, 'a member can leave');
+select isnt(my_cellar_id()::text, current_setting('test.yonatan_cellar'), 'after leaving the user has a cellar of their own');
+
+-- removing the viewer; then Yonatan cannot demote himself (last full member)
+select pg_temp.login_as('11111111-1111-1111-1111-111111111111');
+select is((select count(*)::text from bottles), current_setting('test.yonatan_bottles'), 'leaving took no bottles away');
+select lives_ok($$ select remove_member('33333333-3333-3333-3333-333333333333') $$, 'a member can remove a viewer');
+select throws_ok($$ select set_member_role(auth.uid(), 'viewer') $$, '23514', null,
+                 'the last full member cannot become a viewer');
+select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 
 -- ---------- Anonymous visitors get nothing ----------
 select pg_temp.logout();
