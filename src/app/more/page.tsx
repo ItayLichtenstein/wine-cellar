@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { fridgeCapacity } from "@/lib/fridge-layout";
 import { getMyFridges } from "@/lib/fridges";
+import { ExportButton } from "./export-button";
 import { SignOutButton } from "./sign-out-button";
 
 export const metadata: Metadata = { title: "עוד · מרתף יין" };
@@ -61,6 +62,7 @@ async function Account() {
     <section className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">חשבון</h2>
       <p className="text-sm text-muted">מחובר בתור {user.displayName}</p>
+      <ExportButton />
       <div>
         <SignOutButton />
       </div>
