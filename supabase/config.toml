@@ -226,8 +226,10 @@ web3 = 30
 [auth.email]
 # Allow/disallow the email provider. When false, users can't sign up or sign in with email.
 # To block new signups only, set enable_signup = false under [auth] instead.
-# Off: Google is the only sign-in method (docs/decisions/0006).
-enabled = false
+# LOCAL ONLY: on, so the seeded test user (supabase/seed.sql) can sign in
+# with a password at /dev-login. The cloud project keeps email sign-in OFF –
+# Google is the only real sign-in method (docs/decisions/0006).
+enabled = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true

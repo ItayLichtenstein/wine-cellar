@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { supabaseKey, supabaseUrl } from "./env";
 
 // Pages anyone may open without signing in.
-const PUBLIC_PATHS = ["/login", "/auth", "/privacy"];
+// /dev-login guards itself (404 outside local development).
+const PUBLIC_PATHS = ["/login", "/auth", "/privacy", "/dev-login"];
 
 function isPublic(path: string) {
   return PUBLIC_PATHS.some((p) => path === p || path.startsWith(p + "/"));

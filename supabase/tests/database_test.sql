@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(33);
+select plan(39);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -60,7 +60,11 @@ select is((select display_name from profiles where id = '11111111-1111-1111-1111
           'יונתן', 'sign-up creates a profile from the Google name');
 select is((select display_name from profiles where id = '22222222-2222-2222-2222-222222222222'),
           'משתמש חדש', 'magic-link user gets a placeholder name, never part of the email');
-select is((select count(*)::int from cellar_members), 3, 'every new user gets a cellar');
+select is((select count(*)::int from cellar_members
+           where user_id in ('11111111-1111-1111-1111-111111111111',
+                             '22222222-2222-2222-2222-222222222222',
+                             '33333333-3333-3333-3333-333333333333')),
+          3, 'every new user gets a cellar');
 
 -- Make user 3 a VIEWER of Yonatan's cellar (stage 2 will do this via an invite).
 delete from cellars where id = (select cellar_id from cellar_members
@@ -236,6 +240,34 @@ select drink_bottle('cccccccc-0000-0000-0000-000000000001', '2026-11-24', 'מע�
 select is((select status::text || '/' || consumed_on::text from bottles
            where id = 'cccccccc-0000-0000-0000-000000000001'),
           'consumed/2026-11-24', 'drinking marks the bottle consumed with a date');
+
+-- ---------- create_fridge() ----------
+select pg_temp.login_as('22222222-2222-2222-2222-222222222222');
+
+select lives_ok(
+  $$ select create_fridge('מקרר יין', '[
+       {"zones":[{"kind":"row","capacity":5,"label":"אחורית"},{"kind":"row","capacity":5,"label":"קדמית"}]},
+       {"zones":[{"kind":"stack","capacity":8},{"kind":"stack","capacity":8},{"kind":"row","capacity":2}]}
+     ]'::jsonb, 'Liebherr', 'WKt 4552') $$,
+  'create_fridge builds a fridge with mixed zones');
+
+select is((select count(*)::int from shelf_zones), 5, 'all five zones were created');
+
+select is((select string_agg(kind::text || capacity, ',' order by s.position, z.position)
+           from shelf_zones z join shelves s on s.id = z.shelf_id),
+          'row5,row5,stack8,stack8,row2', 'zones keep their order, top shelf first');
+
+-- a bad zone kind rolls back the whole fridge (one transaction)
+select throws_ok(
+  $$ select create_fridge('שבור', '[{"zones":[{"kind":"row","capacity":3}]},{"zones":[{"kind":"drawer","capacity":3}]}]'::jsonb) $$,
+  '22P02', null, 'an unknown zone kind is rejected');
+select is((select count(*)::int from fridges), 1, 'the failed fridge left nothing behind');
+
+-- a viewer cannot create fridges
+select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
+select throws_ok(
+  $$ select create_fridge('של צופה', '[{"zones":[{"kind":"row","capacity":3}]}]'::jsonb) $$,
+  '42501', null, 'a viewer cannot create a fridge');
 
 -- ---------- Anonymous visitors get nothing ----------
 select pg_temp.logout();
