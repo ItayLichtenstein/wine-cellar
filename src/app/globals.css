@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Color tokens. Components use these names (bg-background, text-muted...)
+   instead of raw colors, so dark mode only has to change the values here. */
+:root {
+  --background: #f7f2ec;
+  --foreground: #2a1f1d;
+  --muted: #7d6e69;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #171312;
+    --foreground: #f2ebe6;
+    --muted: #a8998f;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-heebo);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-heebo), system-ui, sans-serif;
+}
