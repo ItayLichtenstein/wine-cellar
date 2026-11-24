@@ -333,7 +333,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "drink_bottle":
+            "create_fridge":
+{ Args: { "p_brand"?: string,"p_model"?: string,"p_name": string,"p_shelves": Json }; Returns: string
+                           },
+"drink_bottle":
 { Args: { "p_bottle_id": string,"p_notes"?: string,"p_tasted_on"?: string }; Returns: string
                            },
 "is_cellar_editor":
@@ -341,6 +344,9 @@ isOneToOne: false
                            },
 "is_cellar_member":
 { Args: { "p_cellar_id": string }; Returns: boolean
+                           },
+"is_member_of":
+{ Args: { "p_cellar_id": string,"p_user_id": string }; Returns: boolean
                            },
 "my_cellar_id":
 { Args: Record<PropertyKey, never>; Returns: string
