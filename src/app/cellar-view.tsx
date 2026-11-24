@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
 import { DRINK_STATES } from "@/lib/drink-state";
@@ -17,7 +17,14 @@ import { useFridgeView } from "./use-fridge-view";
 export function CellarView({ fridges, loose }: { fridges: FridgeView[]; loose: LooseBottle[] }) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
-  const [movingId, setMovingId] = useState<string | null>(null);
+  // "?move=<id>" (from the list page's "move" button) starts in move mode –
+  // only for a bottle that is really in this cellar.
+  const moveParam = useSearchParams().get("move");
+  const known = (id: string | null) =>
+    !!id &&
+    (loose.some((b) => b.id === id) ||
+      fridges.some((f) => f.shelves.some((s) => s.zones.some((z) => z.bottles.some((b) => b.id === id)))));
+  const [movingId, setMovingId] = useState<string | null>(known(moveParam) ? moveParam : null);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useFridgeView();
 

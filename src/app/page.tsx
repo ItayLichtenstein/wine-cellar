@@ -4,7 +4,6 @@ import { getCurrentUser } from "@/lib/auth";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { getLooseBottles, getMyFridges } from "@/lib/fridges";
 import { CellarView } from "./cellar-view";
-import { SignOutButton } from "./sign-out-button";
 
 export default function Home() {
   return (
@@ -21,12 +20,9 @@ export default function Home() {
 async function Header() {
   const user = await getCurrentUser();
   return (
-    <header className="flex items-center justify-between gap-3">
-      <div>
-        <h1 className="text-2xl font-bold">מרתף יין</h1>
-        <p className="text-sm text-muted">שלום {user.displayName}</p>
-      </div>
-      <SignOutButton />
+    <header>
+      <h1 className="text-2xl font-bold">מרתף יין</h1>
+      <p className="text-sm text-muted">שלום {user.displayName}</p>
     </header>
   );
 }
@@ -67,10 +63,6 @@ async function Fridges() {
       <CellarView fridges={fridges} loose={loose} />
 
       {(stored.length > 0 || loose.length > 0) && <Legend />}
-
-      <Link href="/fridges/new" className="self-start text-sm underline underline-offset-2">
-        + הוספת מקרר
-      </Link>
     </section>
   );
 }

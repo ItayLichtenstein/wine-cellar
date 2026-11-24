@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Heebo } from "next/font/google";
+import { BottomNav } from "@/components/bottom-nav";
 import "./globals.css";
 
 // Heebo supports both Hebrew and Latin, so one font covers the whole UI.
@@ -18,7 +19,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="he" dir="rtl" className={`${heebo.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* pb-20 keeps the last content above the fixed bottom navigation. */}
+      <body className="min-h-full flex flex-col pb-20">
+        {children}
+        <BottomNav />
+      </body>
     </html>
   );
 }
