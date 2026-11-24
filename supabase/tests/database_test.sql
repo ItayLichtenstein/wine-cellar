@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(32);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -33,6 +33,14 @@ select is(
    where n.nspname = 'public' and p.prosecdef
      and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')),
   0, 'every SECURITY DEFINER function pins its search_path');
+
+-- A view runs with its creator's rights and skips RLS unless it is
+-- declared security_invoker. Any future view must be.
+select is(
+  (select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'v'
+     and not coalesce('security_invoker=true' = any(c.reloptions), false)),
+  0, 'every view in public is security_invoker');
 
 -- Emails live only in auth.users, which the API does not expose.
 -- No table that the API exposes may hold an email.
@@ -66,6 +74,10 @@ from cellar_members where user_id = '11111111-1111-1111-1111-111111111111';
 select set_config('test.yonatan_cellar',
   (select cellar_id::text from cellar_members
    where user_id = '11111111-1111-1111-1111-111111111111'), true);
+
+select set_config('test.maya_cellar',
+  (select cellar_id::text from cellar_members
+   where user_id = '22222222-2222-2222-2222-222222222222'), true);
 
 -- 4: one cellar per user
 select throws_ok(
@@ -148,6 +160,12 @@ select throws_ok(
      values ('aaaaaaaa-0000-0000-0000-000000000001', my_cellar_id(), 9) $$,
   '23503', null, 'cross-cellar references are rejected by the foreign key');
 
+-- 15: Maya cannot add herself to Yonatan's cellar
+select throws_ok(
+  $$ insert into cellar_members (cellar_id, user_id, role)
+     values (current_setting('test.yonatan_cellar')::uuid, auth.uid(), 'member') $$,
+  '42501', null, 'nobody can add themselves to another cellar');
+
 -- ---------- The viewer can read but not write ----------
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 
@@ -159,6 +177,12 @@ select throws_ok(
   $$ insert into wines (cellar_id, winery, name) values (my_cellar_id(), 'x', 'y') $$,
   '42501', null, 'viewer cannot add wine');
 
+-- viewer cannot promote themselves (no update policy -> 0 rows changed)
+update cellar_members set role = 'member' where user_id = auth.uid();
+select pg_temp.logout();
+select is((select role::text from cellar_members where user_id = '33333333-3333-3333-3333-333333333333'),
+          'viewer', 'a viewer cannot promote themselves to member');
+
 -- ---------- Removing a zone keeps the bottles ----------
 select pg_temp.login_as('11111111-1111-1111-1111-111111111111');
 delete from shelf_zones where id = 'aaaaaaaa-0000-0000-0000-000000000003';
@@ -166,6 +190,37 @@ delete from shelf_zones where id = 'aaaaaaaa-0000-0000-0000-000000000003';
 -- 17
 select is((select status::text from bottles where id = 'cccccccc-0000-0000-0000-000000000001'),
           'unplaced', 'bottles of a removed zone move outside the fridge');
+
+-- ---------- Abuse attempts by a legitimate member ----------
+-- a household member cannot write a rating under another member's name
+select throws_ok(
+  $$ insert into ratings (cellar_id, wine_id, rater_id, score)
+     values (my_cellar_id(), 'bbbbbbbb-0000-0000-0000-000000000001',
+             '33333333-3333-3333-3333-333333333333', 1.0) $$,
+  '42501', null, 'cannot rate under someone else''s name');
+
+select lives_ok(
+  $$ insert into ratings (cellar_id, wine_id, score)
+     values (my_cellar_id(), 'bbbbbbbb-0000-0000-0000-000000000001', 4.5) $$,
+  'a shared household rating is allowed');
+
+-- a bottle cannot be moved into another cellar
+select throws_ok(
+  $$ update bottles set cellar_id = current_setting('test.maya_cellar')::uuid
+     where id = 'cccccccc-0000-0000-0000-000000000001' $$,
+  null, null, 'a bottle cannot be moved to another cellar');
+
+-- giant text is rejected by the database, not only by the UI
+select throws_ok(
+  $$ update bottles set note = repeat('x', 5000)
+     where id = 'cccccccc-0000-0000-0000-000000000001' $$,
+  '23514', null, 'over-long text is rejected');
+
+-- a javascript: link is rejected
+select throws_ok(
+  $$ update bottles set link_url = 'javascript:alert(1)'
+     where id = 'cccccccc-0000-0000-0000-000000000001' $$,
+  '23514', null, 'javascript: links are rejected');
 
 -- ---------- "We drank it" ----------
 select drink_bottle('cccccccc-0000-0000-0000-000000000001', '2026-11-24', 'מעולה');
