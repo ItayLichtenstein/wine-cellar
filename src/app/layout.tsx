@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Heebo } from "next/font/google";
 import { BottomNav } from "@/components/bottom-nav";
 import "./globals.css";
@@ -22,7 +23,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       {/* pb-20 keeps the last content above the fixed bottom navigation. */}
       <body className="min-h-full flex flex-col pb-20">
         {children}
-        <BottomNav />
+        {/* It reads the URL (usePathname), which must sit inside Suspense
+            so the rest of the page can still be prerendered. */}
+        <Suspense fallback={null}>
+          <BottomNav />
+        </Suspense>
       </body>
     </html>
   );
