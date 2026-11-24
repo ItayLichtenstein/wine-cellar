@@ -333,7 +333,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "create_fridge":
+            "add_bottles":
+{ Args: { "p_drink_from"?: number,"p_drink_to"?: number,"p_is_gift"?: boolean,"p_name": string,"p_paid"?: number,"p_places"?: Json,"p_quantity": number,"p_regular"?: number,"p_rest_status"?: Database["public"]['Enums']["bottle_status"],"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: (string)[]
+                           },
+"create_fridge":
 { Args: { "p_brand"?: string,"p_model"?: string,"p_name": string,"p_shelves": Json }; Returns: string
                            },
 "drink_bottle":

@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(39);
+select plan(46);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -262,6 +262,38 @@ select throws_ok(
   $$ select create_fridge('שבור', '[{"zones":[{"kind":"row","capacity":3}]},{"zones":[{"kind":"drawer","capacity":3}]}]'::jsonb) $$,
   '22P02', null, 'an unknown zone kind is rejected');
 select is((select count(*)::int from fridges), 1, 'the failed fridge left nothing behind');
+
+-- ---------- add_bottles() (Maya now has a fridge) ----------
+select set_config('test.maya_row', (select z.id::text from shelf_zones z join shelves s on s.id = z.shelf_id
+                                    where s.position = 1 and z.position = 1), true);
+select set_config('test.maya_stack', (select z.id::text from shelf_zones z join shelves s on s.id = z.shelf_id
+                                      where s.position = 2 and z.position = 1), true);
+
+select lives_ok(
+  format($$ select add_bottles('יקב טוב', 'קומטו', 3, 'red', 2021,
+            '[{"zone_id":"%s","slot":1},{"zone_id":"%s"}]'::jsonb,
+            p_paid => 120, p_regular => 140) $$,
+         current_setting('test.maya_row'), current_setting('test.maya_stack')),
+  'add 3 bottles: one in a row slot, one in a stack, one left over');
+
+select is((select string_agg(status::text, ',' order by status::text) from bottles),
+          'stored,stored,unplaced', 'placed bottles are stored, the rest are outside the fridge');
+
+select is((select count(*)::int from bottle_prices where paid = 120 and regular = 140), 3,
+          'every bottle gets its price');
+
+-- same wine, different spelling case, NV: reuses the wine, adds a vintage
+select lives_ok($$ select add_bottles('יקב טוב', 'קומטו', 1, p_rest_status => 'in_transit') $$,
+                'add an NV bottle that is still in transit');
+select is((select count(*)::int || '/' || (select count(*) from wine_vintages) from wines),
+          '1/2', 'one wine, two vintages (2021 and NV)');
+
+-- a taken slot rejects the whole call
+select throws_ok(
+  format($$ select add_bottles('יקב טוב', 'קומטו', 1, p_year => 2021,
+            p_places => '[{"zone_id":"%s","slot":1}]'::jsonb) $$, current_setting('test.maya_row')),
+  '23505', null, 'a taken slot is rejected');
+select is((select count(*)::int from bottles), 4, 'the rejected call added nothing');
 
 -- a viewer cannot create fridges
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
