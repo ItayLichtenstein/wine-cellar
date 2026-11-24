@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(32);
+select plan(33);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -192,12 +192,19 @@ select is((select status::text from bottles where id = 'cccccccc-0000-0000-0000-
           'unplaced', 'bottles of a removed zone move outside the fridge');
 
 -- ---------- Abuse attempts by a legitimate member ----------
--- a household member cannot write a rating under another member's name
+-- a member MAY enter a rating on behalf of another household member
+select lives_ok(
+  $$ insert into ratings (cellar_id, wine_id, rater_id, score)
+     values (my_cellar_id(), 'bbbbbbbb-0000-0000-0000-000000000001',
+             '33333333-3333-3333-3333-333333333333', 4.0) $$,
+  'can rate on behalf of a household member');
+
+-- ...but never under the id of someone outside the household
 select throws_ok(
   $$ insert into ratings (cellar_id, wine_id, rater_id, score)
      values (my_cellar_id(), 'bbbbbbbb-0000-0000-0000-000000000001',
-             '33333333-3333-3333-3333-333333333333', 1.0) $$,
-  '42501', null, 'cannot rate under someone else''s name');
+             '22222222-2222-2222-2222-222222222222', 1.0) $$,
+  '42501', null, 'cannot rate under the name of someone outside the household');
 
 select lives_ok(
   $$ insert into ratings (cellar_id, wine_id, score)

@@ -5,7 +5,7 @@
 --    The browser talks to the database directly, so the UI's limits are
 --    only a suggestion. Without limits in the database, anyone signed in
 --    could store megabytes per field and fill the free-tier quota.
--- 2. A personal rating can only be written under your own name.
+-- 2. A personal rating can only name someone from the same household.
 -- 3. The sign-up trigger trims and shortens the name it receives
 --    (the name comes from the client and is not trusted).
 -- =====================================================================
@@ -56,29 +56,44 @@ alter table public.tastings
   add constraint tastings_notes_len check (char_length(notes) <= 4000),
   add constraint tastings_location_len check (char_length(last_location) <= 300);
 
--- ---------- 2. Ratings: no writing under someone else's name ----------
--- Before: any household member could insert a rating with rater_id set to
--- another member. Now rater_id must be empty (shared) or yourself.
+-- ---------- 2. Ratings: only for people in this household ----------
+-- Household members trust each other: one may enter a rating on behalf of
+-- another ("she told me to give it 4.5"). What must never happen is a
+-- rating under the id of someone OUTSIDE the household.
+-- So rater_id must be empty (shared) or a member of the same cellar.
+
+create function public.is_member_of(p_cellar_id uuid, p_user_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.cellar_members
+    where cellar_id = p_cellar_id and user_id = p_user_id
+  );
+$$;
+
+revoke execute on function public.is_member_of(uuid, uuid) from public, anon;
+grant  execute on function public.is_member_of(uuid, uuid) to authenticated;
 
 drop policy "ratings: editors insert" on public.ratings;
 drop policy "ratings: editors update" on public.ratings;
 
-create policy "ratings: editors insert own or shared"
+create policy "ratings: editors insert for household"
   on public.ratings for insert to authenticated
   with check (
     public.is_cellar_editor(cellar_id)
-    and (rater_id is null or rater_id = (select auth.uid()))
+    and (rater_id is null or public.is_member_of(cellar_id, rater_id))
   );
 
-create policy "ratings: editors update own or shared"
+create policy "ratings: editors update for household"
   on public.ratings for update to authenticated
-  using (
-    public.is_cellar_editor(cellar_id)
-    and (rater_id is null or rater_id = (select auth.uid()))
-  )
+  using (public.is_cellar_editor(cellar_id))
   with check (
     public.is_cellar_editor(cellar_id)
-    and (rater_id is null or rater_id = (select auth.uid()))
+    and (rater_id is null or public.is_member_of(cellar_id, rater_id))
   );
 
 -- ---------- 3. Sign-up: never trust the length of the incoming name ----------
