@@ -38,12 +38,10 @@ export const SHELF_PRESETS = {
     title: "שורה אחת",
     make: (n: number): Shelf => ({ zones: [{ kind: "row", capacity: n, label: "שורה" }] }),
   },
-  stack: {
-    title: "ערימה",
-    make: (n: number): Shelf => ({ zones: [{ kind: "stack", capacity: n, label: "ערימה" }] }),
-  },
+  // A stack is always at least two layers high, so it is modelled as an
+  // upper and a lower layer: the card can then say which layer a bottle is in.
   doubleStack: {
-    title: "ערימה בגובה שני בקבוקים",
+    title: "ערימה (שכבה עליונה ותחתונה)",
     make: (n: number): Shelf => ({
       zones: [
         { kind: "stack", capacity: n, label: "שכבה עליונה" },

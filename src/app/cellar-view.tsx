@@ -67,19 +67,17 @@ export function CellarView({ fridges, loose }: { fridges: FridgeView[]; loose: L
       )}
 
       <div className="flex justify-end">
-        <div role="group" aria-label="תצוגת המקרר" className="inline-flex rounded-full border border-muted/40 p-0.5 text-sm">
-          {(["labels", "dots"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setView(v)}
-              aria-pressed={view === v}
-              className={`rounded-full px-3 py-1 ${view === v ? "bg-accent text-white dark:text-black" : "text-muted"}`}
-            >
-              {v === "labels" ? "תוויות" : "נקודות"}
-            </button>
-          ))}
-        </div>
+        {/* One on/off button: labels are on unless the user turns them off. */}
+        <button
+          type="button"
+          onClick={() => setView(view === "labels" ? "dots" : "labels")}
+          aria-pressed={view === "labels"}
+          className={`rounded-full border px-3 py-1 text-sm ${
+            view === "labels" ? "border-accent bg-accent text-white dark:text-black" : "border-muted/40 text-muted"
+          }`}
+        >
+          {view === "labels" ? "✓ " : ""}הצג תוויות
+        </button>
       </div>
 
       {fridges.map((fridge) => (
@@ -96,7 +94,12 @@ export function CellarView({ fridges, loose }: { fridges: FridgeView[]; loose: L
             shelves={fridge.shelves}
             view={view}
             activeBottleId={movingId ?? undefined}
-            onPick={movingId ? (p) => moveTo(p) : undefined}
+            // Moving: an empty place is the target. Otherwise: add a bottle right there.
+            onPick={(p) =>
+              movingId
+                ? moveTo(p)
+                : router.push(`/bottles/new?zone=${p.zoneId}${p.slot === null ? "" : `&slot=${p.slot}`}`)
+            }
             onBottleClick={(bottle, place) => {
               if (!movingId) setOpenId(bottle.id);
               else if (bottle.id !== movingId) moveTo(place); // swap
