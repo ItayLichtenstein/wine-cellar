@@ -19,9 +19,18 @@
 | 5 | פונקציות `SECURITY DEFINER` קובעות `search_path` | ✅ ובדיקה אוטומטית |
 | 6 | פונקציות לא חשופות לקריאה מבחוץ בלי צורך | ✅ `execute` רק ל־`authenticated`, ורק למה שצריך |
 | 7 | שלמות נתונים נאכפת במסד ולא בקוד | ✅ מפתחות זרים מורכבים, `UNIQUE`, `CHECK`, טריגרים |
-| 8 | קישורים בטוחים – בלי `javascript:` | ✅ `link_url` חייב להתחיל ב־`http(s)://` (מונע XSS דרך קישור) |
+| 8 | קישורים בטוחים – בלי `javascript:` | ✅ `link_url` חייב להתחיל ב־`http(s)://` (מונע XSS דרך קישור), ונבדק |
+| 8א | **הגבלת אורך בכל עמודת טקסט** – הדפדפן מדבר ישירות עם המסד, אז הגבלה בממשק היא רק המלצה | ✅ migration 0006 + בדיקה |
+| 8ב | **מדיניות UPDATE לא מאפשרת "להעביר" שורה למרתף אחר** | ✅ `with check` + מפתח זר מורכב, ונבדק |
+| 8ג | **אי אפשר לדרג בשם מישהו אחר** | ✅ migration 0006 + בדיקה (נמצא ותוקן בסבב 2) |
+| 8ד | **אי אפשר להצטרף למרתף או לקדם את עצמך מצופה** | ✅ אין מדיניות כתיבה על החברות; נבדק |
+| 8ה | **Views עוקפים RLS** אם לא הוגדרו `security_invoker` | ✅ אין views; בדיקה אוטומטית לעתיד |
+| 8ו | **סנכרון בזמן אמת**: Postgres Changes מכבד RLS; ערוצי Broadcast צריכים להיות פרטיים | 🔜 שלב 2 |
+| 8ז | **גיבויים**: במסלול החינמי אין גיבוי שאפשר לשחזר ממנו בקלות | 🔜 ייצוא CSV למשתמשים + גיבוי תקופתי (שלב 6) |
 | 9 | טוקנים של הזמנות: אקראיים, שמורים כ־hash, פגי תוקף, חד־פעמיים | 📐 שלב 2 |
-| 10 | הרשאות על קובצי תמונות (Storage) לפי מרתף | 🔜 כשנוסיף תמונות |
+| 10 | הרשאות על קובצי תמונות (Storage) לפי מרתף | 🔜 כשנוסיף תמונות. Bucket **פרטי**, מדיניות לפי תיקיית המרתף |
+| 10א | **תמונות מטלפון מכילות מיקום GPS** (EXIF) – תמונת תווית תחשוף איפה גרים | 🔜 קידוד מחדש בדפדפן לפני העלאה מוחק את המטא־דאטה |
+| 10ב | **SVG יכול להכיל קוד** | 🔜 רק JPEG/PNG/WebP |
 
 ## סודות
 | # | דגש | מצב |
@@ -40,14 +49,23 @@
 | 18 | ולידציה של כל קלט בשרת (סכמה) | 🔜 שלב 1, בשכבת השירותים |
 | 19 | שגיאות למשתמש לא חושפות פרטים פנימיים | 🔜 שלב 1 |
 | 20 | לא להשתמש ב־`dangerouslySetInnerHTML` | 📐 כלל ב־`CLAUDE.md` (React מנטרל HTML כברירת מחדל) |
-| 21 | כותרות אבטחה (CSP וכו') | 🔜 שלב 6 |
+| 21 | כותרות אבטחה | ✅ `nosniff`, `X-Frame-Options: DENY` (נגד clickjacking), `Referrer-Policy`, `Permissions-Policy`. 🔜 CSP בשלב 6 |
+| 21א | **React Server Components RCE** (CVE-2025-55182, דצמבר 2025, חומרה 10/10) | ✅ Next.js 16.4.6 ו־React 19.3.0 – אחרי התיקון |
+| 21ב | **מטמון של Next.js** (`use cache`) עלול להגיש נתונים של משתמש אחד לאחר | 📐 כלל ב־`CLAUDE.md` |
+| 21ג | **ייצוא CSV**: תא שמתחיל ב־`=` יורץ כנוסחה באקסל (CSV injection) | 📐 כלל ב־`CLAUDE.md` |
+| 21ד | **PWA**: service worker שמטמין נתונים אישיים משאיר אותם במכשיר משותף אחרי יציאה | 📐 כלל ב־`CLAUDE.md`; ניקוי ביציאה |
+| 21ה | **קישור צפייה**: הטוקן בכתובת יכול לדלוף (היסטוריה, Referer, מנועי חיפוש) | 📐 `Referrer-Policy` ✅, `noindex` לעמוד, טוקן ארוך שנשמר כ־hash, ביטול |
 
 ## התחברות
 | # | דגש | מצב |
 |---|---|---|
 | 22 | לא שומרים סיסמאות | ✅ באפיון: גוגל וקישור קסם בלבד, דרך Supabase Auth |
 | 23 | הגבלת קצב לשליחת מיילים ולהתחברות | 🔜 Supabase מגביל כברירת מחדל; לבדוק בהגדרות לפני העלייה לאוויר |
-| 24 | כתובות חזרה (redirect) מותרות רק לדומיין שלנו | 🔜 שלב 1 |
+| 24 | כתובות חזרה (redirect) מותרות רק לדומיין שלנו | 🔜 שלב 1: רשימה מותרת ב־Supabase + בדיקת `next=` בקוד (open redirect) |
+| 24א | **סורקי מייל בארגונים "לוחצים" על קישור הקסם** לפני המשתמש, והוא נשרף | 🔜 במייל גם קוד בן 6 ספרות, או עמוד ביניים עם כפתור |
+| 24ב | **מגבלת 2 מיילים לשעה** בשרת המייל המובנה של Supabase | 🔜 לפני עלייה לאוויר: שרת מייל חיצוני חינמי (SMTP) |
+| 24ג | **הרשמות סרק** שמנצלות את מכסת המיילים | 🔜 CAPTCHA חינמי (Cloudflare Turnstile) בטופס ההתחברות |
+| 24ד | **הרשמה עם סיסמה** עדיין פתוחה ב־API של Supabase, למרות שאנחנו לא משתמשים בה | 🔜 לבדוק בהגדרות הפרויקט בענן אם אפשר לחסום |
 
 ## חשבונות (באחריותך)
 | # | דגש | מצב |
@@ -72,6 +90,10 @@
 | 32 | אין כלים שמביאים כתובות URL שרירותיות (SSRF) | 📐 |
 | 33 | הגבלת קצב לכל משתמש | 🔜 שלב 7 |
 
+## סיכונים שאנחנו מקבלים במודע
+- **הרבה שורות**: משתמש מחובר יכול להכניס אלפי בקבוקים. אין מכסת שורות – המחיר (טבלאות מורכבות, טריגרים) לא מוצדק בקנה המידה הזה. אם ננוצל, נוסיף מגבלה.
+- **ערימה מלאה בו־זמנית**: שתי הוספות באותה שנייה לערימה עם מקום אחד עלולות שתיהן להצליח. השלכה זניחה.
+
 ## מקורות
 - [OWASP – Next.js Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Nextjs_Security_Cheat_Sheet.html)
 - [OWASP – MCP Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/MCP%5FSecurity%5FCheat%5FSheet.html)
@@ -80,4 +102,13 @@
 - [Next.js – Data Security guide](https://nextjs.org/docs/app/guides/data-security)
 - [JFrog – CVE-2025-29927](https://jfrog.com/blog/cve-2025-29927-next-js-authorization-bypass/)
 - [vibe-coding-security checklist (GitHub)](https://github.com/boxed-dev/vibe-coding-security)
+- [Supabase – Production security checklist](https://supabase.com/docs/guides/security/production-checklist)
+- [Supabase – Magic links consumed by email scanners](https://github.com/orgs/supabase/discussions/41618)
+- [Vercel – CVE-2025-55182](https://vercel.com/changelog/cve-2025-55182)
+- [Next.js – Authentication with Cache Components](https://nextjs.org/docs/app/guides/authentication-with-cache-components)
+- [GuardLayer – Open redirects in Next.js](https://www.guardlayer.io/blog/nextjs-open-redirect)
+- [GuardLayer – UPDATE policy WITH CHECK](https://www.guardlayer.io/blog/supabase-update-policy-with-check)
+- [OWASP – CSV Injection](https://owasp.org/www-community/attacks/CSV_Injection)
+- [W3C – Good Practices for Capability URLs](https://www.w3.org/2001/tag/doc/capability-urls)
+- [web.dev – Sign-out best practices](https://web.dev/articles/sign-out-best-practices)
 - [Cloud Security Alliance – Agentic MCP Security Best Practices](https://labs.cloudsecurityalliance.org/research/agentic-mcp-security-best-practices-v1/)
