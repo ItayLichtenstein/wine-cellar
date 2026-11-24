@@ -38,8 +38,9 @@ export function BottleSheet({ bottleId, onClose, onMove, onChanged }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // z-50: above the bottom navigation (z-40).
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"

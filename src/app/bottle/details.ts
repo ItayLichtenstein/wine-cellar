@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/database.types";
+import { EMPTY_EXTRA, type WineExtra } from "@/lib/wine-extra";
 
 export type WineType = Database["public"]["Enums"]["wine_type"];
 
@@ -23,6 +24,8 @@ export type BottleDetails = {
   note: string;
   vintageRating: number | null;
   wineRating: number | null;
+  /** Grape, country, critics, link… (the "more details" part of the forms). */
+  extra: WineExtra;
 };
 
 export const WINE_TYPES: { value: WineType; label: string; other?: true }[] = [
@@ -54,7 +57,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
   const { data: b, error } = await supabase
     .from("bottles")
     .select(
-      "id, status, note, bottle_prices(paid, regular, is_gift), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, wine_id, wines(winery, name, type))",
+      "id, status, note, link_url, bottle_prices(paid, regular, is_gift), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, alcohol, window_source, wine_id, critic_scores(critic, score), wines(winery, name, type, grape, country, region, kosher, shape))",
     )
     .eq("id", bottleId)
     .single();
@@ -94,5 +97,52 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
     note: b.note ?? "",
     vintageRating: ratings?.find((r) => r.vintage_id === v.id)?.score ?? null,
     wineRating: ratings?.find((r) => r.vintage_id === null)?.score ?? null,
+    extra: {
+      ...EMPTY_EXTRA,
+      grape: v.wines?.grape ?? "",
+      country: v.wines?.country ?? "",
+      region: v.wines?.region ?? "",
+      kosher: v.wines?.kosher ?? "unknown",
+      shape: v.wines?.shape ?? "standard",
+      alcohol: v.alcohol !== null ? String(v.alcohol) : "",
+      peakFrom: v.peak_from ? String(v.peak_from) : "",
+      peakTo: v.peak_to ? String(v.peak_to) : "",
+      windowSource: v.window_source ?? "",
+      critics: v.critic_scores ?? [],
+      link: b.link_url ?? "",
+    },
   };
 }
+
+const intOrNull = (s: string) => (s.trim() === "" ? null : Number(s));
+
+/**
+ * Saves the "more details" part: wine + vintage fields and critics in one
+ * transaction (update_wine_details), then the link on the given bottles.
+ */
+export async function saveExtra(wineId: string, vintageId: string, bottleIds: string[], e: WineExtra): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("update_wine_details", {
+    p_wine_id: wineId,
+    p_vintage_id: vintageId,
+    p_grape: e.grape,
+    p_country: e.country,
+    p_region: e.region,
+    p_kosher: e.kosher,
+    p_shape: e.shape,
+    // The generated types don't mark these as nullable; the function accepts null.
+    p_alcohol: intOrNull(e.alcohol) as number,
+    p_peak_from: intOrNull(e.peakFrom) as number,
+    p_peak_to: intOrNull(e.peakTo) as number,
+    p_window_source: (e.windowSource || null) as WindowSourceDb,
+    p_critics: e.critics.map((c) => ({ critic: c.critic.trim(), score: c.score })),
+  });
+  if (error) return false;
+  const { error: linkError } = await supabase
+    .from("bottles")
+    .update({ link_url: e.link.trim() || null })
+    .in("id", bottleIds);
+  return !linkError;
+}
+
+type WindowSourceDb = Database["public"]["Enums"]["window_source"];

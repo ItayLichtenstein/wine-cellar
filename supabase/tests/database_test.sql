@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(58);
+select plan(62);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -335,6 +335,22 @@ select lives_ok(
                           'יקב טוב', 'קומטו רזרב', 'red', 2022, 2025, 2030, 100, null, false, 'הערה') $$,
   'rename the wine');
 select is((select string_agg(distinct name, ',') from wines), 'קומטו רזרב', 'the rename applies to the whole wine');
+
+-- update_wine_details: fields land on wine and vintage; critics are replaced
+select lives_ok(
+  $$ select update_wine_details(
+       (select wine_id from wine_vintages where year = 2022 limit 1),
+       (select id from wine_vintages where year = 2022 limit 1),
+       'קברנה', 'ישראל', 'גליל', 'yes', 'burgundy', 14.5, 2026, 2028, 'critic',
+       '[{"critic":"Suckling","score":94},{"critic":"Parker","score":92}]') $$,
+  'update the extra wine details');
+select is((select grape || '/' || country || '/' || kosher::text || '/' || shape::text from wines limit 1),
+          'קברנה/ישראל/yes/burgundy', 'wine-level details saved');
+select is((select count(*)::int from critic_scores), 2, 'two critic scores saved');
+select throws_ok(
+  $$ select update_wine_details(gen_random_uuid(), (select id from wine_vintages limit 1),
+       null, null, null, null, null, null, null, null, null, '[]') $$,
+  'P0002', null, 'a vintage of another wine is rejected');
 
 -- a viewer cannot create fridges
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
