@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(53);
+select plan(58);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -317,6 +317,24 @@ select lives_ok($$ select set_rating((select id from wines), 4.46) $$, 'set a sh
 select lives_ok($$ select set_rating((select id from wines), 4.8) $$, 'set it again');
 select is((select count(*)::int || '/' || max(score)::text from ratings where rater_id is null and vintage_id is null),
           '1/4.8', 'setting a rating again replaces it (one row, latest score)');
+
+-- ---------- update_bottle() ----------
+-- fix the year of one 2021 bottle to 2022 + set a price: it moves to a new vintage
+select lives_ok(
+  $$ select update_bottle((select b.id from bottles b join wine_vintages v on v.id = b.vintage_id
+                           where v.year = 2021 and b.status = 'stored' limit 1),
+                          'יקב טוב', 'קומטו', 'red', 2022, 2025, 2030, 100, null, false, 'הערה') $$,
+  'edit a bottle: new year, window, price, note');
+select is((select count(*)::int from wine_vintages where year = 2022), 1, 'changing the year created the 2022 vintage');
+select is((select paid::int from bottle_prices bp join bottles b on b.id = bp.bottle_id where b.note = 'הערה'), 100,
+          'the price of the edited bottle was replaced');
+
+-- renaming the wine changes it for every bottle (one wine row)
+select lives_ok(
+  $$ select update_bottle((select id from bottles where note = 'הערה'),
+                          'יקב טוב', 'קומטו רזרב', 'red', 2022, 2025, 2030, 100, null, false, 'הערה') $$,
+  'rename the wine');
+select is((select string_agg(distinct name, ',') from wines), 'קומטו רזרב', 'the rename applies to the whole wine');
 
 -- a viewer cannot create fridges
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');

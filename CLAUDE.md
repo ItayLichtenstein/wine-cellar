@@ -67,6 +67,8 @@
 - **לא להריץ `next build` כשהשרת של `next dev` רץ** – שניהם כותבים ל־`.next` והבנייה משבשת את שרת הפיתוח. לעצור את השרת, לבנות, ולהפעיל מחדש.
 - **שינוי ב־`supabase/config.toml`** נכנס לתוקף רק אחרי `supabase stop && supabase start`.
 - **משתמש בדיקה מקומי**: `http://localhost:3000/dev-login` (מ־`supabase/seed.sql`).
+- **ייבוא המרתף מהאפליקציה הקודמת** (למשתמש הבדיקה, אחרי `supabase db reset`): `node --experimental-strip-types scripts/import-old-app.ts <קובץ הייצוא>`.
+- **שדה טקסט חופשי** (שמות, הערות): `dir="auto"`, כי הוא יכול להכיל גם עברית וגם אנגלית.
 
 ## סדר השלבים
 1. התחברות, מרתף ובקבוקים

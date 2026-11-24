@@ -124,7 +124,7 @@ export function AddBottlesForm({
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-2 text-lg font-semibold">איזה יין?</legend>
         <Field label="יקב">
-          <input value={winery} onChange={(e) => setWinery(e.target.value)} list="wineries" maxLength={120} required className={inputClass} />
+          <input value={winery} onChange={(e) => setWinery(e.target.value)} dir="auto" list="wineries" maxLength={120} required className={inputClass} />
           <datalist id="wineries">
             {wineries.map((w) => (
               <option key={w} value={w} />
@@ -132,7 +132,7 @@ export function AddBottlesForm({
           </datalist>
         </Field>
         <Field label="שם היין">
-          <input value={name} onChange={(e) => setName(e.target.value)} list="wine-names" maxLength={120} required className={inputClass} />
+          <input value={name} onChange={(e) => setName(e.target.value)} dir="auto" list="wine-names" maxLength={120} required className={inputClass} />
           <datalist id="wine-names">
             {namesForWinery.map((n) => (
               <option key={n} value={n} />
