@@ -1,0 +1,36 @@
+# --- Private data: never commit ---
+# Export from the old personal app (prices, notes, photos)
+/מרתף-היין-*.html
+/private/
+
+# --- Secrets ---
+.env
+.env*.local
+!.env.example
+
+# --- Dependencies ---
+/node_modules
+
+# --- Next.js build output ---
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# --- Vercel ---
+.vercel
+
+# --- Supabase local state ---
+supabase/.branches
+supabase/.temp
+
+# --- Testing ---
+/coverage
+
+# --- OS / editor ---
+.DS_Store
+*.pem
+npm-debug.log*
+.vscode/*
+!.vscode/extensions.json
