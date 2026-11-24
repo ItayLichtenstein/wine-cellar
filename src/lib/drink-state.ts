@@ -31,7 +31,7 @@ export function drinkState(w: DrinkWindow, year: number): DrinkState {
 /** Badge colors. Digits are always black on the colored square (spec). */
 export const DRINK_STATES: Record<DrinkState, { label: string; color: string }> = {
   past:  { label: "עבר את השיא",              color: "#f2a23c" }, // orange
-  now:   { label: "בשיא ומתחיל לרדת",          color: "#2e9e4a" }, // dark green
+  now:   { label: "בשיא",                       color: "#2e9e4a" }, // dark green
   soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#7bd877" }, // light green
   hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#4fc3d4" }, // turquoise
   near:  { label: "נכנס לחלון בשנה הבאה",       color: "#cfd6de" }, // light grey

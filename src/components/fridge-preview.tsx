@@ -13,10 +13,11 @@ export type Place = { zoneId: string; slot: number | null };
 /** "labels": wine name + year in each slot (the default). "dots": year only, compact. */
 export type FridgeViewMode = "labels" | "dots";
 
-// Slot size per view. Labels are 3rem wide so 5 slots still fit a phone row.
+// Slot size per view. On a phone labels are 3rem wide so 5 slots still fit
+// a row; from the sm breakpoint (640px) there is room for bigger slots.
 const SLOT_SHAPE: Record<FridgeViewMode, string> = {
-  labels: "h-11 w-12 rounded-lg",
-  dots: "size-9 rounded-full",
+  labels: "h-11 w-12 sm:h-14 sm:w-16 rounded-lg",
+  dots: "size-9 sm:size-11 rounded-full",
 };
 
 type Props = {
@@ -39,7 +40,8 @@ type Props = {
  */
 export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, activeBottleId, view = "labels" }: Props) {
   return (
-    <ol className="flex flex-col gap-2 rounded-2xl bg-fridge p-3" aria-label="שרטוט המקרר">
+    // w-fit: the fridge is as wide as its widest shelf, not the whole page.
+    <ol className="mx-auto flex w-fit min-w-72 max-w-full flex-col gap-2 rounded-2xl bg-fridge p-3" aria-label="שרטוט המקרר">
       {shelves.map((shelf, i) => (
         <li key={i} className="flex items-start gap-2 rounded-lg bg-shelf p-2">
           <span className="w-5 shrink-0 pt-1 text-center text-xs text-on-fridge/60" aria-hidden="true">
@@ -119,8 +121,10 @@ function ZoneLine({
         </span>
       </>
     );
+    // w-0 min-w-full: a stack wraps to the width the rows set, instead of
+    // stretching the whole fridge (the fridge itself has a minimum width).
     const className =
-      "flex flex-wrap items-center gap-2 rounded-md border border-dashed border-on-fridge/40 px-2 py-1 text-xs text-on-fridge/80";
+      "flex w-0 min-w-full flex-wrap items-center gap-2 rounded-md border border-dashed border-on-fridge/40 px-2 py-1 text-xs text-on-fridge/80";
     return canPick && !onBottleClick ? (
       <button
         type="button"

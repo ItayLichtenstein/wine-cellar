@@ -130,3 +130,74 @@ export async function getLooseBottles(): Promise<LooseBottle[]> {
     };
   });
 }
+
+/** Every bottle still in the cellar (stored, outside the fridge, on its way), for the list page. */
+export async function getCellarBottles(): Promise<import("./bottle-list").ListBottle[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bottles")
+    .select(
+      "id, status, bottle_prices(paid, regular), shelf_zones(shelves(position)), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, wines(winery, name, type, country, kosher, shape))",
+    )
+    .neq("status", "consumed");
+  if (error) throw new Error("Could not load bottles");
+
+  const year = new Date().getFullYear();
+  const WHERE = { unplaced: "מחוץ למקרר", in_transit: "בדרך אלינו" } as const;
+
+  return data.flatMap((b) => {
+    const v = b.wine_vintages;
+    const w = v?.wines;
+    if (!v || !w) return [];
+    // One-to-one joins over composite foreign keys may come back as a list.
+    const one = <T,>(x: T | T[] | null | undefined): T | undefined => (Array.isArray(x) ? x[0] : (x ?? undefined));
+    const price = one(b.bottle_prices as unknown as { paid: number | null; regular: number | null } | null);
+    const shelf = one(one(b.shelf_zones as unknown as { shelves: { position: number } | null } | null)?.shelves);
+    const status = b.status as "stored" | "unplaced" | "in_transit";
+    return [
+      {
+        id: b.id,
+        status,
+        vintageId: v.id,
+        winery: w.winery,
+        name: w.name,
+        type: w.type,
+        year: v.year,
+        country: w.country ?? "",
+        kosher: w.kosher,
+        shape: w.shape,
+        state: drinkState({ drinkFrom: v.drink_from, drinkTo: v.drink_to, peakFrom: v.peak_from, peakTo: v.peak_to }, year),
+        price: price?.regular ?? price?.paid ?? null,
+        where: status === "stored" ? (shelf ? `מדף ${shelf.position}` : "במקרר") : WHERE[status],
+      },
+    ];
+  });
+}
+
+export type HistoryEntry = {
+  id: string;
+  tastedOn: string; // YYYY-MM-DD
+  title: string;
+  year: number | null;
+  place: string;
+  notes: string;
+};
+
+/** Bottles we drank, newest first. */
+export async function getHistory(): Promise<HistoryEntry[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tastings")
+    .select("id, tasted_on, place, notes, wine_vintages(year), wines(winery, name)")
+    .order("tasted_on", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw new Error("Could not load history");
+  return data.map((t) => ({
+    id: t.id,
+    tastedOn: t.tasted_on,
+    title: t.wines ? `${t.wines.winery} – ${t.wines.name}` : "",
+    year: t.wine_vintages?.year ?? null,
+    place: t.place ?? "",
+    notes: t.notes ?? "",
+  }));
+}
