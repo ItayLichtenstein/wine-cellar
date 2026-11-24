@@ -40,5 +40,6 @@ Requires Node.js 22, Docker and the Supabase CLI.
 npm install
 supabase start        # local Postgres, Auth and Studio in Docker
 npm run dev           # http://localhost:3000
-supabase test db      # database tests
+npm test              # unit tests (Vitest)
+npm run test:db       # database tests (pgTAP)
 ```
