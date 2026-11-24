@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { FridgePreview } from "@/components/fridge-preview";
 import { getCurrentUser } from "@/lib/auth";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
-import { fridgeCapacity } from "@/lib/fridge-layout";
-import { getLooseBottleCounts, getMyFridges } from "@/lib/fridges";
+import { getLooseBottles, getMyFridges } from "@/lib/fridges";
+import { CellarView } from "./cellar-view";
 import { SignOutButton } from "./sign-out-button";
 
 export default function Home() {
@@ -33,7 +32,7 @@ async function Header() {
 }
 
 async function Fridges() {
-  const [fridges, loose] = await Promise.all([getMyFridges(), getLooseBottleCounts()]);
+  const [fridges, loose] = await Promise.all([getMyFridges(), getLooseBottles()]);
 
   if (fridges.length === 0) {
     return (
@@ -49,35 +48,25 @@ async function Fridges() {
   }
 
   const stored = fridges.flatMap((f) => f.shelves.flatMap((s) => s.zones.flatMap((z) => z.bottles)));
+  const unplaced = loose.filter((b) => b.status === "unplaced").length;
+  const inTransit = loose.length - unplaced;
 
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">
           {stored.length} בקבוקים במקרר
-          {loose.unplaced > 0 && ` · ${loose.unplaced} מחוץ למקרר`}
-          {loose.inTransit > 0 && ` · ${loose.inTransit} בדרך`}
+          {unplaced > 0 && ` · ${unplaced} מחוץ למקרר`}
+          {inTransit > 0 && ` · ${inTransit} בדרך`}
         </p>
         <Link href="/bottles/new" className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white dark:text-black">
           + הוספת בקבוקים
         </Link>
       </div>
 
-      {fridges.map((fridge) => (
-        <article key={fridge.id} className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-2">
-            <h2 className="text-lg font-semibold">{fridge.name}</h2>
-            <span className="text-sm text-muted">
-              {[fridge.brand, fridge.model].filter(Boolean).join(" ")}
-              {fridge.brand || fridge.model ? " · " : ""}
-              מקום ל־{fridgeCapacity(fridge.shelves)}
-            </span>
-          </div>
-          <FridgePreview shelves={fridge.shelves} />
-        </article>
-      ))}
+      <CellarView fridges={fridges} loose={loose} />
 
-      {stored.length > 0 && <Legend />}
+      {(stored.length > 0 || loose.length > 0) && <Legend />}
 
       <Link href="/fridges/new" className="self-start text-sm underline underline-offset-2">
         + הוספת מקרר
