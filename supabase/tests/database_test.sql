@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(23);
+select plan(24);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -34,6 +34,13 @@ select is(
      and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')),
   0, 'every SECURITY DEFINER function pins its search_path');
 
+-- Emails live only in auth.users, which the API does not expose.
+-- No table that the API exposes may hold an email.
+select is(
+  (select count(*)::int from information_schema.columns
+   where table_schema = 'public' and column_name ilike '%email%'),
+  0, 'no exposed table stores email addresses');
+
 -- ---------- Setup: three users sign up ----------
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'yonatan@example.com',  '{"full_name":"יונתן"}'),
@@ -44,7 +51,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 select is((select display_name from profiles where id = '11111111-1111-1111-1111-111111111111'),
           'יונתן', 'sign-up creates a profile from the Google name');
 select is((select display_name from profiles where id = '22222222-2222-2222-2222-222222222222'),
-          'maya', 'magic-link user gets a name from the email');
+          'משתמש חדש', 'magic-link user gets a placeholder name, never part of the email');
 select is((select count(*)::int from cellar_members), 3, 'every new user gets a cellar');
 
 -- Make user 3 a VIEWER of Yonatan's cellar (stage 2 will do this via an invite).

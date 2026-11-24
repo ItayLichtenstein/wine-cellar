@@ -119,10 +119,13 @@ declare
   v_name      text;
   v_cellar_id uuid;
 begin
-  -- Google sends full_name; magic-link users only have an email.
+  -- Google sends full_name. Magic-link users only have an email, and we
+  -- never derive a name from it (that would show part of the email to the
+  -- household and friends). They get a placeholder and are asked for a
+  -- name on first login.
   v_name := coalesce(
-    nullif(new.raw_user_meta_data ->> 'full_name', ''),
-    split_part(new.email, '@', 1)
+    nullif(trim(new.raw_user_meta_data ->> 'full_name'), ''),
+    'משתמש חדש'
   );
 
   insert into public.profiles (id, display_name) values (new.id, v_name);
