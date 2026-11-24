@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_FILTERS, buildRows, countriesOf, matches, type ListBottle } from "./bottle-list";
+import { EMPTY_FILTERS, buildRows, countriesOf, drinkNow, matches, type ListBottle } from "./bottle-list";
 
 const bottle = (b: Partial<ListBottle>): ListBottle => ({
   id: "b",
@@ -13,6 +13,7 @@ const bottle = (b: Partial<ListBottle>): ListBottle => ({
   kosher: "unknown",
   shape: "standard",
   state: "hold",
+  drinkBy: null,
   price: null,
   where: "מדף 1",
   ...b,
@@ -66,4 +67,18 @@ describe("buildRows", () => {
 
 it("countriesOf: distinct and without blanks", () => {
   expect(countriesOf([bottle({ country: "ספרד" }), bottle({ country: "ספרד" }), bottle({ country: "" })])).toEqual(["ספרד"]);
+});
+
+describe("drinkNow", () => {
+  it("past the peak first, then the earliest last year; skips bottles on their way and calm ones", () => {
+    const rows = drinkNow([
+      bottle({ id: "1", vintageId: "soon", state: "soon", drinkBy: 2027 }),
+      bottle({ id: "2", vintageId: "now-late", state: "now", drinkBy: 2026 }),
+      bottle({ id: "3", vintageId: "now-early", state: "now", drinkBy: 2024 }),
+      bottle({ id: "4", vintageId: "past", state: "past", drinkBy: 2020 }),
+      bottle({ id: "5", vintageId: "transit", state: "past", status: "in_transit" }),
+      bottle({ id: "6", vintageId: "hold", state: "hold" }),
+    ]);
+    expect(rows.map((r) => r.key)).toEqual(["past", "now-early", "now-late"]);
+  });
 });

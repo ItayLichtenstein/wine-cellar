@@ -15,6 +15,8 @@ export type ListBottle = {
   kosher: "yes" | "no" | "unknown";
   shape: "standard" | "burgundy";
   state: DrinkState;
+  /** Last good year: end of the peak, or of the window. Null if unknown. */
+  drinkBy: number | null;
   /** The shelf price if known, otherwise what was paid. */
   price: number | null;
   /** "מדף 3", "מחוץ למקרר", "בדרך אלינו". */
@@ -94,4 +96,23 @@ export function buildRows(bottles: ListBottle[], filters: Filters, sort: SortKey
 /** Distinct countries, for the country filter. */
 export function countriesOf(bottles: ListBottle[]): string[] {
   return [...new Set(bottles.map((b) => b.country).filter(Boolean))].sort((a, b) => a.localeCompare(b, "he"));
+}
+
+/** States that mean "open it soon". */
+const URGENT: DrinkState[] = ["past", "now", "soon"];
+
+/**
+ * "What to drink now": the most urgent vintages we can open tonight
+ * (in the fridge or next to it – not bottles still on their way).
+ * Past the peak first, then by the last good year.
+ */
+export function drinkNow(bottles: ListBottle[], count = 3): ListRow[] {
+  const urgent = bottles.filter((b) => b.status !== "in_transit" && URGENT.includes(b.state));
+  return buildRows(urgent, EMPTY_FILTERS, "state")
+    .sort(
+      (a, b) =>
+        URGENT.indexOf(a.first.state) - URGENT.indexOf(b.first.state) ||
+        (a.first.drinkBy ?? Infinity) - (b.first.drinkBy ?? Infinity),
+    )
+    .slice(0, count);
 }
