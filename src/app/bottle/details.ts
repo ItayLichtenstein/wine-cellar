@@ -15,6 +15,8 @@ export type BottleDetails = {
   year: number | null;
   drinkFrom: number | null;
   drinkTo: number | null;
+  peakFrom: number | null;
+  peakTo: number | null;
   paid: number | null;
   regular: number | null;
   isGift: boolean;
@@ -52,7 +54,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
   const { data: b, error } = await supabase
     .from("bottles")
     .select(
-      "id, status, note, bottle_prices(paid, regular, is_gift), wine_vintages(id, year, drink_from, drink_to, wine_id, wines(winery, name, type))",
+      "id, status, note, bottle_prices(paid, regular, is_gift), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, wine_id, wines(winery, name, type))",
     )
     .eq("id", bottleId)
     .single();
@@ -84,6 +86,8 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
     year: v.year,
     drinkFrom: v.drink_from,
     drinkTo: v.drink_to,
+    peakFrom: v.peak_from,
+    peakTo: v.peak_to,
     paid: price?.paid ?? null,
     regular: price?.regular ?? null,
     isGift: price?.is_gift ?? false,
