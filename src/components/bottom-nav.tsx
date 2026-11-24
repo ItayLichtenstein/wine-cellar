@@ -13,7 +13,7 @@ const ITEMS = [
 ] as const;
 
 // Pages for signed-out visitors have no navigation.
-const HIDDEN_ON = ["/login", "/privacy", "/auth", "/dev-login"];
+const HIDDEN_ON = ["/login", "/privacy", "/auth", "/dev-login", "/join"];
 
 /** Bottom tab bar: within thumb reach on a phone, the usual place in mobile apps. */
 export function BottomNav() {

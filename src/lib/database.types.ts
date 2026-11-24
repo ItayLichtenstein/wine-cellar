@@ -69,6 +69,38 @@ isOneToOne: false
       referencedColumns: ["id","cellar_id"]
     }
                   ]
+                },"cellar_invites": {
+                  Row: {
+                    "cellar_id": string,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"role": Database["public"]['Enums']["member_role"],"token_hash": string,"used_at": string | null,"used_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"role"?: Database["public"]['Enums']["member_role"],"token_hash": string,"used_at"?: string | null,"used_by"?: string | null
+                  }
+                  Update: {
+                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"role"?: Database["public"]['Enums']["member_role"],"token_hash"?: string,"used_at"?: string | null,"used_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cellar_invites_cellar_id_fkey"
+      columns: ["cellar_id"]
+isOneToOne: false
+      referencedRelation: "cellars"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cellar_invites_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cellar_invites_used_by_fkey"
+      columns: ["used_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"cellar_members": {
                   Row: {
                     "cellar_id": string,"joined_at": string,"role": Database["public"]['Enums']["member_role"],"user_id": string
@@ -333,14 +365,26 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "add_bottles":
+            "accept_invite":
+{ Args: { "p_token": string }; Returns: string
+                           },
+"add_bottles":
 { Args: { "p_drink_from"?: number,"p_drink_to"?: number,"p_is_gift"?: boolean,"p_name": string,"p_paid"?: number,"p_places"?: Json,"p_quantity": number,"p_regular"?: number,"p_rest_status"?: Database["public"]['Enums']["bottle_status"],"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: (string)[]
                            },
 "create_fridge":
 { Args: { "p_brand"?: string,"p_model"?: string,"p_name": string,"p_shelves": Json }; Returns: string
                            },
+"create_invite":
+{ Args: { "p_role"?: Database["public"]['Enums']["member_role"] }; Returns: string
+                           },
 "drink_bottle":
 { Args: { "p_bottle_id": string,"p_notes"?: string,"p_tasted_on"?: string }; Returns: string
+                           },
+"give_new_cellar":
+{ Args: { "p_user_id": string }; Returns: string
+                           },
+"hash_token":
+{ Args: { "p_token": string }; Returns: string
                            },
 "is_cellar_editor":
 { Args: { "p_cellar_id": string }; Returns: boolean
@@ -351,6 +395,9 @@ isOneToOne: false
 "is_member_of":
 { Args: { "p_cellar_id": string,"p_user_id": string }; Returns: boolean
                            },
+"leave_cellar":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
 "log_tasting":
 { Args: { "p_name": string,"p_notes"?: string,"p_place"?: string,"p_score"?: number,"p_tasted_on"?: string,"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: string
                            },
@@ -359,6 +406,12 @@ isOneToOne: false
                            },
 "my_cellar_id":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"remove_member":
+{ Args: { "p_user_id": string }; Returns: undefined
+                           },
+"set_member_role":
+{ Args: { "p_role": Database["public"]['Enums']["member_role"],"p_user_id": string }; Returns: undefined
                            },
 "set_rating":
 { Args: { "p_rater_id"?: string,"p_score": number,"p_vintage_id"?: string,"p_wine_id": string }; Returns: undefined
