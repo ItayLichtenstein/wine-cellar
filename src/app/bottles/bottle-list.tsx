@@ -161,7 +161,11 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
                   {b.country ? ` · ${b.country}` : ""}
                 </span>
               </span>
-              {group.length > 1 && <span className="shrink-0 text-sm text-muted tabular-nums">×{group.length}</span>}
+              {group.length > 1 && (
+                <span dir="ltr" className="shrink-0 text-sm text-muted tabular-nums">
+                  ×{group.length}
+                </span>
+              )}
             </button>
           </li>
         ))}

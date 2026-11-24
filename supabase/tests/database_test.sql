@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(69);
+select plan(73);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -387,6 +387,21 @@ select update_fridge((select id from fridges limit 1), 'מקרר יין', (
     from shelves s where s.position > 1));
 select is((select count(*)::text from bottles), current_setting('test.bottles_before'),
           'removing a shelf never deletes bottles');
+
+-- ---------- label photos (storage) ----------
+-- bucket settings are read as the admin (users cannot list buckets)
+select pg_temp.logout();
+select is((select public from storage.buckets where id = 'labels'), false, 'the labels bucket is private');
+select is((select allowed_mime_types from storage.buckets where id = 'labels'),
+          array['image/jpeg', 'image/png', 'image/webp'], 'labels accept only JPEG/PNG/WebP (no SVG)');
+select pg_temp.login_as('22222222-2222-2222-2222-222222222222');
+select throws_ok(
+  $$ update wines set label_image_path = gen_random_uuid()::text || '/x.webp' $$,
+  '23514', null, 'a wine cannot point to a photo in another cellar''s folder');
+select throws_ok(
+  format($$ insert into storage.objects (bucket_id, name, owner) values ('labels', '%s/x.webp', auth.uid()) $$,
+         current_setting('test.yonatan_cellar')),
+  '42501', null, 'a user cannot upload into another cellar''s folder');
 
 -- a viewer cannot create fridges
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');

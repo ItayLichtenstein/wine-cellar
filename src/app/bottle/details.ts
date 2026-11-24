@@ -28,6 +28,9 @@ export type BottleDetails = {
   extra: WineExtra;
   /** Years of every bottle of this wine still in the cellar (this one included). */
   wineYears: (number | null)[];
+  cellarId: string;
+  /** Path of the wine's label photo in the private "labels" bucket. */
+  labelPath: string | null;
 };
 
 export const WINE_TYPES: { value: WineType; label: string; other?: true }[] = [
@@ -59,7 +62,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
   const { data: b, error } = await supabase
     .from("bottles")
     .select(
-      "id, status, note, link_url, bottle_prices(paid, regular, is_gift), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, alcohol, window_source, wine_id, critic_scores(critic, score), wines(winery, name, type, grape, country, region, kosher, shape))",
+      "id, status, note, link_url, bottle_prices(paid, regular, is_gift), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, alcohol, window_source, wine_id, critic_scores(critic, score), wines(winery, name, type, grape, country, region, kosher, shape, cellar_id, label_image_path))",
     )
     .eq("id", bottleId)
     .single();
@@ -117,6 +120,8 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
       link: b.link_url ?? "",
     },
     wineYears: (siblings ?? []).map((x) => x.wine_vintages.year),
+    cellarId: v.wines?.cellar_id ?? "",
+    labelPath: v.wines?.label_image_path ?? null,
   };
 }
 
