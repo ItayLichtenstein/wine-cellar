@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/database.types";
-import { EMPTY_EXTRA, type WineExtra } from "@/lib/wine-extra";
+import { EMPTY_EXTRA, type PersonalRating, type WineExtra } from "@/lib/wine-extra";
 
 export type WineType = Database["public"]["Enums"]["wine_type"];
 
@@ -31,6 +31,10 @@ export type BottleDetails = {
   cellarId: string;
   /** Path of the wine's label photo in the private "labels" bucket. */
   labelPath: string | null;
+  /** Each member's own score (when the household rates separately). */
+  personalRatings: PersonalRating[];
+  /** Full household members – the people who can rate. */
+  members: { id: string; name: string }[];
 };
 
 export const WINE_TYPES: { value: WineType; label: string; other?: true }[] = [
@@ -69,14 +73,16 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
   if (error || !b.wine_vintages) throw new Error("not found");
 
   const v = b.wine_vintages;
-  const [{ data: ratings }, { data: siblings }] = await Promise.all([
-    supabase.from("ratings").select("score, vintage_id").eq("wine_id", v.wine_id).is("rater_id", null),
+  const [{ data: ratings }, { data: siblings }, { data: members }] = await Promise.all([
+    supabase.from("ratings").select("score, vintage_id, rater_id, profiles(display_name)").eq("wine_id", v.wine_id),
     supabase
       .from("bottles")
       .select("wine_vintages!inner(year, wine_id)")
       .eq("wine_vintages.wine_id", v.wine_id)
       .neq("status", "consumed"),
+    supabase.from("cellar_members").select("user_id, profiles(display_name)").eq("role", "member").order("joined_at"),
   ]);
+  const shared = (ratings ?? []).filter((r) => r.rater_id === null);
 
   // One price per bottle, but the composite foreign key makes the generated
   // type a list – accept both shapes.
@@ -103,8 +109,8 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
     regular: price?.regular ?? null,
     isGift: price?.is_gift ?? false,
     note: b.note ?? "",
-    vintageRating: ratings?.find((r) => r.vintage_id === v.id)?.score ?? null,
-    wineRating: ratings?.find((r) => r.vintage_id === null)?.score ?? null,
+    vintageRating: shared.find((r) => r.vintage_id === v.id)?.score ?? null,
+    wineRating: shared.find((r) => r.vintage_id === null)?.score ?? null,
     extra: {
       ...EMPTY_EXTRA,
       grape: v.wines?.grape ?? "",
@@ -122,6 +128,10 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
     wineYears: (siblings ?? []).map((x) => x.wine_vintages.year),
     cellarId: v.wines?.cellar_id ?? "",
     labelPath: v.wines?.label_image_path ?? null,
+    personalRatings: (ratings ?? [])
+      .filter((r) => r.rater_id !== null)
+      .map((r) => ({ raterId: r.rater_id!, name: r.profiles?.display_name ?? "", score: r.score, vintageId: r.vintage_id })),
+    members: (members ?? []).map((m) => ({ id: m.user_id, name: m.profiles?.display_name ?? "" })),
   };
 }
 

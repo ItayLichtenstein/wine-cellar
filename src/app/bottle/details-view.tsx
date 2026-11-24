@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { criticSummary, linkLabel, vintageBreakdown } from "@/lib/wine-extra";
+import { criticSummary, linkLabel, ratingLine, vintageBreakdown } from "@/lib/wine-extra";
 import { LabelPhoto } from "./label-photo";
 import { DRINK_STATES, drinkState } from "@/lib/drink-state";
 import { formatPrice, type BottleDetails } from "./details";
@@ -92,7 +92,7 @@ export function DetailsView({
         <dt className="text-muted">מחיר</dt>
         <dd>{formatPrice(d)}</dd>
         <dt className="text-muted">ציון</dt>
-        <dd>{rating ? `${rating} / 5` : "עוד אין"}</dd>
+        <dd>{ratingLine(d.personalRatings, rating, d.vintageId) ?? "עוד אין"}</dd>
         {d.note && (
           <>
             <dt className="text-muted">הערה</dt>
