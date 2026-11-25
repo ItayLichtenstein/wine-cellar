@@ -87,7 +87,7 @@ export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottle
                 key={zone.id ?? j}
                 zone={zone}
                 shifted={staggeredZone(shelf.zones) === j}
-                // The lower layer of a pile tucks under the upper one, so they read as stacked.
+                // A pile: the upper layer is shifted half a bottle and sits close above the lower one.
                 layer={isPile(shelf.zones) && j < 2 ? (j === 0 ? "upper" : "lower") : undefined}
                 front={frontZone(shelf.zones) === zone}
                 shelfNo={i + 1}
@@ -148,9 +148,9 @@ function ZoneLine({
     if (isStack) return { bottle: bottles[k], picked: k >= bottles.length && k < bottles.length + pickedHere.length, place, slot };
     return { bottle: bottles.find((b) => b.slot === slot), picked: pickedHere.some((p) => p.slot === slot), place, slot };
   });
-  const where = isStack ? `${zone.label || "ערימה"}, מדף ${shelfNo}` : `מדף ${shelfNo}, ${zone.label}, מקום`;
+  const where = isStack ? `${zone.label || "ערימה"}, מדף ${shelfNo}` : [`מדף ${shelfNo}`, zone.label, "מקום"].filter(Boolean).join(", ");
   const layerClass =
-    layer === "upper" ? "relative z-10" : layer === "lower" ? "-mt-3.5" : front ? "mt-0.5 border-t border-dashed border-on-fridge/30 pt-1.5" : "";
+    layer === "lower" ? "-mt-1" : front ? "mt-0.5 border-t border-dashed border-on-fridge/30 pt-1.5" : "";
 
   return (
     <div

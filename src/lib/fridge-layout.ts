@@ -26,7 +26,7 @@ export const LIMITS = {
 /** Ready-made shelf types. Each one is just a list of zones. */
 export const SHELF_PRESETS = {
   twoRows: {
-    title: "שורה אחורית וקדמית",
+    title: "שתי שורות",
     make: (n: number): Shelf => ({
       zones: [
         { kind: "row", capacity: n, label: "אחורית" },
@@ -42,7 +42,7 @@ export const SHELF_PRESETS = {
   // grooves of the lower one (so it holds one bottle less). No numbered
   // places – a bottle is just "in the upper layer".
   doubleStack: {
-    title: "ערימה (שכבה על שכבה)",
+    title: "ערימה",
     make: (n: number): Shelf => ({
       zones: [
         { kind: "stack", capacity: Math.max(1, n - 1), label: "שכבה עליונה" },
