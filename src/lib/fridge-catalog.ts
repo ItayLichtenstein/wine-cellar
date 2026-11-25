@@ -81,6 +81,14 @@ export function estimateShelves(spec: ModelSpec): Shelf[] {
   return shelves;
 }
 
+/** A brand's models grouped by bottle count, smallest first: the second step of the picker. */
+export function capacityGroups(brand: string): { capacity: number; models: ModelSpec[] }[] {
+  const models = CATALOG.find((b) => b.brand === brand)?.models ?? [];
+  const groups = new Map<number, ModelSpec[]>();
+  for (const m of models) groups.set(m.capacity, [...(groups.get(m.capacity) ?? []), m]);
+  return [...groups].sort(([a], [b]) => a - b).map(([capacity, models]) => ({ capacity, models }));
+}
+
 function lyingShelf(n: number): Shelf {
   if (n < TWO_ROWS_FROM) return { zones: [{ kind: "row", capacity: n, label: "שורה" }] };
   return {

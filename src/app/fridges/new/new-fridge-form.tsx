@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview } from "@/components/fridge-preview";
 import type { FridgeView } from "@/lib/fridges";
-import { CATALOG, estimateShelves, type ModelSpec } from "@/lib/fridge-catalog";
+import { CATALOG, capacityGroups, estimateShelves, type ModelSpec } from "@/lib/fridge-catalog";
 import { createClient } from "@/lib/supabase/client";
 import {
   LIMITS,
@@ -53,6 +53,12 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
   // catalog brand, OTHER, or "" (not chosen)
   const [brandChoice, setBrandChoice] = useState(existing?.brand ? (knownBrand ? existing.brand : OTHER) : "");
   const [spec, setSpec] = useState<ModelSpec | null>(null); // the catalog model the layout came from
+  // Step 2 of the picker: bottle count first, so the model list stays short.
+  const [capacity, setCapacity] = useState<number | null>(
+    () => CATALOG.find((b) => b.brand === existing?.brand)?.models.find((m) => m.model === existing?.model)?.capacity ?? null,
+  );
+  const groups = brandChoice && brandChoice !== OTHER ? capacityGroups(brandChoice) : [];
+  const sameCapacity = groups.find((g) => g.capacity === capacity)?.models ?? [];
   const [shelves, setShelves] = useState<FormShelf[]>(() =>
     existing
       ? existing.shelves.map((s) => ({
@@ -85,14 +91,26 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
     setBrandChoice(value);
     setSpec(null);
     setModel("");
+    setCapacity(null);
     setBrand(value === OTHER ? "" : value);
   }
 
+  /** One model with that many bottles is picked at once; several open a short model list. */
+  function chooseCapacity(value: string) {
+    const n = value ? Number(value) : null;
+    setCapacity(n);
+    const models = groups.find((g) => g.capacity === n)?.models ?? [];
+    if (models.length === 1) chooseModel(models[0]);
+    else {
+      setSpec(null);
+      setModel("");
+    }
+  }
+
   /** A catalog model replaces the shelves with its starting layout; everything stays editable. */
-  function chooseModel(modelName: string) {
-    const found = CATALOG.find((b) => b.brand === brandChoice)?.models.find((m) => m.model === modelName) ?? null;
+  function chooseModel(found: ModelSpec | null) {
     setSpec(found);
-    setModel(modelName);
+    setModel(found?.model ?? "");
     if (found) setShelves(estimateShelves(found).map((s) => ({ preset: presetOf(s), ...s })));
   }
 
@@ -169,20 +187,38 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
               <option value={OTHER}>יצרן אחר</option>
             </select>
           </label>
-          {brandChoice && brandChoice !== OTHER && (
+          {groups.length > 0 && (
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-muted">דגם</span>
-              <select value={model} onChange={(e) => chooseModel(e.target.value)} className={selectClass}>
-                <option value="">בחרו דגם</option>
-                {CATALOG.find((b) => b.brand === brandChoice)?.models.map((m) => (
-                  <option key={m.model} value={m.model}>
-                    {m.model} · {m.capacity}
+              <span className="text-muted">כמה בקבוקים?</span>
+              <select value={capacity ?? ""} onChange={(e) => chooseCapacity(e.target.value)} className={selectClass}>
+                <option value="">בחרו</option>
+                {groups.map((g) => (
+                  <option key={g.capacity} value={g.capacity}>
+                    {g.capacity}{g.models.length > 1 ? ` (${g.models.length} דגמים)` : ""}
                   </option>
                 ))}
               </select>
             </label>
           )}
         </div>
+        {sameCapacity.length > 1 && (
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-muted">דגם</span>
+            <select
+              value={model}
+              onChange={(e) => chooseModel(sameCapacity.find((m) => m.model === e.target.value) ?? null)}
+              className={selectClass}
+            >
+              <option value="">בחרו דגם</option>
+              {sameCapacity.map((m) => (
+                <option key={m.model} value={m.model}>
+                  {m.model}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {sameCapacity.length === 1 && <p className="text-sm text-muted">הדגם: {model}</p>}
         {brandChoice === OTHER && (
           <div className="grid grid-cols-2 gap-3">
             <TextField label="שם היצרן" value={brand} onChange={setBrand} />

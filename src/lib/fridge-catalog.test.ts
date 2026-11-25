@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CATALOG, estimateShelves, type ModelSpec } from "./fridge-catalog";
+import { CATALOG, capacityGroups, estimateShelves, type ModelSpec } from "./fridge-catalog";
 import { LIMITS, fridgeCapacity } from "./fridge-layout";
 
 const all = CATALOG.flatMap((b) => b.models.map((m) => ({ brand: b.brand, ...m })));
@@ -53,5 +53,20 @@ describe("estimateShelves", () => {
     const shelves = estimateShelves(spec({ capacity: 12, shelves: 4, standing: 4 }));
     expect(shelves[0].zones).toEqual([{ kind: "row", capacity: 2, label: "שורה" }]);
     expect(shelves.at(-1)?.zones[0]).toMatchObject({ capacity: 4, label: "בקבוקים עומדים" });
+  });
+});
+
+describe("capacityGroups", () => {
+  it("one entry per bottle count, smallest first, covering every model of the brand", () => {
+    for (const b of CATALOG) {
+      const groups = capacityGroups(b.brand);
+      const counts = groups.map((g) => g.capacity);
+      expect(counts).toEqual([...new Set(counts)].sort((x, y) => x - y));
+      expect(groups.flatMap((g) => g.models)).toHaveLength(b.models.length);
+      for (const g of groups) for (const m of g.models) expect(m.capacity).toBe(g.capacity);
+    }
+  });
+  it("is empty for a brand not in the catalog", () => {
+    expect(capacityGroups("אחר")).toEqual([]);
   });
 });
