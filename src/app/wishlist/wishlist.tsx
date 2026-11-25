@@ -9,7 +9,7 @@ import { linkLabel } from "@/lib/wine-extra";
 
 export type Wish = { id: string; winery: string; name: string; year: number | null; note: string; link: string; source: string };
 
-export function Wishlist({ wishes }: { wishes: Wish[] }) {
+export function Wishlist({ wishes, canEdit }: { wishes: Wish[]; canEdit: boolean }) {
   const router = useRouter();
   const [winery, setWinery] = useState("");
   const [name, setName] = useState("");
@@ -69,36 +69,43 @@ export function Wishlist({ wishes }: { wishes: Wish[] }) {
               {w.note && <span className="text-sm" dir="auto">{w.note}</span>}
               {w.source && <span className="text-xs text-muted" dir="auto">{w.source}</span>}
               <span className="flex flex-wrap gap-4 text-sm">
-                <Link href={`/bottles/new?wish=${w.id}`} className="font-medium underline underline-offset-2">
-                  קניתי
-                </Link>
+                {canEdit && (
+                  <Link href={`/bottles/new?wish=${w.id}`} className="font-medium underline underline-offset-2">
+                    קניתי
+                  </Link>
+                )}
                 {w.link && linkLabel(w.link) && (
                   <a href={w.link} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
                     {linkLabel(w.link)}
                   </a>
                 )}
-                <button type="button" onClick={() => remove(w.id)} className="text-muted underline underline-offset-2">
-                  הסרה
-                </button>
+                {canEdit && (
+                  <button type="button" onClick={() => remove(w.id)} className="text-muted underline underline-offset-2">
+                    הסרה
+                  </button>
+                )}
               </span>
             </li>
           ))}
         </ul>
       )}
 
-      <form onSubmit={add} className="flex flex-col gap-2 rounded-xl bg-surface p-3 shadow-sm">
-        <h2 className="font-semibold">הוספה לרשימה</h2>
-        <div className="grid grid-cols-2 gap-2">
-          <input value={winery} onChange={(e) => setWinery(e.target.value)} placeholder="יקב" dir="auto" maxLength={120} required aria-label="יקב" className={inputClass} />
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="שם היין" dir="auto" maxLength={120} required aria-label="שם היין" className={inputClass} />
-          <input value={year} onChange={(e) => setYear(e.target.value)} placeholder="בציר (ריק = כל בציר)" inputMode="numeric" maxLength={4} aria-label="בציר" className={inputClass} />
-          <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="קישור (לא חובה)" type="url" dir="ltr" maxLength={500} aria-label="קישור" className={inputClass} />
-        </div>
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="הערה (לא חובה)" dir="auto" maxLength={500} aria-label="הערה" className={inputClass} />
-        <button type="submit" disabled={busy} className="self-start rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:text-black">
-          {busy ? "מוסיף…" : "הוספה"}
-        </button>
-      </form>
+      {/* Viewers read only (spec); RLS would refuse anyway. */}
+      {canEdit && (
+        <form onSubmit={add} className="flex flex-col gap-2 rounded-xl bg-surface p-3 shadow-sm">
+          <h2 className="font-semibold">הוספה לרשימה</h2>
+          <div className="grid grid-cols-2 gap-2">
+            <input value={winery} onChange={(e) => setWinery(e.target.value)} placeholder="יקב" dir="auto" maxLength={120} required aria-label="יקב" className={inputClass} />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="שם היין" dir="auto" maxLength={120} required aria-label="שם היין" className={inputClass} />
+            <input value={year} onChange={(e) => setYear(e.target.value)} placeholder="בציר (ריק = כל בציר)" inputMode="numeric" maxLength={4} aria-label="בציר" className={inputClass} />
+            <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="קישור (לא חובה)" type="url" dir="ltr" maxLength={500} aria-label="קישור" className={inputClass} />
+          </div>
+          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="הערה (לא חובה)" dir="auto" maxLength={500} aria-label="הערה" className={inputClass} />
+          <button type="submit" disabled={busy} className="self-start rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:text-black">
+            {busy ? "מוסיף…" : "הוספה"}
+          </button>
+        </form>
+      )}
       {error && (
         <p role="alert" className="text-sm text-red-700 dark:text-red-400">
           {error}

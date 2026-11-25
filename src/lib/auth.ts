@@ -6,6 +6,8 @@ export type CurrentUser = {
   displayName: string;
   /** False until the user confirmed a name (first sign-in). */
   onboarded: boolean;
+  /** A viewer only reads (spec); the UI hides editing for them. RLS enforces it anyway. */
+  canEdit: boolean;
 };
 
 /**
@@ -28,5 +30,12 @@ export async function getCurrentUser(): Promise<CurrentUser> {
     .eq("id", userId)
     .single();
 
-  return { id: userId, displayName: profile?.display_name ?? "", onboarded: Boolean(profile?.onboarded_at) };
+  const { data: member } = await supabase.from("cellar_members").select("role").eq("user_id", userId).maybeSingle();
+
+  return {
+    id: userId,
+    displayName: profile?.display_name ?? "",
+    onboarded: Boolean(profile?.onboarded_at),
+    canEdit: member?.role === "member",
+  };
 }

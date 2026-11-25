@@ -29,7 +29,7 @@ export default function MorePage() {
 }
 
 async function Fridges() {
-  const fridges = await getMyFridges();
+  const [fridges, user] = await Promise.all([getMyFridges(), getCurrentUser()]);
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">המקררים שלי</h2>
@@ -39,9 +39,11 @@ async function Fridges() {
             <li key={f.id} className="flex items-baseline justify-between gap-2 px-4 py-3">
               <span>
                 {f.name}{" "}
-                <Link href={`/fridges/${f.id}/edit`} className="text-sm underline underline-offset-2">
-                  עריכה
-                </Link>
+                {user.canEdit && (
+                  <Link href={`/fridges/${f.id}/edit`} className="text-sm underline underline-offset-2">
+                    עריכה
+                  </Link>
+                )}
               </span>
               <span className="text-sm text-muted">
                 {[f.brand, f.model].filter(Boolean).join(" ")}
@@ -52,9 +54,11 @@ async function Fridges() {
           ))}
         </ul>
       )}
-      <Link href="/fridges/new" className="self-start rounded-full border border-muted/40 px-4 py-2 text-sm">
-        + הוספת מקרר
-      </Link>
+      {user.canEdit && (
+        <Link href="/fridges/new" className="self-start rounded-full border border-muted/40 px-4 py-2 text-sm">
+          + הוספת מקרר
+        </Link>
+      )}
     </section>
   );
 }

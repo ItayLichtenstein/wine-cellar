@@ -19,10 +19,13 @@ export function CellarView({
   fridges,
   loose,
   drinkNow,
+  canEdit = true,
 }: {
   fridges: FridgeView[];
   loose: LooseBottle[];
   drinkNow: ListRow[];
+  /** false for a viewer: no "add here" on empty slots. */
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -137,10 +140,13 @@ export function CellarView({
             view={view}
             activeBottleId={movingId ?? undefined}
             // Moving: an empty place is the target. Otherwise: add a bottle right there.
-            onPick={(p) =>
-              movingId
-                ? moveTo(p)
-                : router.push(`/bottles/new?zone=${p.zoneId}${p.slot === null ? "" : `&slot=${p.slot}`}`)
+            onPick={
+              canEdit
+                ? (p) =>
+                    movingId
+                      ? moveTo(p)
+                      : router.push(`/bottles/new?zone=${p.zoneId}${p.slot === null ? "" : `&slot=${p.slot}`}`)
+                : undefined
             }
             onBottleClick={(bottle, place) => {
               if (!movingId) setOpenId(bottle.id);
@@ -221,7 +227,12 @@ function DrinkNow({ rows, onOpen }: { rows: ListRow[]; onOpen: (id: string) => v
               </span>
               <span className="text-xs text-muted">
                 {DRINK_STATES[b.state].label}
-                {bottles.length > 1 ? ` · ×${bottles.length}` : ""}
+                {bottles.length > 1 && (
+                  <>
+                    {" · "}
+                    <span dir="ltr">×{bottles.length}</span>
+                  </>
+                )}
               </span>
             </button>
           </li>

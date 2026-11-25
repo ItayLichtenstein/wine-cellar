@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { getCurrentUser } from "@/lib/auth";
 import { getHistory } from "@/lib/fridges";
 
 export const metadata: Metadata = { title: "היסטוריה · מרתף יין" };
@@ -10,14 +11,23 @@ export default function HistoryPage() {
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">מה ששתינו</h1>
-        <Link href="/history/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
-          + שתינו מחוץ לבית
-        </Link>
+        <Suspense fallback={null}>
+          <AddOutside />
+        </Suspense>
       </div>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <History />
       </Suspense>
     </main>
+  );
+}
+
+async function AddOutside() {
+  if (!(await getCurrentUser()).canEdit) return null;
+  return (
+    <Link href="/history/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
+      + שתינו מחוץ לבית
+    </Link>
   );
 }
 
