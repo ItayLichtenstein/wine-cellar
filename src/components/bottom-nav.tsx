@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { MoreSheet } from "./more-sheet";
+import { MoreSheet, SavedTheme } from "./more-sheet";
 import { RealtimeRefresh } from "./realtime-refresh";
 
 // Simple line icons (24×24, stroke = text color). Emoji were used before,
@@ -43,6 +43,7 @@ export function BottomNav() {
     <>
       {/* Signed-in pages only (same rule as the navigation itself). */}
       <RealtimeRefresh />
+      <SavedTheme />
       <nav
         aria-label="ניווט ראשי"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-muted/20 bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { BackLink } from "@/components/back-link";
 import { getCurrentUser } from "@/lib/auth";
 import { getHistory } from "@/lib/fridges";
+import { bottles as countBottles } from "@/lib/plural";
 
 export const metadata: Metadata = { title: "היסטוריה ודירוגים · מרתף יין" };
 
@@ -48,7 +49,7 @@ async function History() {
 
   return (
     <>
-      <p className="text-sm text-muted">{entries.length === 1 ? "בקבוק אחד" : `${entries.length} בקבוקים`}</p>
+      <p className="text-sm text-muted">{countBottles(entries.length)}</p>
       <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
         {entries.map((e) => (
           <li key={e.id} className="flex flex-col gap-0.5 px-4 py-3">

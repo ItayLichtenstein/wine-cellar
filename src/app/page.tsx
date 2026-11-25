@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
 import { AiCard } from "./ai-card";
 import { CellarView } from "./cellar-view";
+import { GuideCard } from "./guide-card";
 import { NamePrompt } from "./name-prompt";
 
 export default function Home() {
@@ -68,6 +69,9 @@ async function Fridges() {
         <Link href="/fridges/new" className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
           הגדרת המקרר הראשון
         </Link>
+        <Link href="/guide" className="text-sm text-muted underline underline-offset-2">
+          איך זה עובד? מדריך קצר למתחילים
+        </Link>
       </section>
     );
   }
@@ -80,7 +84,7 @@ async function Fridges() {
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">
-          {stored.length} בקבוקים במקרר
+          {stored.length === 0 ? "המקרר עוד ריק" : stored.length === 1 ? "בקבוק אחד במקרר" : `${stored.length} בקבוקים במקרר`}
           {unplaced > 0 && ` · ${unplaced} מחוץ למקרר`}
           {inTransit > 0 && ` · ${inTransit} בדרך`}
         </p>
@@ -90,6 +94,8 @@ async function Fridges() {
           </Link>
         )}
       </div>
+
+      <GuideCard />
 
       {user.canEdit && <AiCard connected={connected} pendingDrafts={drafts} />}
 

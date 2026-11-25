@@ -13,6 +13,7 @@ import {
   type SortKey,
 } from "@/lib/bottle-list";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
+import { bottles as countBottles } from "@/lib/plural";
 
 const SORTS: [SortKey, string][] = [
   ["state", "בשלות"],
@@ -138,7 +139,7 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
       )}
 
       <p className="text-sm text-muted">
-        {shown === bottles.length ? `${bottles.length} בקבוקים` : `${shown} מתוך ${bottles.length} בקבוקים`}
+        {shown === bottles.length ? countBottles(bottles.length) : `${shown} מתוך ${countBottles(bottles.length)}`}
       </p>
 
       <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
