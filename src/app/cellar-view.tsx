@@ -227,7 +227,12 @@ function DrinkNow({ rows, onOpen }: { rows: ListRow[]; onOpen: (id: string) => v
               </span>
               <span className="text-xs text-muted">
                 {DRINK_STATES[b.state].label}
-                {bottles.length > 1 ? ` · ×${bottles.length}` : ""}
+                {bottles.length > 1 && (
+                  <>
+                    {" · "}
+                    <span dir="ltr">×{bottles.length}</span>
+                  </>
+                )}
               </span>
             </button>
           </li>
