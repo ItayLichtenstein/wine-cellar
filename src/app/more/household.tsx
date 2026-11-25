@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export type Member = { userId: string; name: string; role: "member" | "viewer" };
 
-const ROLE = { member: "חבר משק בית", viewer: "צופה" } as const;
+const ROLE = { member: "שותף", viewer: "צופה" } as const;
 
 /** Household members, invite links, roles and leaving. */
 export function Household({ members, me }: { members: Member[]; me: string }) {
@@ -24,7 +24,7 @@ export function Household({ members, me }: { members: Member[]; me: string }) {
     if (!e) return ok();
     setError(
       e.hint === "last_member"
-        ? "במרתף חייב להישאר לפחות חבר משק בית מלא אחד."
+        ? "במרתף חייב להישאר לפחות שותף אחד."
         : e.hint === "alone"
           ? "את/ה היחיד/ה במרתף – אין ממה לעזוב."
           : "הפעולה לא הצליחה. נסו שוב.",
@@ -95,7 +95,7 @@ export function Household({ members, me }: { members: Member[]; me: string }) {
           <div className="flex flex-wrap items-center gap-2">
             <span>הזמנה של</span>
             <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Member["role"])} className="rounded-lg border border-muted/40 bg-background px-2 py-1">
-              <option value="member">{ROLE.member}</option>
+              <option value="member">{ROLE.member} (יכול לערוך)</option>
               <option value="viewer">{ROLE.viewer} (קריאה בלבד)</option>
             </select>
             <button type="button" onClick={invite} className="rounded-full bg-accent px-3 py-1 font-medium text-white dark:text-black">

@@ -112,7 +112,7 @@ export function DetailsView({
           </button>
         </div>
       )}
-      <div className="flex justify-center gap-6 text-sm">
+      <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm">
         <Link href={`/wines/${d.wineId}`} className="underline underline-offset-2">
           עמוד היין
         </Link>
@@ -169,12 +169,19 @@ function DeleteButton({ bottleId, onDeleted }: { bottleId: string; onDeleted: ()
     );
   }
   return (
-    <span className="flex items-center gap-2">
-      <button type="button" onClick={remove} disabled={busy} className="font-medium text-red-700 underline underline-offset-2 dark:text-red-400">
-        {failed ? "לא הצליח – לנסות שוב?" : "למחוק לגמרי?"}
+    // basis-full: the question and its two buttons get a line of their own.
+    <span className="flex basis-full flex-wrap items-center justify-center gap-2">
+      <span>{failed ? "המחיקה לא הצליחה." : "למחוק את הבקבוק?"}</span>
+      <button
+        type="button"
+        onClick={remove}
+        disabled={busy}
+        className="rounded-full bg-red-700 px-3 py-1 font-medium text-white disabled:opacity-60 dark:bg-red-500 dark:text-black"
+      >
+        {failed ? "לנסות שוב" : "כן, למחוק"}
       </button>
-      <button type="button" onClick={() => setConfirming(false)} className="text-muted underline underline-offset-2">
-        לא
+      <button type="button" onClick={() => setConfirming(false)} className="rounded-full border border-muted/40 px-3 py-1">
+        ביטול
       </button>
     </span>
   );

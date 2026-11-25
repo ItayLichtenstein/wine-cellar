@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(104);
+select plan(105);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -41,6 +41,14 @@ select is(
    where n.nspname = 'public' and c.relkind = 'v'
      and not coalesce('security_invoker=true' = any(c.reloptions), false)),
   0, 'every view in public is security_invoker');
+
+-- Signed-in users can use every table (RLS then filters the rows). This
+-- must not depend on the cloud project's "grant API access" setting.
+select is(
+  (select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'r'
+     and not has_table_privilege('authenticated', c.oid, 'select, insert, update, delete')),
+  0, 'signed-in users have explicit access to every table');
 
 -- Emails live only in auth.users, which the API does not expose.
 -- No table that the API exposes may hold an email.

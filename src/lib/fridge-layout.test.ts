@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { staggeredZone } from "@/components/fridge-preview";
 import { LIMITS, SHELF_PRESETS, bottlesLeaving, clamp, fridgeCapacity, shelfCapacity } from "./fridge-layout";
 
 describe("shelf presets", () => {
@@ -64,5 +65,20 @@ describe("bottlesLeaving", () => {
   });
   it("a removed zone, or one switched between row and stack, loses all its bottles", () => {
     expect(bottlesLeaving(before, [[stack(5, "r")]])).toBe(6);
+  });
+});
+
+
+describe("staggeredZone", () => {
+  const row = (capacity: number) => ({ kind: "row", capacity });
+  it("shifts the row that is shorter by one", () => {
+    expect(staggeredZone([row(5), row(4)])).toBe(1);
+    expect(staggeredZone([row(4), row(5)])).toBe(0);
+  });
+  it("leaves equal rows, single rows and stacks alone", () => {
+    expect(staggeredZone([row(5), row(5)])).toBeNull();
+    expect(staggeredZone([row(5)])).toBeNull();
+    expect(staggeredZone([{ kind: "stack", capacity: 4 }, row(5)])).toBeNull();
+    expect(staggeredZone([row(6), row(4)])).toBeNull();
   });
 });

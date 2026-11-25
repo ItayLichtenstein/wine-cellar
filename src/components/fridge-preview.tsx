@@ -13,6 +13,22 @@ export type Place = { zoneId: string; slot: number | null };
 /** "labels": wine name + year in each slot (the default). "dots": year only, compact. */
 export type FridgeViewMode = "labels" | "dots";
 
+// Half a slot plus half the gap, per view: shifts the shorter of two
+// staggered rows so each of its bottles sits between two of the other row
+// (bottles on a shelf lie head to tail, 5 at the back and 4 in front).
+const HALF_STEP: Record<FridgeViewMode, string> = {
+  labels: "ms-[1.625rem] sm:ms-[2.125rem]", // (3rem + 0.25rem) / 2, (4rem + 0.25rem) / 2
+  dots: "ms-[1.25rem] sm:ms-[1.5rem]", //      (2.25rem + 0.25rem) / 2, (2.75rem + 0.25rem) / 2
+};
+
+/** Index of the row to shift: two rows on a shelf, one shorter by exactly one. */
+export function staggeredZone(zones: { kind: string; capacity: number }[]): number | null {
+  if (zones.length !== 2 || zones.some((z) => z.kind !== "row")) return null;
+  const [a, b] = zones;
+  if (Math.abs(a.capacity - b.capacity) !== 1) return null;
+  return a.capacity < b.capacity ? 0 : 1;
+}
+
 // Slot size per view. On a phone labels are 3rem wide so 5 slots still fit
 // a row; from the sm breakpoint (640px) there is room for bigger slots.
 const SLOT_SHAPE: Record<FridgeViewMode, string> = {
@@ -52,6 +68,7 @@ export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, act
               <ZoneLine
                 key={zone.id ?? j}
                 zone={zone}
+                shifted={staggeredZone(shelf.zones) === j}
                 shelfNo={i + 1}
                 onPick={onPick}
                 picked={picked}
@@ -69,6 +86,7 @@ export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, act
 
 function ZoneLine({
   zone,
+  shifted = false,
   shelfNo,
   onPick,
   picked,
@@ -77,6 +95,7 @@ function ZoneLine({
   view,
 }: {
   zone: DrawnZone;
+  shifted?: boolean;
   shelfNo: number;
   onPick?: (p: Place) => void;
   picked: Place[];
@@ -153,7 +172,7 @@ function ZoneLine({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1" title={zone.label}>
+    <div className={`flex flex-wrap items-center gap-1 ${shifted ? HALF_STEP[view] : ""}`} title={zone.label}>
       {Array.from({ length: zone.capacity }, (_, k) => {
         const slot = k + 1;
         const bottle = bottles.find((b) => b.slot === slot);
