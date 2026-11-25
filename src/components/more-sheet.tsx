@@ -132,15 +132,15 @@ function applyTheme(next: Theme) {
   window.dispatchEvent(new Event(THEME_EVENT));
 }
 
-/** Light, burgundy, or whatever the phone is set to (the default). */
+/** Automatic (follows the phone, the default), light, or dark (burgundy). */
 function ThemePicker() {
   const theme = useSyncExternalStore(subscribeTheme, readTheme, () => "system" as Theme);
   const choose = applyTheme;
 
   const options: { value: Theme; label: string }[] = [
-    { value: "system", label: "לפי הטלפון" },
+    { value: "system", label: "אוטומטי" },
     { value: "light", label: "בהיר" },
-    { value: "dark", label: "בורדו" },
+    { value: "dark", label: "כהה" },
   ];
   return (
     <section className="flex flex-col gap-1.5">
