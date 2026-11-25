@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { getWineNames } from "@/lib/fridges";
@@ -11,9 +11,7 @@ export default function NewTastingPage() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-1">
-        <Link href="/history" className="text-sm text-muted underline-offset-2 hover:underline">
-          → חזרה
-        </Link>
+        <BackLink href="/history" label="היסטוריה ודירוגים" />
         <h1 className="text-2xl font-bold">שתינו מחוץ לבית</h1>
         <p className="text-sm text-muted">במסעדה, אצל חברים – יין שלא היה במרתף.</p>
       </header>

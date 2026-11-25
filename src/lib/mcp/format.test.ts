@@ -33,7 +33,7 @@ describe("formatRows", () => {
 
 describe("formatHistory", () => {
   it("date, wine, place and notes", () => {
-    const h = [{ id: "t", tastedOn: "2026-01-02", title: "Yatir – Forest", year: 2019, place: "מסעדה", notes: "great" }];
-    expect(formatHistory(h, 10)).toBe("- 2026-01-02: Yatir – Forest 2019 (מסעדה) – great");
+    const h = [{ id: "t", tastedOn: "2026-01-02", wineId: "w", title: "Yatir – Forest", year: 2019, place: "מסעדה", notes: "great", score: 4.5 }];
+    expect(formatHistory(h, 10)).toBe("- 2026-01-02: Yatir – Forest 2019 (מסעדה) · rated 4.5/5 – great");
   });
 });

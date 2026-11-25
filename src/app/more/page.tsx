@@ -20,11 +20,7 @@ export default function MorePage() {
       <h1 className="text-2xl font-bold">עוד</h1>
       <nav className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm" aria-label="עוד עמודים">
         <Link href="/history" className="flex items-center justify-between px-4 py-3">
-          <span className="font-medium">היסטוריה – מה ששתינו</span>
-          <span className="text-muted" aria-hidden="true">←</span>
-        </Link>
-        <Link href="/ai" className="flex items-center justify-between px-4 py-3">
-          <span className="font-medium">בינה מלאכותית – זיהוי תוויות והמלצות</span>
+          <span className="font-medium">היסטוריה ודירוגים</span>
           <span className="text-muted" aria-hidden="true">←</span>
         </Link>
       </nav>

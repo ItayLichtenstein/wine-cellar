@@ -6,6 +6,7 @@ import { drinkNow } from "@/lib/bottle-list";
 import { cellarTitle } from "@/lib/cellar-title";
 import { createClient } from "@/lib/supabase/server";
 import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
+import { AiShortcuts } from "./ai-shortcuts";
 import { CellarView } from "./cellar-view";
 import { NamePrompt } from "./name-prompt";
 
@@ -44,10 +45,11 @@ async function Header() {
 
 async function Fridges() {
   const user = await getCurrentUser();
-  const [fridges, loose, all] = await Promise.all([
+  const [fridges, loose, all, drafts] = await Promise.all([
     getFridges(user.cellarId),
     getLooseBottles(user.cellarId),
     getCellarBottles(user.cellarId),
+    countPendingDrafts(user.cellarId, user.canEdit),
   ]);
 
   if (fridges.length === 0) {
@@ -85,11 +87,25 @@ async function Fridges() {
         )}
       </div>
 
+      {user.canEdit && <AiShortcuts pendingDrafts={drafts} />}
+
       <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={user.canEdit} />
 
       {(stored.length > 0 || loose.length > 0) && <Legend />}
     </section>
   );
+}
+
+/** Drafts are for editors only (RLS too), so viewers skip the query. */
+async function countPendingDrafts(cellarId: string, canEdit: boolean): Promise<number> {
+  if (!canEdit) return 0;
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("drafts")
+    .select("id", { count: "exact", head: true })
+    .eq("cellar_id", cellarId)
+    .eq("status", "pending");
+  return count ?? 0;
 }
 
 /** What the year-badge colors mean. */

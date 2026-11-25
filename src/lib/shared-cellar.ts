@@ -112,10 +112,12 @@ export function fromSharedCellar(json: SharedCellarJson, year: number): SharedCe
     history: json.history.map((t) => ({
       id: t.id,
       tastedOn: t.tasted_on,
+      wineId: null, // guests have no wine pages
       title: `${t.winery} – ${t.name}`,
       year: t.year,
       place: t.place ?? "",
       notes: t.notes ?? "",
+      score: null, // the view link does not share ratings
     })),
   };
 }

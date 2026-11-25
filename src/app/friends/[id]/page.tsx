@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CellarView } from "@/app/cellar-view";
@@ -37,9 +37,7 @@ async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["pa
   return (
     <>
       <header className="flex flex-col gap-1">
-        <Link href="/more" className="text-sm text-muted underline underline-offset-2">
-          → חזרה
-        </Link>
+        <BackLink href="/more" label="עוד" />
         <h1 className="text-2xl font-bold" dir="auto">
           {cellarTitle(friend.names)}
         </h1>

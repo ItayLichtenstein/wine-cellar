@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { getCurrentUser } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -13,9 +13,7 @@ export const metadata: Metadata = { title: "יין · מרתף יין" };
 export default function WinePagePage({ params }: PageProps<"/wines/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
-      <Link href="/bottles" className="text-sm text-muted underline-offset-2 hover:underline">
-        → לרשימה
-      </Link>
+      <BackLink href="/bottles" label="הרשימה" />
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <Wine params={params} />
       </Suspense>
@@ -82,7 +80,7 @@ async function Wine({ params }: { params: PageProps<"/wines/[id]">["params"] }) 
       )}
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold">מה ששתינו</h2>
+        <h2 className="text-lg font-semibold">היסטוריית שתייה</h2>
         {wine.tastings.length === 0 ? (
           <p className="text-sm text-muted">עוד לא שתינו מהיין הזה.</p>
         ) : (

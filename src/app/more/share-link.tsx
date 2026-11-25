@@ -57,7 +57,7 @@ export function ShareLink({ active }: { active: { hidePrices: boolean; hideHisto
         </label>
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={hideHistory} onChange={(e) => setHideHistory(e.target.checked)} className="size-4 accent-accent" />
-          להסתיר את מה ששתינו
+          להסתיר את היסטוריית השתייה
         </label>
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={create} className="rounded-full bg-accent px-3 py-1 font-medium text-white dark:text-black">

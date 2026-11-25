@@ -1,20 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { BackLink } from "@/components/back-link";
 import { getCurrentUser } from "@/lib/auth";
 import { getHistory } from "@/lib/fridges";
 
-export const metadata: Metadata = { title: "היסטוריה · מרתף יין" };
+export const metadata: Metadata = { title: "היסטוריה ודירוגים · מרתף יין" };
 
 export default function HistoryPage() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 py-8">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">מה ששתינו</h1>
-        <Suspense fallback={null}>
-          <AddOutside />
-        </Suspense>
-      </div>
+      <header className="flex flex-col gap-1">
+        <BackLink href="/more" label="עוד" />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-bold">היסטוריה ודירוגים</h1>
+          <Suspense fallback={null}>
+            <AddOutside />
+          </Suspense>
+        </div>
+        <p className="text-sm text-muted">
+          <span className="inline-block">כל בקבוק ששתיתם, עם הציון שנתתם ליין.</span>{" "}
+          <span className="inline-block">לחיצה על יין פותחת את כל הדירוגים שלו.</span>
+        </p>
+      </header>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <History />
       </Suspense>
@@ -45,16 +53,34 @@ async function History() {
         {entries.map((e) => (
           <li key={e.id} className="flex flex-col gap-0.5 px-4 py-3">
             <span className="flex items-baseline justify-between gap-2">
-              <span dir="auto" className="min-w-0 truncate">
-                {e.title} <span className="text-muted tabular-nums">{e.year ?? "NV"}</span>
-              </span>
+              {e.wineId ? (
+                <Link href={`/wines/${e.wineId}`} dir="auto" className="min-w-0 truncate underline-offset-2 hover:underline">
+                  {e.title} <span className="text-muted tabular-nums">{e.year ?? "NV"}</span>
+                </Link>
+              ) : (
+                <span dir="auto" className="min-w-0 truncate">
+                  {e.title} <span className="text-muted tabular-nums">{e.year ?? "NV"}</span>
+                </span>
+              )}
               <span className="shrink-0 text-xs text-muted">{dateFormat.format(new Date(e.tastedOn))}</span>
             </span>
-            {e.place && <span className="text-xs text-muted" dir="auto">{e.place}</span>}
+            <span className="flex items-baseline justify-between gap-2 text-xs text-muted">
+              <span dir="auto">{e.place}</span>
+              <span className="shrink-0">{e.score !== null ? <Score value={e.score} /> : "בלי ציון"}</span>
+            </span>
             {e.notes && <span className="text-sm" dir="auto">{e.notes}</span>}
           </li>
         ))}
       </ul>
     </>
+  );
+}
+
+/** The household's score for the wine, out of 5. */
+function Score({ value }: { value: number }) {
+  return (
+    <span aria-label={`ציון ${value} מתוך 5`}>
+      <span className="text-accent" aria-hidden="true">★</span> <span className="tabular-nums" aria-hidden="true">{value}</span>
+    </span>
   );
 }

@@ -260,7 +260,7 @@ export function AddBottlesForm({
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-2 text-lg font-semibold">איפה הם?</legend>
+        <legend className="mb-2 text-lg font-semibold">{quantity > 1 ? "איפה הבקבוקים?" : "איפה הבקבוק?"}</legend>
         {/* The fridge is the usual answer, so it is the big choice; the rare ones sit below it. */}
         {fridges.length > 0 && (
           <button
