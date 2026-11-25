@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AI_PROVIDERS, AI_REQUESTS, type AiKey } from "@/lib/ai-providers";
+import { AiLogo, AiLogoStack } from "@/components/ai-logos";
 import { OpenChat } from "./open-chat";
 
 /**
@@ -26,7 +27,10 @@ export function AiCard({ connected, pendingDrafts }: { connected: AiKey | null; 
 function NotConnected() {
   return (
     <Link href="/ai" className="flex flex-col gap-1 rounded-xl border border-accent/30 bg-surface p-4 shadow-sm hover:border-accent">
-      <span className="font-medium">חברו AI למרתף</span>
+      <span className="flex items-center justify-between gap-3">
+        <span className="font-medium">חברו AI למרתף</span>
+        <AiLogoStack />
+      </span>
       <span className="text-sm text-muted">
         <span className="inline-block">צלמו תווית, והבקבוקים מחכים כאן לאישור.</span>{" "}
         <span className="inline-block">שאלו מה לפתוח הערב, והתשובה לפי מה שבמקרר.</span>
@@ -41,8 +45,11 @@ function Connected({ ai }: { ai: AiKey }) {
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-accent/30 bg-surface p-3 shadow-sm">
       <div className="flex items-center justify-between gap-2 text-sm">
-        <span>
-          <span className="text-muted">ה־AI שלכם:</span> {p.name}
+        <span className="flex items-center gap-2">
+          <AiLogo ai={ai} className="size-7" />
+          <span>
+            <span className="text-muted">ה־AI שלכם:</span> {p.name}
+          </span>
         </span>
         <Link href="/ai" className="text-muted underline underline-offset-2">
           הגדרות
