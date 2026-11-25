@@ -41,7 +41,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pinned (same as local): 'latest' needs a GitHub API call that can hit a rate limit.
+          version: 3.3.0
       # Only the database is needed: migrations + seed, then the tests.
       - run: supabase db start
       - run: supabase test db
