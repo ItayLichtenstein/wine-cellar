@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getMyFridges } from "@/lib/fridges";
+import { getFridges } from "@/lib/fridges";
 import { NewFridgeForm } from "../../new/new-fridge-form";
 
 export const metadata: Metadata = { title: "עריכת מקרר · מרתף יין" };
@@ -29,8 +30,9 @@ export default function EditFridgePage({ params }: PageProps<"/fridges/[id]/edit
 
 async function FormWithData({ params }: { params: PageProps<"/fridges/[id]/edit">["params"] }) {
   const { id } = await params;
-  // Only the user's own fridges come back (RLS), so a foreign id is "not found".
-  const fridge = (await getMyFridges()).find((f) => f.id === id);
+  // Only the user's own fridges are loaded, so a foreign id is "not found".
+  const { cellarId } = await getCurrentUser();
+  const fridge = (await getFridges(cellarId)).find((f) => f.id === id);
   if (!fridge) notFound();
   return <NewFridgeForm existing={fridge} />;
 }

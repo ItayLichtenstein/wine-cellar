@@ -5,7 +5,7 @@ import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { drinkNow } from "@/lib/bottle-list";
 import { cellarTitle } from "@/lib/cellar-title";
 import { createClient } from "@/lib/supabase/server";
-import { getCellarBottles, getLooseBottles, getMyFridges } from "@/lib/fridges";
+import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
 import { CellarView } from "./cellar-view";
 import { NamePrompt } from "./name-prompt";
 
@@ -23,10 +23,11 @@ export default function Home() {
 
 async function Header() {
   const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
-  // Full members only, in joining order (RLS: the user's own cellar).
+  // Full members only, in joining order.
   const { data: members } = await supabase
     .from("cellar_members")
     .select("role, profiles(display_name)")
+    .eq("cellar_id", user.cellarId)
     .eq("role", "member")
     .order("joined_at");
   const names = (members ?? []).map((m) => m.profiles?.display_name ?? "");
@@ -42,7 +43,12 @@ async function Header() {
 }
 
 async function Fridges() {
-  const [fridges, loose, all, user] = await Promise.all([getMyFridges(), getLooseBottles(), getCellarBottles(), getCurrentUser()]);
+  const user = await getCurrentUser();
+  const [fridges, loose, all] = await Promise.all([
+    getFridges(user.cellarId),
+    getLooseBottles(user.cellarId),
+    getCellarBottles(user.cellarId),
+  ]);
 
   if (fridges.length === 0) {
     return (

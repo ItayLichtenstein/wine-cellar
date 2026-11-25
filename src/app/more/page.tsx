@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { fridgeCapacity } from "@/lib/fridge-layout";
-import { getMyFridges } from "@/lib/fridges";
+import { getFridges } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
 import { ExportButton } from "./export-button";
 import { Household, type Member } from "./household";
@@ -29,7 +29,8 @@ export default function MorePage() {
 }
 
 async function Fridges() {
-  const [fridges, user] = await Promise.all([getMyFridges(), getCurrentUser()]);
+  const user = await getCurrentUser();
+  const fridges = await getFridges(user.cellarId);
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">המקררים שלי</h2>
@@ -65,8 +66,11 @@ async function Fridges() {
 
 async function Members() {
   const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
-  // RLS returns only the members of the user's own cellar.
-  const { data } = await supabase.from("cellar_members").select("user_id, role, profiles(display_name)").order("joined_at");
+  const { data } = await supabase
+    .from("cellar_members")
+    .select("user_id, role, profiles(display_name)")
+    .eq("cellar_id", user.cellarId)
+    .order("joined_at");
   const members: Member[] = (data ?? []).map((m) => ({
     userId: m.user_id,
     name: m.profiles?.display_name ?? "",
@@ -81,7 +85,7 @@ async function Account() {
     <section className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">חשבון</h2>
       <p className="text-sm text-muted">מחובר בתור {user.displayName}</p>
-      <ExportButton />
+      <ExportButton cellarId={user.cellarId} />
       <div>
         <SignOutButton />
       </div>

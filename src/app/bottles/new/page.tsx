@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
 import { Suspense } from "react";
 import type { Place } from "@/components/fridge-preview";
-import { getMyFridges, getMyWineNames, type FridgeView } from "@/lib/fridges";
+import { getFridges, getWineNames, type FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
 import { AddBottlesForm } from "./add-bottles-form";
 
@@ -28,21 +29,22 @@ export default function AddBottlesPage({ searchParams }: { searchParams: SearchP
 }
 
 async function FormWithData({ searchParams }: { searchParams: SearchParams }) {
-  const [fridges, wines, params] = await Promise.all([getMyFridges(), getMyWineNames(), searchParams]);
+  const { cellarId } = await getCurrentUser();
+  const [fridges, wines, params] = await Promise.all([getFridges(cellarId), getWineNames(cellarId), searchParams]);
   return (
     <AddBottlesForm
       fridges={fridges}
       wines={wines}
       initialPlace={findEmptyPlace(fridges, params)}
-      fromWish={params.wish ? await loadWish(params.wish) : undefined}
+      fromWish={params.wish ? await loadWish(cellarId, params.wish) : undefined}
     />
   );
 }
 
-/** "קניתי" on the wishlist: the wish's wine pre-fills the form (RLS: own list only). */
-async function loadWish(id: string) {
+/** "קניתי" on the wishlist: the wish's wine pre-fills the form (own list only). */
+async function loadWish(cellarId: string, id: string) {
   const supabase = await createClient();
-  const { data } = await supabase.from("wishlist_items").select("id, year, wines(winery, name, type)").eq("id", id).maybeSingle();
+  const { data } = await supabase.from("wishlist_items").select("id, year, wines(winery, name, type)").eq("id", id).eq("cellar_id", cellarId).maybeSingle();
   if (!data?.wines) return undefined;
   return { id: data.id, winery: data.wines.winery, name: data.wines.name, type: data.wines.type, year: data.year };
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { WINE_TYPES } from "@/app/bottle/details";
@@ -26,8 +27,9 @@ const dateFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "lo
 
 async function Wine({ params }: { params: PageProps<"/wines/[id]">["params"] }) {
   const { id } = await params;
-  // RLS: a wine of another cellar simply isn't found.
-  const wine = await getWine(id);
+  // Only a wine of the user's own cellar is found (friends get their own page).
+  const { cellarId } = await getCurrentUser();
+  const wine = await getWine(cellarId, id);
   if (!wine) notFound();
 
   const facts = [

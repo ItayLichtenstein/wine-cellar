@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getMyWineNames } from "@/lib/fridges";
+import { getCurrentUser } from "@/lib/auth";
+import { getWineNames } from "@/lib/fridges";
 import { OutsideTastingForm } from "./outside-tasting-form";
 
 export const metadata: Metadata = { title: "שתינו מחוץ לבית · מרתף יין" };
@@ -24,5 +25,6 @@ export default function NewTastingPage() {
 }
 
 async function FormWithData() {
-  return <OutsideTastingForm wines={await getMyWineNames()} />;
+  const { cellarId } = await getCurrentUser();
+  return <OutsideTastingForm wines={await getWineNames(cellarId)} />;
 }

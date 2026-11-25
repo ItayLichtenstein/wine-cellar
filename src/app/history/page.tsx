@@ -34,7 +34,8 @@ async function AddOutside() {
 const dateFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "long", year: "numeric" });
 
 async function History() {
-  const entries = await getHistory();
+  const { cellarId } = await getCurrentUser();
+  const entries = await getHistory(cellarId);
   if (entries.length === 0) return <p className="text-muted">עוד לא שתיתם בקבוק מהמרתף.</p>;
 
   return (
