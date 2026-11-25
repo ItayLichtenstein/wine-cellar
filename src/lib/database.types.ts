@@ -366,7 +366,7 @@ isOneToOne: false
           }
           Functions: {
             "accept_invite":
-{ Args: { "p_token": string }; Returns: string
+{ Args: { "p_bring_data"?: boolean,"p_token": string }; Returns: string
                            },
 "add_bottles":
 { Args: { "p_drink_from"?: number,"p_drink_to"?: number,"p_is_gift"?: boolean,"p_name": string,"p_paid"?: number,"p_places"?: Json,"p_quantity": number,"p_regular"?: number,"p_rest_status"?: Database["public"]['Enums']["bottle_status"],"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: (string)[]
@@ -403,6 +403,9 @@ isOneToOne: false
                            },
 "move_bottle":
 { Args: { "p_bottle_id": string,"p_slot"?: number,"p_zone_id": string }; Returns: undefined
+                           },
+"move_cellar_data":
+{ Args: { "p_from": string,"p_to": string }; Returns: undefined
                            },
 "my_cellar_id":
 { Args: Record<PropertyKey, never>; Returns: string
