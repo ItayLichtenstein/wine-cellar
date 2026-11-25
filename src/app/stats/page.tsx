@@ -56,6 +56,7 @@ async function Stats() {
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">מתי לשתות</h2>
+        {open.length === 0 && <p className="text-sm text-muted">כשיהיו בקבוקים במרתף, כאן יופיע כמה מהם כבר בשלים לשתייה.</p>}
         <div className="flex h-4 overflow-hidden rounded-full" role="img" aria-label="פילוח לפי בשלות">
           {DRINK_STATE_ORDER.map((s) => {
             const c = states.find((x) => x.state === s)?.count ?? 0;

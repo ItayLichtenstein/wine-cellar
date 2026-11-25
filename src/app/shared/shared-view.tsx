@@ -7,6 +7,7 @@ import { cellarTitle } from "@/lib/cellar-title";
 import { DRINK_STATES } from "@/lib/drink-state";
 import { fromSharedCellar, type SharedCellar, type SharedCellarJson } from "@/lib/shared-cellar";
 import { createClient } from "@/lib/supabase/client";
+import { bottles as countBottles } from "@/lib/plural";
 
 const TOKEN = /^[0-9a-f]{64}$/;
 const dateFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "long", year: "numeric" });
@@ -46,7 +47,7 @@ export function SharedView() {
         <h1 className="text-2xl font-bold" dir="auto">
           {cellarTitle(cellar.names)}
         </h1>
-        <p className="text-sm text-muted">{stored} בקבוקים במקרר · צפייה בלבד</p>
+        <p className="text-sm text-muted">{countBottles(stored)} במקרר · צפייה בלבד</p>
       </header>
 
       {cellar.fridges.length === 0 ? (

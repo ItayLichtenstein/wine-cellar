@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 
+/** Applies the look saved on this device. Mounted on every signed-in page (with the nav). */
+export function SavedTheme() {
+  useEffect(() => {
+    const saved = readTheme();
+    if (saved !== "system") document.documentElement.dataset.theme = saved;
+  }, []);
+  return null;
+}
+
 type Theme = "system" | "light" | "dark";
 
 // What "More" holds, grouped. History comes first: it is the most used.

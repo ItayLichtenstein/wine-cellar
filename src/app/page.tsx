@@ -84,7 +84,7 @@ async function Fridges() {
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">
-          {stored.length} בקבוקים במקרר
+          {stored.length === 0 ? "המקרר עוד ריק" : stored.length === 1 ? "בקבוק אחד במקרר" : `${stored.length} בקבוקים במקרר`}
           {unplaced > 0 && ` · ${unplaced} מחוץ למקרר`}
           {inTransit > 0 && ` · ${inTransit} בדרך`}
         </p>

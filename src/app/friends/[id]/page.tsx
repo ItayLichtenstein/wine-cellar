@@ -7,6 +7,7 @@ import { drinkNow } from "@/lib/bottle-list";
 import { cellarTitle } from "@/lib/cellar-title";
 import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
+import { bottles as countBottles } from "@/lib/plural";
 
 export const metadata: Metadata = { title: "מרתף של חברים · מרתף יין" };
 
@@ -42,7 +43,7 @@ async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["pa
           {cellarTitle(friend.names)}
         </h1>
         <p className="text-sm text-muted">
-          <span className="inline-block">{stored} בקבוקים במקרר · צפייה בלבד.</span>{" "}
+          <span className="inline-block">{countBottles(stored)} במקרר · צפייה בלבד.</span>{" "}
           <span className="inline-block">לחיצה על בקבוק – ואפשר להוסיף אותו ל־Wishlist.</span>
         </p>
       </header>

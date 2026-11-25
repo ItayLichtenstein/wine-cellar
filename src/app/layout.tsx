@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Heebo } from "next/font/google";
-import Script from "next/script";
 import { BottomNav } from "@/components/bottom-nav";
 import "./globals.css";
 
@@ -31,15 +30,7 @@ export const metadata: Metadata = {
 // English support (and switching `dir`) comes later with i18n.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="he" dir="rtl" className={`${heebo.variable} h-full antialiased`} suppressHydrationWarning>
-      <head>
-        {/* A look picked in "More" (light / burgundy) is applied before the first
-            paint, so the page never flashes in the other colors. The attribute
-            it sets is why <html> tolerates a hydration difference. */}
-        <Script id="theme" strategy="beforeInteractive">
-          {`try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`}
-        </Script>
-      </head>
+    <html lang="he" dir="rtl" className={`${heebo.variable} h-full antialiased`}>
       {/* pb-20 keeps the last content above the fixed bottom navigation. */}
       <body className="min-h-full flex flex-col pb-20">
         {children}
