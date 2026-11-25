@@ -7,6 +7,7 @@ import { getFridges } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
 import { ExportButton } from "./export-button";
 import { Friends } from "./friends";
+import { ShareLink } from "./share-link";
 import { Household, type Member } from "./household";
 import { SignOutButton } from "./sign-out-button";
 
@@ -21,6 +22,7 @@ export default function MorePage() {
         <Fridges />
         <Members />
         <FriendsSection />
+        <ShareSection />
         <Account />
       </Suspense>
       <Link href="/privacy" className="self-start text-sm text-muted underline underline-offset-2">
@@ -91,6 +93,18 @@ async function FriendsSection() {
     theyShowPrices: f.they_show_prices,
   }));
   return <Friends friends={friends} canEdit={user.canEdit} />;
+}
+
+async function ShareSection() {
+  const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
+  if (!user.canEdit) return null;
+  const { data } = await supabase
+    .from("share_links")
+    .select("hide_prices, hide_history")
+    .eq("cellar_id", user.cellarId)
+    .is("revoked_at", null)
+    .maybeSingle();
+  return <ShareLink active={data ? { hidePrices: data.hide_prices, hideHistory: data.hide_history } : null} />;
 }
 
 async function Account() {

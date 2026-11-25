@@ -20,12 +20,19 @@ export function CellarView({
   loose,
   drinkNow,
   canEdit = true,
+  sheet,
 }: {
   fridges: FridgeView[];
   loose: LooseBottle[];
   drinkNow: ListRow[];
   /** false for a viewer: no "add here" on empty slots. */
   canEdit?: boolean;
+  /**
+   * What opens when a bottle is tapped. Default: the full bottle card (reads
+   * the database as the signed-in user). The guest page passes its own,
+   * built from the data it already has.
+   */
+  sheet?: (bottleId: string, close: () => void) => React.ReactNode;
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -159,7 +166,8 @@ export function CellarView({
       <LooseList title="מחוץ למקרר" bottles={unplaced} onOpen={setOpenId} />
       <LooseList title="בדרך אלינו" bottles={inTransit} onOpen={setOpenId} />
 
-      {openId && (
+      {openId && sheet && sheet(openId, () => setOpenId(null))}
+      {openId && !sheet && (
         <BottleSheet
           bottleId={openId}
           onClose={() => setOpenId(null)}
