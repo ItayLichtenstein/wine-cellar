@@ -26,6 +26,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
   const [scores, setScores] = useState<Record<string, string>>(() =>
     Object.fromEntries(d.members.map((m) => [m.id, ownScore(m.id) ? String(ownScore(m.id)) : ""])),
   );
+  const [buyAgain, setBuyAgain] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +51,11 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
       setSaving(false);
       setError("לא הצלחנו לשמור. נסו שוב.");
       return;
+    }
+
+    // "לקנות שוב" puts the wine on the wishlist (this vintage).
+    if (buyAgain) {
+      await supabase.rpc("add_to_wishlist", { p_winery: d.winery, p_name: d.name, p_type: d.type, p_year: d.year ?? undefined });
     }
 
     // The bottle is already marked as drunk; a failed rating is reported
@@ -143,6 +149,11 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
           </div>
         )}
       </fieldset>
+
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={buyAgain} onChange={(e) => setBuyAgain(e.target.checked)} />
+        לקנות שוב (מוסיף לרשימת המשאלות)
+      </label>
 
       <ErrorNote message={error} />
 

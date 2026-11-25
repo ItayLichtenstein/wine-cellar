@@ -359,6 +359,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"wishlist_items": {
+                  Row: {
+                    "cellar_id": string,"created_at": string,"id": string,"link_url": string | null,"note": string | null,"source_note": string | null,"wine_id": string,"year": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cellar_id": string,"created_at"?: string,"id"?: string,"link_url"?: string | null,"note"?: string | null,"source_note"?: string | null,"wine_id": string,"year"?: number | null
+                  }
+                  Update: {
+                    "cellar_id"?: string,"created_at"?: string,"id"?: string,"link_url"?: string | null,"note"?: string | null,"source_note"?: string | null,"wine_id"?: string,"year"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "wishlist_items_wine_id_cellar_id_fkey"
+      columns: ["wine_id","cellar_id"]
+isOneToOne: false
+      referencedRelation: "wines"
+      referencedColumns: ["id","cellar_id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -370,6 +390,9 @@ isOneToOne: false
                            },
 "add_bottles":
 { Args: { "p_drink_from"?: number,"p_drink_to"?: number,"p_is_gift"?: boolean,"p_name": string,"p_paid"?: number,"p_places"?: Json,"p_quantity": number,"p_regular"?: number,"p_rest_status"?: Database["public"]['Enums']["bottle_status"],"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: (string)[]
+                           },
+"add_to_wishlist":
+{ Args: { "p_link"?: string,"p_name": string,"p_note"?: string,"p_source"?: string,"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: string
                            },
 "create_fridge":
 { Args: { "p_brand"?: string,"p_model"?: string,"p_name": string,"p_shelves": Json }; Returns: string
