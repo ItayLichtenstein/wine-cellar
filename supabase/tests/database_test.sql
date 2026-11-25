@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(87);
+select plan(98);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -457,6 +457,57 @@ select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 -- realtime: every cellar table is streamed (and RLS filters who hears what)
 select is((select count(*)::int from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public'),
           11, 'the cellar tables are published for real-time sync');
+
+-- ---------- Joining WITH bottles (cellar merge) ----------
+select pg_temp.logout();
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('66666666-6666-6666-6666-666666666666', 'host@example.com',   '{"full_name":"מארחת"}'),
+  ('77777777-7777-7777-7777-777777777777', 'joiner@example.com', '{"full_name":"מצטרף"}');
+
+-- the host: one bottle of a wine both of them have
+select pg_temp.login_as('66666666-6666-6666-6666-666666666666');
+select add_bottles('יקב משותף', 'אדום', 1, 'red', 2020);
+select set_config('test.host_cellar', my_cellar_id()::text, true);
+
+-- the joiner: a fridge with a bottle in it, the same wine and year, another
+-- wine on its way, a price, a drunk bottle with a tasting, and a rating
+select pg_temp.login_as('77777777-7777-7777-7777-777777777777');
+select set_config('test.joiner_cellar', my_cellar_id()::text, true);
+select create_fridge('מקרר שלי', '[{"zones":[{"kind":"row","capacity":4}]}]'::jsonb);
+select add_bottles('יקב משותף', 'אדום', 2, 'red', 2020,
+                   jsonb_build_array(jsonb_build_object('zone_id', (select id from shelf_zones limit 1), 'slot', 1)),
+                   p_paid => 99);
+select add_bottles('יקב אחר', 'לבן', 1, 'white', 2022, p_rest_status => 'in_transit');
+select drink_bottle((select id from bottles where status = 'unplaced' limit 1), current_date, 'היה טוב');
+select set_rating((select id from wines where name = 'לבן'), 4.5);
+
+-- the host invites; without confirming, the joiner is refused
+select pg_temp.login_as('66666666-6666-6666-6666-666666666666');
+select set_config('test.token3', create_invite('member'), true);
+select pg_temp.login_as('77777777-7777-7777-7777-777777777777');
+select throws_ok(format($$ select accept_invite('%s') $$, current_setting('test.token3')),
+                 '23514', null, 'joining with data needs an explicit "bring my bottles"');
+select lives_ok(format($$ select accept_invite('%s', true) $$, current_setting('test.token3')),
+                'joining with "bring my bottles"');
+
+-- now both see one cellar with everything in it
+select is(my_cellar_id()::text, current_setting('test.host_cellar'), 'the joiner is in the host''s cellar');
+select is((select count(*)::int from bottles), 4, 'all bottles are there (1 + 3)');
+select is((select count(*)::int from wines), 2, 'the shared wine was matched by name, not duplicated');
+select is((select count(*)::int from wine_vintages v join wines w on w.id = v.wine_id where w.name = 'אדום'), 1,
+          'the same year became one vintage');
+select is((select count(*)::int from bottles where status = 'stored'), 0, 'bottles from the old fridge are outside the fridge');
+select is((select string_agg(status::text, ',' order by status::text) from bottles where vintage_id in
+            (select v.id from wine_vintages v join wines w on w.id = v.wine_id where w.name = 'לבן')),
+          'in_transit', 'a bottle on its way stays on its way');
+select is((select count(*)::int from tastings where notes = 'היה טוב'), 1, 'the history came along');
+select is((select count(*)::int from bottle_prices where paid = 99), 2, 'prices came along');
+
+-- the old cellar (and its fridge) are gone
+select pg_temp.logout();
+select is((select count(*)::int from cellars where id = current_setting('test.joiner_cellar')::uuid), 0,
+          'the old cellar was deleted, fridges and all');
+select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 
 -- ---------- Anonymous visitors get nothing ----------
 select pg_temp.logout();

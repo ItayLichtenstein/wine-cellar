@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 const KEY = "invite-token";
 const TOKEN = /^[0-9a-f]{64}$/;
 
-type State = "loading" | "no-token" | "signed-out" | "ready" | "joining";
+type State = "loading" | "no-token" | "signed-out" | "ready" | "has-data" | "joining";
 
 /**
  * The invite token arrives after "#" (/join#<token>): the part after "#" is
@@ -33,12 +33,12 @@ export function JoinInvite() {
       .then(({ data }) => setState(!token ? "no-token" : data?.claims?.sub ? "ready" : "signed-out"));
   }, []);
 
-  async function join() {
+  async function join(bringData = false) {
     const token = readStored();
     if (!token) return setState("no-token");
     setState("joining");
     setError(null);
-    const { error: rpcError } = await createClient().rpc("accept_invite", { p_token: token });
+    const { error: rpcError } = await createClient().rpc("accept_invite", { p_token: token, p_bring_data: bringData });
     if (!rpcError) {
       forget();
       window.location.assign("/"); // full reload: the whole app now shows the shared cellar
@@ -52,7 +52,7 @@ export function JoinInvite() {
       forget();
       setError("את/ה כבר במרתף הזה.");
     } else if (rpcError.hint === "has_data") {
-      setError("במרתף שלך כבר יש בקבוקים או היסטוריה. העברתם למרתף המשותף עוד לא אפשרית – בקרוב.");
+      setState("has-data"); // ask first: the old cellar will be merged and deleted
     } else if (rpcError.hint === "last_member") {
       setError("קודם צריך להפוך עוד מישהו במרתף הנוכחי לחבר משק בית מלא.");
     } else {
@@ -72,6 +72,27 @@ export function JoinInvite() {
       </>
     );
   }
+  if (state === "has-data") {
+    return (
+      <>
+        <div className="rounded-xl bg-amber-50 p-4 text-start text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          <p className="mb-2 font-semibold">כבר יש לך בקבוקים במרתף משלך.</p>
+          <ul className="list-disc space-y-1 ps-5">
+            <li>הבקבוקים, ההיסטוריה והציונים שלך יעברו למרתף המשותף.</li>
+            <li>בקבוקים שהיו במקרר שלך יופיעו ב״מחוץ למקרר״ – משבצים אותם מחדש.</li>
+            <li>המקררים שלך ותמונות התוויות לא עוברים, והמרתף הישן יימחק.</li>
+          </ul>
+        </div>
+        <button type="button" onClick={() => join(true)} className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
+          להצטרף עם הבקבוקים שלי
+        </button>
+        <Link href="/" className="text-sm text-muted underline underline-offset-2">
+          לא עכשיו
+        </Link>
+      </>
+    );
+  }
+
   return (
     <>
       <p className="text-muted">
@@ -80,7 +101,7 @@ export function JoinInvite() {
       </p>
       <button
         type="button"
-        onClick={join}
+        onClick={() => join()}
         disabled={state === "joining"}
         className="rounded-full bg-accent px-5 py-3 font-medium text-white disabled:opacity-60 dark:text-black"
       >
