@@ -6,6 +6,7 @@ import { fridgeCapacity } from "@/lib/fridge-layout";
 import { getFridges } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
 import { ExportButton } from "./export-button";
+import { FridgeList } from "./fridge-list";
 import { Friends } from "./friends";
 import { ShareLink } from "./share-link";
 import { Household, type Member } from "./household";
@@ -44,26 +45,17 @@ async function Fridges() {
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">המקררים שלי</h2>
+      {fridges.length > 1 && <p className="text-sm text-muted">המקרר הראשון ברשימה הוא זה שנפתח במסך הראשי.</p>}
       {fridges.length > 0 && (
-        <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
-          {fridges.map((f) => (
-            <li key={f.id} className="flex items-baseline justify-between gap-2 px-4 py-3">
-              <span>
-                {f.name}{" "}
-                {user.canEdit && (
-                  <Link href={`/fridges/${f.id}/edit`} className="text-sm underline underline-offset-2">
-                    עריכה
-                  </Link>
-                )}
-              </span>
-              <span className="text-sm text-muted">
-                {[f.brand, f.model].filter(Boolean).join(" ")}
-                {f.brand || f.model ? " · " : ""}
-                מקום ל־{fridgeCapacity(f.shelves)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <FridgeList
+          key={fridges.map((f) => f.id).join()} // a new fridge resets the local order
+          canEdit={user.canEdit}
+          fridges={fridges.map((f) => ({
+            id: f.id,
+            name: f.name,
+            details: [[f.brand, f.model].filter(Boolean).join(" "), `מקום ל־${fridgeCapacity(f.shelves)}`].filter(Boolean).join(" · "),
+          }))}
+        />
       )}
       {user.canEdit && (
         <Link href="/fridges/new" className="self-start rounded-full border border-muted/40 px-4 py-2 text-sm">
