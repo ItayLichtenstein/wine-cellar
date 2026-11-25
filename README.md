@@ -2,7 +2,7 @@
 
 A web app for managing home wine fridges: a visual map of every shelf and slot, drinking windows at a glance, shared households with real-time sync, and friends who can browse each other's cellars.
 
-> **Status:** stages 1–5 of 8 are built (cellar, households with live sync, multiple fridges with a model catalog, friends and privacy, wishlist). Next: going live, stats, then the MCP server.
+> **Status:** all 8 stages are built: cellar, households with live sync, multiple fridges with a model catalog, friends and privacy, wishlist, stats, and an MCP server so your own AI can read your cellar and suggest bottles as drafts you approve. Next: going live.
 
 ## Highlights
 
@@ -28,6 +28,7 @@ Authorization is enforced **in the database** with Row Level Security, not in th
 - **Multi-step changes are single transactions** (joining a household with your bottles, accepting a friendship, "we drank it") implemented as `security definer` functions with a pinned `search_path` and their own permission checks.
 - **Invite and share tokens**: 32 random bytes, stored only as a SHA-256 hash, carried after `#` so they never reach a server log. Guests without an account have no table access at all; their only door is one function that takes the token.
 - **Defense in depth**: CSP and security headers, EXIF stripped from photos in the browser, CSV export escaped against formula injection, CI fails if a server secret ever lands in the browser bundle.
+- **AI without an AI bill**: the site never calls a model. Your own assistant connects to `/api/mcp` through OAuth 2.1 (Supabase Auth, PKCE, a consent screen), and a PostgREST pre-request hook makes any AI token read-only except for drafts ([ADR 0009](docs/decisions/0009-ai-clients-read-only-in-the-database.md)).
 - **Tests**: Vitest for pure logic, pgTAP for every permission rule (160+ database assertions), and CI that also runs a production build.
 
 ## Documentation

@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Db } from "./fridges";
 import type { StatBottle, StatRating } from "./stats";
 
 /** Every bottle ever (drunk ones too, for the pace and the year summary) and the ratings of one cellar. */
-export async function getStatsData(cellarId: string): Promise<{ bottles: StatBottle[]; ratings: StatRating[] }> {
-  const supabase = await createClient();
+export async function getStatsData(cellarId: string, db?: Db): Promise<{ bottles: StatBottle[]; ratings: StatRating[] }> {
+  const supabase = db ?? (await createClient());
   const [bottlesRes, ratingsRes] = await Promise.all([
     supabase
       .from("bottles")

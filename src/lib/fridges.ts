@@ -1,4 +1,9 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import { createClient } from "@/lib/supabase/server";
+
+/** A database client: the signed-in user's (default) or an AI's token (MCP). */
+export type Db = SupabaseClient<Database>;
 import type { ZoneKind } from "@/lib/fridge-layout";
 import { drinkState, type DrinkState } from "@/lib/drink-state";
 
@@ -136,8 +141,8 @@ export async function getLooseBottles(cellarId: string): Promise<LooseBottle[]> 
 }
 
 /** Every bottle still in the cellar (stored, outside the fridge, on its way), for the list page. */
-export async function getCellarBottles(cellarId: string): Promise<import("./bottle-list").ListBottle[]> {
-  const supabase = await createClient();
+export async function getCellarBottles(cellarId: string, db?: Db): Promise<import("./bottle-list").ListBottle[]> {
+  const supabase = db ?? (await createClient());
   const { data, error } = await supabase
     .from("bottles")
     .select(
@@ -190,8 +195,8 @@ export type HistoryEntry = {
 };
 
 /** Bottles we drank, newest first. */
-export async function getHistory(cellarId: string): Promise<HistoryEntry[]> {
-  const supabase = await createClient();
+export async function getHistory(cellarId: string, db?: Db): Promise<HistoryEntry[]> {
+  const supabase = db ?? (await createClient());
   const { data, error } = await supabase
     .from("tastings")
     .select("id, tasted_on, place, notes, wine_vintages(year), wines(winery, name)")
