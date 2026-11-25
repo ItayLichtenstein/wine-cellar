@@ -43,7 +43,7 @@ async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["pa
         </h1>
         <p className="text-sm text-muted">
           <span className="inline-block">{stored} בקבוקים במקרר · צפייה בלבד.</span>{" "}
-          <span className="inline-block">לחיצה על בקבוק – ואפשר להוסיף אותו לרשימת המשאלות.</span>
+          <span className="inline-block">לחיצה על בקבוק – ואפשר להוסיף אותו ל־Wishlist.</span>
         </p>
       </header>
       {fridges.length === 0 ? (
