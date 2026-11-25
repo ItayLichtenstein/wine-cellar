@@ -1,0 +1,30 @@
+# Supabase pauses a free project after 7 days without activity. This job
+# runs one tiny real query twice a week, so the live site never goes to
+# sleep. It calls shared_cellar with a token that cannot exist: the only
+# function a visitor without an account may call, and it returns nothing.
+#
+# Needs two repository variables (Settings → Secrets and variables →
+# Actions → Variables): SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY. Both are
+# public anyway (they ship in the site's JavaScript). Until they are set,
+# the job skips itself.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: "17 6 * * 1,4" # Mondays and Thursdays, 06:17 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    if: ${{ vars.SUPABASE_URL != '' }}
+    steps:
+      - name: One real query
+        run: |
+          curl --fail --silent --show-error -o /dev/null \
+            -X POST "${{ vars.SUPABASE_URL }}/rest/v1/rpc/shared_cellar" \
+            -H "apikey: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"p_token":"keep-alive"}'
