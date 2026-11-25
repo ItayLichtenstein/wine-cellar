@@ -201,6 +201,58 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"friend_invites": {
+                  Row: {
+                    "cellar_id": string,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"shows_prices": boolean,"token_hash": string,"used_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"shows_prices"?: boolean,"token_hash": string,"used_at"?: string | null
+                  }
+                  Update: {
+                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"shows_prices"?: boolean,"token_hash"?: string,"used_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "friend_invites_cellar_id_fkey"
+      columns: ["cellar_id"]
+isOneToOne: false
+      referencedRelation: "cellars"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "friend_invites_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"friend_links": {
+                  Row: {
+                    "created_at": string,"friend_cellar_id": string,"owner_cellar_id": string,"shows_prices": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"friend_cellar_id": string,"owner_cellar_id": string,"shows_prices"?: boolean
+                  }
+                  Update: {
+                    "created_at"?: string,"friend_cellar_id"?: string,"owner_cellar_id"?: string,"shows_prices"?: boolean
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "friend_links_friend_cellar_id_fkey"
+      columns: ["friend_cellar_id"]
+isOneToOne: false
+      referencedRelation: "cellars"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "friend_links_owner_cellar_id_fkey"
+      columns: ["owner_cellar_id"]
+isOneToOne: false
+      referencedRelation: "cellars"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "created_at": string,"display_name": string,"id": string,"locale": string,"onboarded_at": string | null,"theme": string,"updated_at": string
@@ -385,17 +437,35 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "accept_invite":
+            "accept_friend_invite":
+{ Args: { "p_shows_prices"?: boolean,"p_token": string }; Returns: string
+                           },
+"accept_invite":
 { Args: { "p_bring_data"?: boolean,"p_token": string }; Returns: string
                            },
 "add_bottles":
 { Args: { "p_drink_from"?: number,"p_drink_to"?: number,"p_is_gift"?: boolean,"p_name": string,"p_paid"?: number,"p_places"?: Json,"p_quantity": number,"p_regular"?: number,"p_rest_status"?: Database["public"]['Enums']["bottle_status"],"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: (string)[]
                            },
+"add_friend_wine_to_wishlist":
+{ Args: { "p_wine_id": string,"p_year"?: number }; Returns: string
+                           },
 "add_to_wishlist":
 { Args: { "p_link"?: string,"p_name": string,"p_note"?: string,"p_source"?: string,"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: string
                            },
+"can_read_cellar":
+{ Args: { "p_cellar_id": string }; Returns: boolean
+                           },
+"can_read_prices":
+{ Args: { "p_cellar_id": string }; Returns: boolean
+                           },
+"can_read_profile":
+{ Args: { "p_user_id": string }; Returns: boolean
+                           },
 "create_fridge":
 { Args: { "p_brand"?: string,"p_model"?: string,"p_name": string,"p_shelves": Json }; Returns: string
+                           },
+"create_friend_invite":
+{ Args: { "p_shows_prices"?: boolean }; Returns: string
                            },
 "create_invite":
 { Args: { "p_role"?: Database["public"]['Enums']["member_role"] }; Returns: string
@@ -413,6 +483,9 @@ isOneToOne: false
 { Args: { "p_cellar_id": string }; Returns: boolean
                            },
 "is_cellar_member":
+{ Args: { "p_cellar_id": string }; Returns: boolean
+                           },
+"is_friend_cellar":
 { Args: { "p_cellar_id": string }; Returns: boolean
                            },
 "is_member_of":
@@ -433,8 +506,22 @@ isOneToOne: false
 "my_cellar_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"my_friends":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "cellar_id": string,"i_show_prices": boolean,"names": (string)[],"they_show_prices": boolean
+            }[]
+                           },
+"peek_friend_invite":
+{ Args: { "p_token": string }; Returns: (string)[]
+                           },
+"remove_friend":
+{ Args: { "p_friend_cellar": string }; Returns: undefined
+                           },
 "remove_member":
 { Args: { "p_user_id": string }; Returns: undefined
+                           },
+"set_friend_prices":
+{ Args: { "p_friend_cellar": string,"p_shows": boolean }; Returns: undefined
                            },
 "set_member_role":
 { Args: { "p_role": Database["public"]['Enums']["member_role"],"p_user_id": string }; Returns: undefined

@@ -35,8 +35,10 @@ export type BottleDetails = {
   personalRatings: PersonalRating[];
   /** Full household members – the people who can rate. */
   members: { id: string; name: string }[];
-  /** false for a viewer: the card is read-only (RLS enforces it anyway). */
+  /** false for a viewer or a friend: the card is read-only (RLS enforces it anyway). */
   canEdit: boolean;
+  /** A bottle in a friend's cellar: offers "add to my wishlist" instead of the wine page. */
+  isFriend: boolean;
 };
 
 export const WINE_TYPES: { value: WineType; label: string; other?: true }[] = [
@@ -91,7 +93,10 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
       .order("joined_at"),
   ]);
   const shared = (ratings ?? []).filter((r) => r.rater_id === null);
-  const { data: canEdit } = await supabase.rpc("is_cellar_editor", { p_cellar_id: cellarId });
+  const [{ data: canEdit }, { data: isFriend }] = await Promise.all([
+    supabase.rpc("is_cellar_editor", { p_cellar_id: cellarId }),
+    supabase.rpc("is_friend_cellar", { p_cellar_id: cellarId }),
+  ]);
 
   // One price per bottle, but the composite foreign key makes the generated
   // type a list – accept both shapes.
@@ -142,6 +147,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
       .map((r) => ({ raterId: r.rater_id!, name: r.profiles?.display_name ?? "", score: r.score, vintageId: r.vintage_id })),
     members: (members ?? []).map((m) => ({ id: m.user_id, name: m.profiles?.display_name ?? "" })),
     canEdit: canEdit === true,
+    isFriend: isFriend === true,
   };
 }
 
