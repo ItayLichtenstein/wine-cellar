@@ -7,38 +7,40 @@ import { parseBottleDraft } from "@/lib/drafts";
 import { getCellarBottles } from "@/lib/fridges";
 import { buildRows, EMPTY_FILTERS } from "@/lib/bottle-list";
 import { createClient } from "@/lib/supabase/server";
-import { AiTools, type PendingDraft } from "./ai-tools";
+import { ManualTools, PendingDrafts, type PendingDraft } from "./ai-tools";
+import { getConnectedAis } from "@/lib/ai-grants";
+import { AI_PROVIDERS, type AiKey } from "@/lib/ai-providers";
 import { ConnectAi } from "./connect-ai";
 import { ConnectedAis } from "./connected-ais";
 import { BackLink } from "@/components/back-link";
 
 export const metadata: Metadata = { title: "בינה מלאכותית · מרתף יין" };
 
-export default function AiPage({ searchParams }: { searchParams: Promise<{ task?: string }> }) {
+export default function AiPage() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-1">
         <BackLink href="/" label="המקרר" />
         <h1 className="text-2xl font-bold">בינה מלאכותית</h1>
         <p className="text-sm text-muted">
-          <span className="inline-block">האתר לא שולח את הנתונים שלכם לשום AI.</span>{" "}
-          <span className="inline-block">אתם מעתיקים לבינה שלכם, ומה שהיא מציעה מחכה כאן לאישור.</span>
+          <span className="inline-block">ה־AI רואה רק את המרתף שלכם, ולא יכול לשנות או למחוק כלום.</span>{" "}
+          <span className="inline-block">בקבוקים שהוא מציע מחכים כאן לאישור שלכם.</span>
         </p>
       </header>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
-        <WithData searchParams={searchParams} />
+        <WithData />
       </Suspense>
     </main>
   );
 }
 
-async function WithData({ searchParams }: { searchParams: Promise<{ task?: string }> }) {
-  const initialTask = (await searchParams).task === "drink" ? "drink" : "add";
+async function WithData() {
   const user = await getCurrentUser();
   if (!user.canEdit) redirect("/more"); // drafts are for the household's editors (RLS too)
   const supabase = await createClient();
-  const [bottles, draftsRes] = await Promise.all([
+  const [bottles, ais, draftsRes] = await Promise.all([
     getCellarBottles(user.cellarId),
+    getConnectedAis(),
     supabase
       .from("drafts")
       .select("id, payload, source, created_at")
@@ -62,11 +64,60 @@ async function WithData({ searchParams }: { searchParams: Promise<{ task?: strin
     return r.ok ? [{ id: d.id, source: d.source, draft: r.draft }] : [];
   });
 
+  const connectedKeys = ais.flatMap((a) => (a.key ? [a.key] : []));
+  const first = connectedKeys[0];
+
   return (
     <>
-      <ConnectedAis />
-      <AiTools cellar={cellar} drafts={drafts} cellarId={user.cellarId} initialTask={initialTask} />
-      <ConnectAi />
+      {ais.length > 0 ? (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold">מחובר למרתף</h2>
+          <ConnectedAis ais={ais} />
+          {first && <Examples ai={first} />}
+        </section>
+      ) : (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold">חיבור AI למרתף</h2>
+          <p className="text-sm text-muted">
+            <span className="inline-block">פעם אחת מחברים, ומאז פשוט מדברים איתו:</span>{" "}
+            <span className="inline-block">שולחים צילום של תווית או קבלה, ושואלים מה לפתוח הערב.</span>
+          </p>
+          <ConnectAi />
+        </section>
+      )}
+
+      <PendingDrafts drafts={drafts} />
+
+      {ais.length > 0 && connectedKeys.length < 3 && (
+        <details className="flex flex-col gap-2">
+          <summary className="cursor-pointer text-sm underline underline-offset-2">חיבור AI נוסף</summary>
+          <div className="mt-2">
+            <ConnectAi except={connectedKeys} />
+          </div>
+        </details>
+      )}
+
+      <ManualTools cellar={cellar} cellarId={user.cellarId} />
     </>
+  );
+}
+
+/** What to say to the connected AI, so the first conversation is easy. */
+function Examples({ ai }: { ai: AiKey }) {
+  const examples = [
+    "צילמתי את התווית הזו, תוסיף למרתף",
+    "מה לפתוח הערב לארוחה איטלקית עם חברים?",
+    "מה כדאי לשתות בקרוב לפני שיעבור השיא?",
+    "איזה יין שתינו בקיץ ואהבנו במיוחד?",
+  ];
+  return (
+    <div className="flex flex-col gap-1 rounded-xl bg-surface p-4 text-sm shadow-sm">
+      <p className="text-muted">אפשר לבקש מ־{AI_PROVIDERS[ai].name}, למשל:</p>
+      <ul className="flex flex-col gap-1">
+        {examples.map((e) => (
+          <li key={e}>״{e}״</li>
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -4,9 +4,10 @@ import { getCurrentUser } from "@/lib/auth";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { drinkNow } from "@/lib/bottle-list";
 import { cellarTitle } from "@/lib/cellar-title";
+import { getConnectedAis } from "@/lib/ai-grants";
 import { createClient } from "@/lib/supabase/server";
 import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
-import { AiShortcuts } from "./ai-shortcuts";
+import { AiCard } from "./ai-card";
 import { CellarView } from "./cellar-view";
 import { NamePrompt } from "./name-prompt";
 
@@ -45,12 +46,15 @@ async function Header() {
 
 async function Fridges() {
   const user = await getCurrentUser();
-  const [fridges, loose, all, drafts] = await Promise.all([
+  const [fridges, loose, all, drafts, ais] = await Promise.all([
     getFridges(user.cellarId),
     getLooseBottles(user.cellarId),
     getCellarBottles(user.cellarId),
     countPendingDrafts(user.cellarId, user.canEdit),
+    user.canEdit ? getConnectedAis() : [],
   ]);
+  // The first of the three assistants the user connected (any other MCP client has no chat link).
+  const connected = ais.find((a) => a.key)?.key ?? null;
 
   if (fridges.length === 0) {
     return (
@@ -87,7 +91,7 @@ async function Fridges() {
         )}
       </div>
 
-      {user.canEdit && <AiShortcuts pendingDrafts={drafts} />}
+      {user.canEdit && <AiCard connected={connected} pendingDrafts={drafts} />}
 
       <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={user.canEdit} />
 
