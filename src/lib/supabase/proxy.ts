@@ -4,7 +4,7 @@ import { supabaseKey, supabaseUrl } from "./env";
 
 // Pages anyone may open without signing in.
 // /dev-login guards itself (404 outside local development).
-const PUBLIC_PATHS = ["/login", "/auth", "/privacy", "/dev-login", "/join", "/friend-invite", "/shared", "/api/mcp", "/.well-known"];
+const PUBLIC_PATHS = ["/login", "/auth", "/privacy", "/dev-login", "/join", "/friend-invite", "/shared", "/api/mcp", "/.well-known", "/opengraph-image"];
 
 function isPublic(path: string) {
   return PUBLIC_PATHS.some((p) => path === p || path.startsWith(p + "/"));
