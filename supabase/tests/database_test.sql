@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(98);
+select plan(104);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -456,7 +456,7 @@ select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 
 -- realtime: every cellar table is streamed (and RLS filters who hears what)
 select is((select count(*)::int from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public'),
-          11, 'the cellar tables are published for real-time sync');
+          12, 'the cellar tables are published for real-time sync');
 
 -- ---------- Joining WITH bottles (cellar merge) ----------
 select pg_temp.logout();
@@ -507,6 +507,21 @@ select is((select count(*)::int from bottle_prices where paid = 99), 2, 'prices 
 select pg_temp.logout();
 select is((select count(*)::int from cellars where id = current_setting('test.joiner_cellar')::uuid), 0,
           'the old cellar was deleted, fridges and all');
+select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
+
+-- ---------- Wishlist ----------
+select pg_temp.login_as('66666666-6666-6666-6666-666666666666');
+select set_config('test.wines_before', (select count(*)::text from wines), true);
+select lives_ok($$ select add_to_wishlist('יקב חלומות', 'אגדה', 'red', 2018, 'לחפש במבצע') $$, 'add a wish');
+select is((select count(*)::int from bottles b join wine_vintages v on v.id = b.vintage_id join wines w on w.id = v.wine_id
+            where w.name = 'אגדה'), 0, 'a wish creates a wine without bottles (not in the fridge or the list)');
+select lives_ok($$ select add_to_wishlist('יקב חלומות', 'אגדה', 'red', 2018, null, 'https://example.com/w') $$,
+                'adding the same wish again is fine');
+select is((select count(*)::int from wishlist_items), 1, 'the same wine + year is one wish, not two');
+select pg_temp.login_as('11111111-1111-1111-1111-111111111111');
+select is((select count(*)::int from wishlist_items), 0, 'another cellar cannot see the wish');
+select throws_ok($$ insert into wishlist_items (cellar_id, wine_id) select current_setting('test.host_cellar')::uuid, gen_random_uuid() $$,
+                 '42501', null, 'another cellar cannot add to it');
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 
 -- ---------- Anonymous visitors get nothing ----------

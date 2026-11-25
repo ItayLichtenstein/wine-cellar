@@ -32,18 +32,21 @@ export function AddBottlesForm({
   fridges,
   wines,
   initialPlace,
+  fromWish,
 }: {
   fridges: FridgeView[];
   wines: { winery: string; name: string }[];
   /** An empty slot tapped on the home page: start with it already picked. */
   initialPlace?: Place;
+  /** "קניתי" on the wishlist: pre-fill, and remove the wish after saving. */
+  fromWish?: { id: string; winery: string; name: string; type: WineType; year: number | null };
 }) {
   const router = useRouter();
 
-  const [winery, setWinery] = useState("");
-  const [name, setName] = useState("");
-  const [type, setType] = useState<WineType>("red");
-  const [year, setYear] = useState("");
+  const [winery, setWinery] = useState(fromWish?.winery ?? "");
+  const [name, setName] = useState(fromWish?.name ?? "");
+  const [type, setType] = useState<WineType>(fromWish?.type ?? "red");
+  const [year, setYear] = useState(fromWish?.year ? String(fromWish.year) : "");
   const [quantity, setQuantity] = useState(1);
   const [paid, setPaid] = useState("");
   const [morePrice, setMorePrice] = useState(false);
@@ -137,6 +140,8 @@ export function AddBottlesForm({
         return;
       }
     }
+    // Bought it: the wish is done. (If this fails the wish just stays.)
+    if (fromWish) await supabase.from("wishlist_items").delete().eq("id", fromWish.id);
     router.push("/");
     router.refresh();
   }
