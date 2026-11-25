@@ -15,9 +15,19 @@ const field = "rounded-lg border border-muted/40 bg-surface px-3 py-2 text-base"
  * plus instructions, paste the answer back, and every suggested bottle
  * becomes a draft that waits for a person to approve it.
  */
-export function AiTools({ cellar, drafts, cellarId }: { cellar: CellarLine[]; drafts: PendingDraft[]; cellarId: string }) {
+export function AiTools({
+  cellar,
+  drafts,
+  cellarId,
+  initialTask,
+}: {
+  cellar: CellarLine[];
+  drafts: PendingDraft[];
+  cellarId: string;
+  initialTask: "add" | "drink";
+}) {
   const router = useRouter();
-  const [task, setTask] = useState<"add" | "drink">("add");
+  const [task, setTask] = useState(initialTask);
   const [extra, setExtra] = useState("");
   const [copied, setCopied] = useState(false);
   const [answer, setAnswer] = useState("");

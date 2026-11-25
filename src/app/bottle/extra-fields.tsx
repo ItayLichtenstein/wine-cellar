@@ -14,16 +14,20 @@ export function ExtraFields({ value, onChange }: { value: WineExtra; onChange: (
   const [open, setOpen] = useState(Boolean(hasData));
   const set = <K extends keyof WineExtra>(key: K, v: WineExtra[K]) => onChange({ ...value, [key]: v });
 
+  // Folding keeps what was typed (it is still saved); the button says so.
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="self-start text-sm underline underline-offset-2">
-        + פרטים נוספים (זן, ארץ, ציוני מבקרים, קישור…)
+      <button type="button" onClick={() => setOpen(true)} aria-expanded={false} className="self-start text-sm underline underline-offset-2">
+        + פרטים נוספים {hasData ? "(יש פרטים שמולאו)" : "(זן, ארץ, ציוני מבקרים, קישור…)"}
       </button>
     );
   }
 
   return (
     <div className="flex flex-col gap-3">
+      <button type="button" onClick={() => setOpen(false)} aria-expanded className="self-start text-sm underline underline-offset-2">
+        − הסתרת הפרטים הנוספים
+      </button>
       <div className="grid grid-cols-2 gap-3">
         <Field label="זן">
           <input value={value.grape} onChange={(e) => set("grape", e.target.value)} dir="auto" maxLength={120} className={inputClass} />

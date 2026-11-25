@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
@@ -12,9 +12,7 @@ export const metadata: Metadata = { title: "סיכום שנה · מרתף יין
 export default function YearPage({ params }: PageProps<"/stats/[year]">) {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
-      <Link href="/stats" className="self-start text-sm text-muted underline underline-offset-2">
-        → סטטיסטיקות
-      </Link>
+      <BackLink href="/stats" label="סטטיסטיקות" />
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <Summary params={params} />
       </Suspense>

@@ -39,6 +39,6 @@ export function formatHistory(entries: HistoryEntry[], limit: number): string {
   if (entries.length === 0) return "Nothing drunk yet.";
   return entries
     .slice(0, limit)
-    .map((t) => `- ${t.tastedOn}: ${t.title} ${t.year ?? "NV"}${t.place ? ` (${t.place})` : ""}${t.notes ? ` – ${t.notes}` : ""}`)
+    .map((t) => `- ${t.tastedOn}: ${t.title} ${t.year ?? "NV"}${t.place ? ` (${t.place})` : ""}${t.score !== null ? ` · rated ${t.score}/5` : ""}${t.notes ? ` – ${t.notes}` : ""}`)
     .join("\n");
 }

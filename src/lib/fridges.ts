@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 export type Db = SupabaseClient<Database>;
 import type { ZoneKind } from "@/lib/fridge-layout";
 import { drinkState, type DrinkState } from "@/lib/drink-state";
+import { shownScore } from "@/lib/shown-score";
 
 /** A bottle sitting in a zone (a slot number in a row, none in a stack). */
 export type PlacedBottle = {
@@ -188,29 +189,37 @@ export async function getCellarBottles(cellarId: string, db?: Db): Promise<impor
 export type HistoryEntry = {
   id: string;
   tastedOn: string; // YYYY-MM-DD
+  wineId: string | null; // null in the guest view (no wine pages there)
   title: string;
   year: number | null;
   place: string;
   notes: string;
+  score: number | null; // the household's rating of that wine (or vintage), out of 5
 };
 
 /** Bottles we drank, newest first. */
 export async function getHistory(cellarId: string, db?: Db): Promise<HistoryEntry[]> {
   const supabase = db ?? (await createClient());
-  const { data, error } = await supabase
-    .from("tastings")
-    .select("id, tasted_on, place, notes, wine_vintages(year), wines(winery, name)")
-    .eq("cellar_id", cellarId)
-    .order("tasted_on", { ascending: false })
-    .order("created_at", { ascending: false });
-  if (error) throw new Error("Could not load history");
-  return data.map((t) => ({
+  const [tastings, ratings] = await Promise.all([
+    supabase
+      .from("tastings")
+      .select("id, tasted_on, place, notes, wine_id, vintage_id, wine_vintages(year), wines(winery, name)")
+      .eq("cellar_id", cellarId)
+      .order("tasted_on", { ascending: false })
+      .order("created_at", { ascending: false }),
+    supabase.from("ratings").select("wine_id, vintage_id, score").eq("cellar_id", cellarId),
+  ]);
+  if (tastings.error || ratings.error) throw new Error("Could not load history");
+  const scores = ratings.data.map((r) => ({ wineId: r.wine_id, vintageId: r.vintage_id, score: r.score }));
+  return tastings.data.map((t) => ({
     id: t.id,
     tastedOn: t.tasted_on,
+    wineId: t.wine_id,
     title: t.wines ? `${t.wines.winery} – ${t.wines.name}` : "",
     year: t.wine_vintages?.year ?? null,
     place: t.place ?? "",
     notes: t.notes ?? "",
+    score: shownScore(scores, t.wine_id, t.vintage_id),
   }));
 }
 

@@ -171,7 +171,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
           {brandChoice && brandChoice !== OTHER && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-muted">דגם</span>
-              <select value={model} onChange={(e) => chooseModel(e.target.value)} className={selectClass} dir="ltr">
+              <select value={model} onChange={(e) => chooseModel(e.target.value)} className={selectClass}>
                 <option value="">בחרו דגם</option>
                 {CATALOG.find((b) => b.brand === brandChoice)?.models.map((m) => (
                   <option key={m.model} value={m.model}>
