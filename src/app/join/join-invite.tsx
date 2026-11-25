@@ -54,7 +54,7 @@ export function JoinInvite() {
     } else if (rpcError.hint === "has_data") {
       setState("has-data"); // ask first: the old cellar will be merged and deleted
     } else if (rpcError.hint === "last_member") {
-      setError("קודם צריך להפוך עוד מישהו במרתף הנוכחי לחבר משק בית מלא.");
+      setError("קודם צריך להפוך עוד מישהו במרתף הנוכחי לשותף.");
     } else {
       setError("ההצטרפות לא הצליחה. נסו שוב.");
     }

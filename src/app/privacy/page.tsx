@@ -72,7 +72,12 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="יצירת קשר">
-        <p>כתובת ליצירת קשר בנושא פרטיות תתווסף לפני שהאתר ייפתח לציבור.</p>
+        <p>
+          <span className="inline-block">שאלות, בקשה לקבל או למחוק את המידע שלכם:</span>{" "}
+          <a href="mailto:thewinecellarapp@gmail.com" dir="ltr" className="underline underline-offset-2">
+            thewinecellarapp@gmail.com
+          </a>
+        </p>
       </Section>
 
       <Link href="/" className="text-sm underline underline-offset-2">

@@ -50,3 +50,12 @@ h1, h2, h3 {
 p, li {
   text-wrap: pretty;
 }
+
+/* An empty field shows its Hebrew placeholder right-aligned. Fields with
+   dir="auto" (names: Hebrew or Latin) or dir="ltr" (links) would otherwise
+   align an empty field to the left; once typed, their own direction applies. */
+input[dir="auto"]:placeholder-shown,
+textarea[dir="auto"]:placeholder-shown,
+input[dir="ltr"]:placeholder-shown {
+  direction: rtl;
+}
