@@ -8,6 +8,7 @@ import { getCellarBottles } from "@/lib/fridges";
 import { buildRows, EMPTY_FILTERS } from "@/lib/bottle-list";
 import { createClient } from "@/lib/supabase/server";
 import { AiTools, type PendingDraft } from "./ai-tools";
+import { ConnectedAis } from "./connected-ais";
 
 export const metadata: Metadata = { title: "בינה מלאכותית · מרתף יין" };
 
@@ -57,5 +58,10 @@ async function WithData() {
     return r.ok ? [{ id: d.id, source: d.source, draft: r.draft }] : [];
   });
 
-  return <AiTools cellar={cellar} drafts={drafts} cellarId={user.cellarId} />;
+  return (
+    <>
+      <ConnectedAis />
+      <AiTools cellar={cellar} drafts={drafts} cellarId={user.cellarId} />
+    </>
+  );
 }
