@@ -14,7 +14,7 @@ const heebo = Heebo({
 // The preview a link gets in WhatsApp, iMessage and the like (Open Graph).
 // Shared links land on /login first, which inherits this from the layout.
 const PREVIEW_TITLE = "מרתף יין: יודעים בדיוק מה יש במקרר";
-const PREVIEW_TEXT = "איזה בקבוק איפה, מה כדאי לפתוח הערב, ומה כבר שתיתם ודירגתם. מרתף אחד לכל הבית.";
+const PREVIEW_TEXT = "עוזר לך להחליט איזה בקבוק פותחים הערב";
 
 export const metadata: Metadata = {
   // Absolute URLs for the preview image; Vercel sets the production host.
