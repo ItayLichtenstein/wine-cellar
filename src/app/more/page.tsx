@@ -18,6 +18,10 @@ export default function MorePage() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       <h1 className="text-2xl font-bold">עוד</h1>
+      <Link href="/history" className="flex items-center justify-between rounded-xl bg-surface px-4 py-3 shadow-sm">
+        <span className="font-medium">היסטוריה – מה ששתינו</span>
+        <span className="text-muted" aria-hidden="true">←</span>
+      </Link>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <Fridges />
         <Members />

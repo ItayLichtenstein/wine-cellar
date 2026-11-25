@@ -9,18 +9,18 @@ import { RealtimeRefresh } from "./realtime-refresh";
 const ICONS = {
   fridge: <path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm-1 7h12M9 6v2m0 5v3" />,
   list: <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />,
-  history: <path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4m5-1v5l3 2" />,
+  stats: <path d="M4 20h16M7 16v-5m5 5V6m5 10v-8" />,
   more: <path d="M5 12h.01M12 12h.01M19 12h.01" />,
   wish: <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />,
 } as const;
 
-// Sections of the app. Stats joins this list when it is built
-// (spec: fridge · list · wishlist · stats · more).
+// Sections of the app (spec: fridge · list · wishlist · stats · more).
+// History lives under "more".
 const ITEMS = [
   { href: "/", label: "מקרר", icon: ICONS.fridge },
   { href: "/bottles", label: "רשימה", icon: ICONS.list },
   { href: "/wishlist", label: "משאלות", icon: ICONS.wish },
-  { href: "/history", label: "היסטוריה", icon: ICONS.history },
+  { href: "/stats", label: "סטטיסטיקות", icon: ICONS.stats },
   { href: "/more", label: "עוד", icon: ICONS.more },
 ] as const;
 
