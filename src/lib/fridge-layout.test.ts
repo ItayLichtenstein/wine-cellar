@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { staggeredZone } from "@/components/fridge-preview";
-import { LIMITS, SHELF_PRESETS, bottlesLeaving, clamp, fridgeCapacity, shelfCapacity } from "./fridge-layout";
+import { CHOOSABLE_PRESETS, LIMITS, SHELF_PRESETS, bottlesLeaving, clamp, fridgeCapacity, shelfCapacity } from "./fridge-layout";
 
 describe("shelf presets", () => {
   it("every preset stays within the database limits", () => {
@@ -80,5 +80,11 @@ describe("staggeredZone", () => {
     expect(staggeredZone([row(5)])).toBeNull();
     expect(staggeredZone([{ kind: "stack", capacity: 4 }, row(5)])).toBeNull();
     expect(staggeredZone([row(6), row(4)])).toBeNull();
+  });
+});
+
+describe("CHOOSABLE_PRESETS", () => {
+  it("offers only row shelves while stacks are off", () => {
+    expect(CHOOSABLE_PRESETS).toEqual(["twoRows", "oneRow"]);
   });
 });

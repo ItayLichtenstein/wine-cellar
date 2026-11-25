@@ -8,6 +8,7 @@ import { CATALOG, estimateShelves, type ModelSpec } from "@/lib/fridge-catalog";
 import { createClient } from "@/lib/supabase/client";
 import {
   LIMITS,
+  CHOOSABLE_PRESETS,
   SHELF_PRESETS,
   bottlesLeaving,
   clamp,
@@ -225,7 +226,8 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
                   onChange={(e) => changePreset(i, e.target.value as PresetKey)}
                   className="rounded-lg border border-muted/40 bg-background px-2 py-1 text-sm"
                 >
-                  {(Object.keys(SHELF_PRESETS) as PresetKey[]).map((key) => (
+                  {/* An existing stack shelf keeps its own entry, so the select shows the truth. */}
+                  {[...new Set([...CHOOSABLE_PRESETS, shelf.preset])].map((key) => (
                     <option key={key} value={key}>
                       {SHELF_PRESETS[key].title}
                     </option>

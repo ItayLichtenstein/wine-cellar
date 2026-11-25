@@ -63,6 +63,19 @@ export const SHELF_PRESETS = {
 
 export type PresetKey = keyof typeof SHELF_PRESETS;
 
+/**
+ * Stacks (bottles piled in layers, no numbered places) stay in the data
+ * model and the code, but are not offered in the UI for now: users found
+ * them unclear next to rows. Flip this to offer them again (a better
+ * "pile" look would come with it). Existing stacks still show.
+ */
+export const STACKS_IN_UI = false;
+
+/** The shelf types a user can pick. */
+export const CHOOSABLE_PRESETS = (Object.keys(SHELF_PRESETS) as PresetKey[]).filter(
+  (key) => STACKS_IN_UI || SHELF_PRESETS[key].make(1).zones.every((z) => z.kind === "row"),
+);
+
 /** Total bottles a shelf (or fridge) can hold. */
 export function shelfCapacity(shelf: Shelf): number {
   return shelf.zones.reduce((sum, z) => sum + z.capacity, 0);

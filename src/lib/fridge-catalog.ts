@@ -7,7 +7,7 @@
 // turns them into a layout that adds up to exactly the published capacity.
 // The user then adjusts it to the real fridge.
 
-import type { Shelf } from "./fridge-layout";
+import { STACKS_IN_UI, type Shelf } from "./fridge-layout";
 
 export type ModelSpec = {
   model: string;
@@ -65,7 +65,9 @@ export function estimateShelves(spec: ModelSpec): Shelf[] {
     return lyingShelf(n);
   });
 
-  if (bottom > 0) {
+  if (bottom > 0 && !STACKS_IN_UI) {
+    shelves.push({ zones: [{ kind: "row", capacity: bottom, label: "תחתית" }] });
+  } else if (bottom > 0) {
     shelves.push({
       zones: [
         { kind: "stack", capacity: Math.floor(bottom / 2), label: "תחתית – שכבה עליונה" },
