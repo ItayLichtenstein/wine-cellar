@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { MoreSheet } from "./more-sheet";
 import { RealtimeRefresh } from "./realtime-refresh";
 
 // Simple line icons (24×24, stroke = text color). Emoji were used before,
@@ -15,14 +17,16 @@ const ICONS = {
 } as const;
 
 // Sections of the app (spec: fridge · list · wishlist · stats · more).
-// History lives under "more".
+// "More" is not a page link: it opens a sheet with everything else.
 const ITEMS = [
   { href: "/", label: "מקרר", icon: ICONS.fridge },
   { href: "/bottles", label: "רשימה", icon: ICONS.list },
   { href: "/wishlist", label: "Wishlist", icon: ICONS.wish },
   { href: "/stats", label: "סטטיסטיקות", icon: ICONS.stats },
-  { href: "/more", label: "עוד", icon: ICONS.more },
 ] as const;
+
+/** Pages reached through "More": while on one, "More" is the active tab. */
+const UNDER_MORE = ["/more", "/history", "/ai", "/guide", "/fridges", "/friends"];
 
 // Pages for signed-out visitors have no navigation.
 const HIDDEN_ON = ["/login", "/privacy", "/auth", "/dev-login", "/join", "/friend-invite", "/shared", "/oauth"];
@@ -30,6 +34,7 @@ const HIDDEN_ON = ["/login", "/privacy", "/auth", "/dev-login", "/join", "/frien
 /** Bottom tab bar: within thumb reach on a phone, the usual place in mobile apps. */
 export function BottomNav() {
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
   if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -70,8 +75,25 @@ export function BottomNav() {
               </li>
             );
           })}
+          <li className="flex-1">
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={moreOpen}
+              className={`flex w-full flex-col items-center gap-1 py-2 text-xs leading-none ${
+                UNDER_MORE.some((p) => pathname.startsWith(p)) ? "font-semibold text-foreground" : "text-muted"
+              }`}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+                {ICONS.more}
+              </svg>
+              עוד
+            </button>
+          </li>
         </ul>
       </nav>
+      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
     </>
   );
 }

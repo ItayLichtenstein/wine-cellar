@@ -43,7 +43,7 @@ async function Fridges() {
   const user = await getCurrentUser();
   const fridges = await getFridges(user.cellarId);
   return (
-    <section className="flex flex-col gap-2">
+    <section id="fridges" className="flex scroll-mt-4 flex-col gap-2">
       <h2 className="text-lg font-semibold">המקררים שלי</h2>
       {fridges.length > 1 && <p className="text-sm text-muted">המקרר הראשון ברשימה הוא זה שנפתח במסך הראשי.</p>}
       {fridges.length > 0 && (
@@ -108,7 +108,7 @@ async function ShareSection() {
 async function Account() {
   const user = await getCurrentUser();
   return (
-    <section className="flex flex-col gap-2">
+    <section id="account" className="flex scroll-mt-4 flex-col gap-2">
       <h2 className="text-lg font-semibold">חשבון</h2>
       <p className="text-sm text-muted">מחובר בתור {user.displayName}</p>
       <ExportButton cellarId={user.cellarId} />
