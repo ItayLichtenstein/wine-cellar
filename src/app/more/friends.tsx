@@ -47,7 +47,7 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
   }
 
   return (
-    <section className="flex flex-col gap-2">
+    <section id="friends" className="flex scroll-mt-4 flex-col gap-2">
       <h2 className="text-lg font-semibold">חברים</h2>
       {friends.length === 0 ? (
         <p className="text-sm text-muted">
