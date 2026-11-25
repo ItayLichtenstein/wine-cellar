@@ -35,9 +35,12 @@ jobs:
       - run: npx next build
       # Everything under .next/static is sent to browsers. A server-only key
       # there would be public: fail the build if one ever appears.
+      # Matches key VALUES, not names (supabase-js itself mentions the
+      # "sb_secret_" prefix): a Supabase secret key, a Google client secret,
+      # or a JWT whose payload says "service_role" (base64, three alignments).
       - name: No secrets in the browser bundle
         run: |
-          if grep -rlE 'sb_secret_|service_role|SUPABASE_SECRET|GOOGLE_CLIENT_SECRET' .next/static; then
+          if grep -rlE 'sb_secret_[A-Za-z0-9_-]{16,}|GOCSPX-|c2VydmljZV9yb2xl|NlcnZpY2Vfcm9sZ|zZXJ2aWNlX3JvbG' .next/static; then
             echo "A secret-looking string is in the browser bundle"; exit 1
           fi
 
