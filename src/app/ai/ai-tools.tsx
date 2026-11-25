@@ -71,7 +71,7 @@ export function ManualTools({ cellar, cellarId }: { cellar: CellarLine[]; cellar
         <span className="flex items-center justify-between gap-2">
           <span className="flex flex-col">
             <span className="font-medium">בלי חיבור: העתקה ידנית לכל צ׳אט</span>
-            <span className="text-xs text-muted">כשאין אפשרות לחבר, למשל ב־ChatGPT החינמי</span>
+            <span className="text-xs text-muted">לכל צ׳אט אחר, למשל Gemini או ChatGPT החינמי</span>
           </span>
           <span className="text-muted transition-transform group-open:rotate-180" aria-hidden="true">
             ⌄

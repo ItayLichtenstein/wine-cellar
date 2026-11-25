@@ -9,7 +9,7 @@ import { buildRows, EMPTY_FILTERS } from "@/lib/bottle-list";
 import { createClient } from "@/lib/supabase/server";
 import { ManualTools, PendingDrafts, type PendingDraft } from "./ai-tools";
 import { getConnectedAis } from "@/lib/ai-grants";
-import { AI_PROVIDERS, type AiKey } from "@/lib/ai-providers";
+import { AI_PROVIDERS, type AiKey, CONNECTABLE } from "@/lib/ai-providers";
 import { ConnectAi } from "./connect-ai";
 import { ConnectedAis } from "./connected-ais";
 import { BackLink } from "@/components/back-link";
@@ -88,7 +88,7 @@ async function WithData() {
 
       <PendingDrafts drafts={drafts} />
 
-      {ais.length > 0 && connectedKeys.length < 3 && (
+      {ais.length > 0 && CONNECTABLE.some((k) => !connectedKeys.includes(k)) && (
         <details className="flex flex-col gap-2">
           <summary className="cursor-pointer text-sm underline underline-offset-2">חיבור AI נוסף</summary>
           <div className="mt-2">

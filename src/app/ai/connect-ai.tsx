@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { AiLogo } from "@/components/ai-logos";
-import { AI_KEYS, AI_PROVIDERS, type AiKey } from "@/lib/ai-providers";
+import { AI_PROVIDERS, CONNECTABLE, type AiKey } from "@/lib/ai-providers";
 
 const noop = () => () => {};
 
@@ -12,7 +12,7 @@ const noop = () => () => {};
  * so it is read in the browser.
  */
 export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
-  const choices = AI_KEYS.filter((k) => !except.includes(k));
+  const choices = CONNECTABLE.filter((k) => !except.includes(k));
   const [ai, setAi] = useState<AiKey>(choices[0] ?? "claude");
   const origin = useSyncExternalStore(
     noop,
@@ -67,7 +67,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
 
   return (
     <div className="flex flex-col gap-4 rounded-xl bg-surface p-4 shadow-sm">
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="איזה AI לחבר">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="איזה AI לחבר">
         {choices.map((k) => (
           <button
             key={k}
@@ -85,9 +85,8 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
           </button>
         ))}
       </div>
-      <p className={`rounded-lg px-3 py-2 text-sm ${p.forEveryone ? "bg-background text-muted" : "bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-100"}`}>
-        <span className="font-medium">למי זה מתאים: </span>
-        {p.who}
+      <p className="text-sm text-muted">
+        <MixedText text={p.who} />
       </p>
       <ol className="flex flex-col gap-3">
         {steps.map((step, i) => (
@@ -106,7 +105,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
       </ol>
       <p className="text-xs text-muted">
         <span className="inline-block">לא מוצאים את הכפתור? החברות משנות את שמות התפריטים מדי פעם.</span>{" "}
-        <span className="inline-block">חפשו בהגדרות את המילה Connectors או MCP, או השתמשו בהעתקה הידנית למטה.</span>
+        <span className="inline-block">חפשו בהגדרות את המילה Connectors, או השתמשו בהעתקה הידנית למטה.</span>
       </p>
     </div>
   );
