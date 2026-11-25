@@ -41,6 +41,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Local Supabase sends OAuth / sign-in redirects to 127.0.0.1 (its
+  // site_url); without this, `next dev` refuses its scripts on that host.
+  allowedDevOrigins: ["127.0.0.1"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

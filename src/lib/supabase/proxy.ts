@@ -53,7 +53,9 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
-    url.searchParams.set("next", path);
+    // Keep the query too: the OAuth consent page needs ?authorization_id=…
+    // (safeNextPath still checks it on the way back).
+    url.searchParams.set("next", path + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
 

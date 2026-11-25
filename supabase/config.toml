@@ -385,11 +385,14 @@ enabled = false
 # OAuth server configuration
 [auth.oauth_server]
 # Enable OAuth server functionality
-enabled = false
+# On: AI assistants connect to the MCP server by signing in as the user
+# (stage 7). Their tokens are read-only + drafts (migration 0023).
+enabled = true
 # Path for OAuth consent flow UI
 authorization_url_path = "/oauth/consent"
-# Allow dynamic client registration
-allow_dynamic_registration = false
+# Allow dynamic client registration (MCP clients register themselves;
+# the user still approves each one on the consent screen).
+allow_dynamic_registration = true
 
 [edge_runtime]
 enabled = true
