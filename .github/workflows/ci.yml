@@ -33,6 +33,13 @@ jobs:
       - run: npx eslint src
       - run: npm test
       - run: npx next build
+      # Everything under .next/static is sent to browsers. A server-only key
+      # there would be public: fail the build if one ever appears.
+      - name: No secrets in the browser bundle
+        run: |
+          if grep -rlE 'sb_secret_|service_role|SUPABASE_SECRET|GOOGLE_CLIENT_SECRET' .next/static; then
+            echo "A secret-looking string is in the browser bundle"; exit 1
+          fi
 
   database:
     name: Database tests (pgTAP)
