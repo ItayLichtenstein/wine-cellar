@@ -46,7 +46,8 @@ export async function getFridges(cellarId: string): Promise<FridgeView[]> {
       .from("fridges")
       .select("id, name, brand, model, position, shelves(id, position, shelf_zones(id, position, kind, capacity, label))")
       .eq("cellar_id", cellarId)
-      .order("position"),
+      .order("position")
+      .order("created_at"), // ties (equal positions) keep a stable order
     supabase
       .from("bottles")
       .select("id, zone_id, slot, wine_vintages(year, drink_from, drink_to, peak_from, peak_to, wines(winery, name))")
