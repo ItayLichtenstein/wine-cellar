@@ -113,9 +113,13 @@ export function DetailsView({
         </div>
       )}
       <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm">
-        <Link href={`/wines/${d.wineId}`} className="underline underline-offset-2">
-          עמוד היין
-        </Link>
+        {d.isFriend ? (
+          <AddToMyWishlist wineId={d.wineId} year={d.year} />
+        ) : (
+          <Link href={`/wines/${d.wineId}`} className="underline underline-offset-2">
+            עמוד היין
+          </Link>
+        )}
         {d.canEdit && (
           <>
             <button type="button" onClick={onEdit} className="underline underline-offset-2">
@@ -184,5 +188,32 @@ function DeleteButton({ bottleId, onDeleted }: { bottleId: string; onDeleted: ()
         ביטול
       </button>
     </span>
+  );
+}
+
+/** In a friend's cellar: "I want this too" copies the wine into my wishlist. */
+function AddToMyWishlist({ wineId, year }: { wineId: string; year: number | null }) {
+  const [state, setState] = useState<"idle" | "busy" | "done" | "failed">("idle");
+
+  async function add() {
+    setState("busy");
+    const { error } = await createClient().rpc("add_friend_wine_to_wishlist", {
+      p_wine_id: wineId,
+      p_year: year ?? undefined,
+    });
+    setState(error ? "failed" : "done");
+  }
+
+  if (state === "done") {
+    return (
+      <Link href="/wishlist" className="font-medium underline underline-offset-2">
+        נוסף לרשימת המשאלות ✓
+      </Link>
+    );
+  }
+  return (
+    <button type="button" onClick={add} disabled={state === "busy"} className="font-medium underline underline-offset-2">
+      {state === "failed" ? "לא הצליח. לנסות שוב?" : "♡ גם אני רוצה (לרשימת המשאלות)"}
+    </button>
   );
 }

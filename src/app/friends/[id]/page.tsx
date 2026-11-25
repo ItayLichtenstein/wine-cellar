@@ -1,0 +1,58 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { CellarView } from "@/app/cellar-view";
+import { drinkNow } from "@/lib/bottle-list";
+import { cellarTitle } from "@/lib/cellar-title";
+import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
+import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = { title: "מרתף של חברים · מרתף יין" };
+
+export default function FriendCellarPage({ params }: PageProps<"/friends/[id]">) {
+  return (
+    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
+      <Suspense fallback={<p className="text-muted">טוען…</p>}>
+        <FriendCellar params={params} />
+      </Suspense>
+    </main>
+  );
+}
+
+/**
+ * A friend's cellar, read-only. The same loaders as my own fridge, with the
+ * friend's cellar id; RLS decides what comes back (prices only if shared).
+ */
+async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["params"] }) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: friends } = await supabase.rpc("my_friends");
+  const friend = friends?.find((f) => f.cellar_id === id);
+  if (!friend) notFound();
+
+  const [fridges, loose, all] = await Promise.all([getFridges(id), getLooseBottles(id), getCellarBottles(id)]);
+  const stored = fridges.flatMap((f) => f.shelves.flatMap((s) => s.zones.flatMap((z) => z.bottles))).length;
+
+  return (
+    <>
+      <header className="flex flex-col gap-1">
+        <Link href="/more" className="text-sm text-muted underline underline-offset-2">
+          → חזרה
+        </Link>
+        <h1 className="text-2xl font-bold" dir="auto">
+          {cellarTitle(friend.names)}
+        </h1>
+        <p className="text-sm text-muted">
+          <span className="inline-block">{stored} בקבוקים במקרר · צפייה בלבד.</span>{" "}
+          <span className="inline-block">לחיצה על בקבוק – ואפשר להוסיף אותו לרשימת המשאלות.</span>
+        </p>
+      </header>
+      {fridges.length === 0 ? (
+        <p className="text-muted">עוד אין להם מקרר.</p>
+      ) : (
+        <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={false} />
+      )}
+    </>
+  );
+}

@@ -464,7 +464,7 @@ select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 
 -- realtime: every cellar table is streamed (and RLS filters who hears what)
 select is((select count(*)::int from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public'),
-          12, 'the cellar tables are published for real-time sync');
+          13, 'the cellar tables are published for real-time sync');
 
 -- ---------- Joining WITH bottles (cellar merge) ----------
 select pg_temp.logout();

@@ -6,6 +6,7 @@ import { fridgeCapacity } from "@/lib/fridge-layout";
 import { getFridges } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
 import { ExportButton } from "./export-button";
+import { Friends } from "./friends";
 import { Household, type Member } from "./household";
 import { SignOutButton } from "./sign-out-button";
 
@@ -19,6 +20,7 @@ export default function MorePage() {
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <Fridges />
         <Members />
+        <FriendsSection />
         <Account />
       </Suspense>
       <Link href="/privacy" className="self-start text-sm text-muted underline underline-offset-2">
@@ -77,6 +79,18 @@ async function Members() {
     role: m.role,
   }));
   return <Household members={members} me={user.id} />;
+}
+
+async function FriendsSection() {
+  const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
+  const { data } = await supabase.rpc("my_friends");
+  const friends = (data ?? []).map((f) => ({
+    cellarId: f.cellar_id,
+    names: f.names,
+    iShowPrices: f.i_show_prices,
+    theyShowPrices: f.they_show_prices,
+  }));
+  return <Friends friends={friends} canEdit={user.canEdit} />;
 }
 
 async function Account() {

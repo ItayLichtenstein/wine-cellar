@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const TABLES = [
   "bottles", "bottle_prices", "wines", "wine_vintages", "critic_scores", "ratings",
-  "tastings", "fridges", "shelves", "shelf_zones", "cellar_members",
+  "tastings", "fridges", "shelves", "shelf_zones", "cellar_members", "wishlist_items",
 ] as const;
 
 /**
@@ -27,15 +27,26 @@ export function RealtimeRefresh() {
       timer = setTimeout(() => router.refresh(), 400);
     };
 
-    const channel = supabase.channel("cellar-changes");
-    for (const table of TABLES) {
-      channel.on("postgres_changes", { event: "*", schema: "public", table }, refresh);
-    }
-    channel.subscribe();
+    // Friends can read our cellar and we theirs (RLS), so listen to our own
+    // cellar only: a friend adding a bottle should not reload our screen.
+    // (Deletes cannot be filtered by Supabase; they arrive for every cellar.)
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+    let stopped = false;
+    supabase.rpc("my_cellar_id").then(({ data: cellarId }) => {
+      if (stopped || !cellarId) return;
+      channel = supabase.channel("cellar-changes");
+      const filter = `cellar_id=eq.${cellarId}`;
+      for (const table of TABLES) {
+        channel.on("postgres_changes", { event: "*", schema: "public", table, filter }, refresh);
+      }
+      channel.on("postgres_changes", { event: "*", schema: "public", table: "friend_links" }, refresh);
+      channel.subscribe();
+    });
 
     return () => {
+      stopped = true;
       clearTimeout(timer);
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [router]);
 
