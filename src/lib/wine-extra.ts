@@ -88,12 +88,12 @@ export type PersonalRating = { raterId: string; name: string; score: number; vin
 
 /**
  * The ratings line on the card. Separate ratings, when given, win:
- * "נועה 4.5 · יונתן 3.8". Otherwise the shared score: "4.5 / 5".
+ * "נועה 4.5 · יונתן 3.8". Otherwise the shared score: "4.5 מתוך 5" (reads correctly in RTL).
  * A vintage's own ratings come before the wine's general ones.
  */
 export function ratingLine(personal: PersonalRating[], shared: number | null, vintageId: string): string | null {
   const forVintage = personal.filter((r) => r.vintageId === vintageId);
   const chosen = forVintage.length ? forVintage : personal.filter((r) => r.vintageId === null);
   if (chosen.length) return chosen.map((r) => `${r.name} ${r.score}`).join(" · ");
-  return shared ? `${shared} / 5` : null;
+  return shared ? `${shared} מתוך 5` : null;
 }

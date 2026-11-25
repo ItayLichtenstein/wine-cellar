@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { criticSummary, linkLabel, ratingLine, vintageBreakdown } from "@/lib/wine-extra";
@@ -112,6 +113,9 @@ export function DetailsView({
         </div>
       )}
       <div className="flex justify-center gap-6 text-sm">
+        <Link href={`/wines/${d.wineId}`} className="underline underline-offset-2">
+          עמוד היין
+        </Link>
         <button type="button" onClick={onEdit} className="underline underline-offset-2">
           עריכה
         </button>
