@@ -29,49 +29,49 @@ export function GuideTour() {
     {
       emoji: "🍷",
       title: "ברוכים הבאים למרתף",
-      text: "האתר זוכר בשבילכם אילו יינות יש בבית, איפה כל בקבוק נמצא, ומתי הכי כדאי לפתוח אותו. הסיור לוקח דקה, ואפשר לגעת בכל דבר.",
+      text: "מה יש בבית, איפה כל בקבוק, ומתי לפתוח אותו. סיור של דקה.",
       demo: <Welcome />,
     },
     {
       emoji: "🧊",
       title: "מציירים את המקרר",
-      text: "פעם אחת מגדירים את המקרר, כמו שהוא באמת. לכל מדף בוחרים סידור. נסו:",
+      text: "לכל מדף בוחרים סידור, כמו במקרר שלכם. נסו:",
       demo: <ArrangementDemo />,
     },
     {
       emoji: "🍾",
       title: "מוסיפים בקבוק",
-      text: "כשמוסיפים בקבוק, לוחצים על מקום ריק בציור, וזה המקום שלו. נסו ללחוץ על מקום ריק:",
+      text: "לוחצים על מקום ריק, וזה המקום של הבקבוק. נסו:",
       demo: <PickDemo />,
     },
     {
       emoji: "🎨",
       title: "הצבע אומר מתי לשתות",
-      text: "על כל בקבוק מופיעה שנת הבציר (19 = 2019), והצבע שלה אומר אם כבר הזמן לפתוח. לחצו על בקבוק:",
+      text: "המספר הוא שנת הבציר (19 = 2019). הצבע אומר מתי לשתות. לחצו על בקבוק:",
       demo: <ColorsDemo />,
     },
     {
       emoji: "🥂",
       title: "פתחנו בקבוק",
-      text: "לוחצים על הבקבוק, ואז \"שתינו\". נותנים ציון, והוא נשמר בהיסטוריה. נסו:",
+      text: "לוחצים על הבקבוק, \"שתינו\", ונותנים ציון. נסו:",
       demo: <DrinkDemo />,
     },
     {
       emoji: "↔️",
       title: "מזיזים בקבוק",
-      text: "לוחצים על בקבוק, ואז על המקום החדש. נסו להעביר את ה־Rioja:",
+      text: "לוחצים על בקבוק, ואז על המקום החדש. נסו:",
       demo: <MoveDemo />,
     },
     {
       emoji: "✨",
       title: "ועוד כמה דברים",
-      text: "לחצו על כל אחד כדי לקרוא עליו:",
+      text: "לחצו לפרטים:",
       demo: <MoreDemo />,
     },
     {
       emoji: "🎉",
       title: "זהו, אתם מוכנים!",
-      text: "כמעט כל פעולה אפשר לבטל או לשנות אחר כך, אז אין מה לחשוש. הסיור תמיד זמין ב\"עוד\" ← \"מדריך למתחילים\".",
+      text: "כמעט הכול אפשר לשנות אחר כך. הסיור נמצא תמיד ב\"עוד\".",
       demo: <Finish />,
     },
   ];
@@ -155,37 +155,42 @@ function Welcome() {
 /** Pick an arrangement and watch the shelf change. */
 function ArrangementDemo() {
   const options = {
+    one: {
+      name: "שורה אחת",
+      note: "שורה אחת של בקבוקים.",
+      zones: [{ kind: "row" as const, capacity: 4, label: "שורה" }],
+    },
     rows: {
-      name: "שורה אחורית וקדמית",
-      note: "שתי שורות. בקדמית בקבוק אחד פחות, כי הבקבוקים שוכבים ראש מול זנב.",
+      name: "שתי שורות",
+      note: "שורה אחורית ושורה קדמית.",
       zones: [
-        { kind: "row" as const, capacity: 5, label: "אחורית" },
-        { kind: "row" as const, capacity: 4, label: "קדמית" },
+        { kind: "row" as const, capacity: 4, label: "אחורית" },
+        { kind: "row" as const, capacity: 3, label: "קדמית" },
       ],
     },
     pile: {
       name: "ערימה",
-      note: "בקבוקים שכבה על שכבה, למשל בתחתית המקרר. השכבה העליונה יושבת בשקעים שבין הבקבוקים.",
+      note: "בקבוקים זה על זה, למשל בתחתית המקרר.",
       zones: [
-        { kind: "stack" as const, capacity: 4, label: "שכבה עליונה" },
-        { kind: "stack" as const, capacity: 5, label: "שכבה תחתונה" },
+        { kind: "stack" as const, capacity: 3, label: "שכבה עליונה" },
+        { kind: "stack" as const, capacity: 4, label: "שכבה תחתונה" },
       ],
     },
     front: {
-      name: "+ בחזית",
-      note: "עוד כמה בקבוקים ששוכבים לרוחב, לפני השורות. בוחרים ברשימה \"+ בקבוקים בחזית\", והם מופיעים מתחת לקו המקווקו.",
+      name: "בחזית",
+      note: "בקבוקים ששוכבים לרוחב, לפני המדף.",
       zones: [
-        { kind: "row" as const, capacity: 5, label: "אחורית" },
-        { kind: "row" as const, capacity: 4, label: "קדמית" },
+        { kind: "row" as const, capacity: 4, label: "אחורית" },
+        { kind: "row" as const, capacity: 3, label: "קדמית" },
         { kind: "row" as const, capacity: 2, label: FRONT_LABEL },
       ],
     },
   };
-  const [key, setKey] = useState<keyof typeof options>("rows");
+  const [key, setKey] = useState<keyof typeof options>("one");
   const o = options[key];
   return (
     <div className="flex flex-col gap-3">
-      <div role="radiogroup" aria-label="סידור המדף" className="grid grid-cols-3 gap-1 rounded-xl bg-background p-1">
+      <div role="radiogroup" aria-label="סידור המדף" className="grid grid-cols-4 gap-1 rounded-xl bg-background p-1">
         {(Object.keys(options) as (keyof typeof options)[]).map((k) => (
           <button
             key={k}
@@ -211,8 +216,8 @@ function PickDemo() {
   const shelves = [
     {
       zones: [
-        { id: "p1", kind: "row" as const, capacity: 5, label: "אחורית", bottles: [bottle("x1", "now", 2019, "Rioja", 1), bottle("x2", "hold", 2020, "Barolo", 4)] },
-        { id: "p2", kind: "row" as const, capacity: 4, label: "קדמית", bottles: [bottle("x3", "soon", 2021, "Chianti", 2)] },
+        { id: "p1", kind: "row" as const, capacity: 4, label: "אחורית", bottles: [bottle("x1", "now", 2019, "Rioja", 1), bottle("x2", "hold", 2020, "Barolo", 3)] },
+        { id: "p2", kind: "row" as const, capacity: 3, label: "קדמית", bottles: [bottle("x3", "soon", 2021, "Chianti", 2)] },
       ],
     },
   ];
@@ -225,7 +230,7 @@ function PickDemo() {
       <p className="text-sm font-medium" aria-live="polite">
         {picked.length === 0
           ? "👆 לחצו על אחד המקומות הריקים"
-          : `יופי! בחרתם ${picked.length === 1 ? "מקום אחד" : `${picked.length} מקומות`}. לחיצה נוספת מבטלת. באתר לוחצים אחר כך "הוספת הבקבוק".`}
+          : `יופי! ${picked.length === 1 ? "מקום אחד נבחר" : `${picked.length} מקומות נבחרו`}. לחיצה נוספת מבטלת.`}
       </p>
     </div>
   );
@@ -237,7 +242,7 @@ function ColorsDemo() {
   const bottles = states.map((s, k) => bottle(`c${k}`, s, 2014 + k, ["Port", "Rioja", "Chianti", "Barolo", "Pinot", "Syrah"][k] ?? "Wine", null));
   const [open, setOpen] = useState<DrinkState | null>(null);
   const shelves = [
-    { zones: [{ id: "c-row", kind: "row" as const, capacity: bottles.length, label: "שורה", bottles: bottles.map((b, k) => ({ ...b, slot: k + 1 })) }] },
+    { zones: [{ id: "c-row", kind: "row" as const, capacity: bottles.length, label: "", bottles: bottles.map((b, k) => ({ ...b, slot: k + 1 })) }] },
   ];
   return (
     <div className="flex flex-col gap-3">
@@ -281,7 +286,7 @@ function DrinkDemo() {
       )}
       {stage === "rate" && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm">איך היה? בחרו ציון:</span>
+          <span className="text-sm">איך היה?</span>
           <div className="flex gap-1" role="radiogroup" aria-label="ציון">
             {[1, 2, 3, 4, 5].map((n) => (
               <button
@@ -306,7 +311,7 @@ function DrinkDemo() {
         <p className="text-sm" aria-live="polite">
           <span className="text-lg">לחיים! {"★".repeat(score)}</span>
           <br />
-          באתר הבקבוק יוצא מהמקרר ונשמר ב&quot;היסטוריה ודירוגים&quot;.{" "}
+          נשמר בהיסטוריה.{" "}
           <button type="button" onClick={() => (setStage("shelf"), setScore(0))} className="underline underline-offset-2">
             שוב
           </button>
@@ -321,7 +326,7 @@ function MoveDemo() {
   const [slots, setSlots] = useState<Record<string, number>>({ m1: 1, m2: 3 });
   const [moving, setMoving] = useState<string | null>(null);
   const all = [bottle("m1", "now", 2019, "Rioja"), bottle("m2", "hold", 2020, "Barolo")];
-  const shelves = [{ zones: [{ id: "m-row", kind: "row" as const, capacity: 5, label: "שורה", bottles: all.map((b) => ({ ...b, slot: slots[b.id] })) }] }];
+  const shelves = [{ zones: [{ id: "m-row", kind: "row" as const, capacity: 4, label: "שורה", bottles: all.map((b) => ({ ...b, slot: slots[b.id] })) }] }];
   function to(slot: number | null) {
     if (!moving || slot === null) return;
     setSlots((prev) => {
@@ -339,7 +344,7 @@ function MoveDemo() {
         onBottleClick={(b, p) => (moving && b.id !== moving ? to(p.slot) : setMoving(b.id === moving ? null : b.id))}
       />
       <p className="text-sm font-medium" aria-live="polite">
-        {moving ? "עכשיו לחצו על המקום החדש (מקום תפוס = החלפה)" : "👆 לחצו על בקבוק כדי להזיז אותו"}
+        {moving ? "עכשיו לחצו על המקום החדש" : "👆 לחצו על בקבוק כדי להזיז אותו"}
       </p>
     </div>
   );
@@ -347,12 +352,12 @@ function MoveDemo() {
 
 function MoreDemo() {
   const items = [
-    ["📋", "רשימה", "כל הבקבוקים בשורות, עם חיפוש וסינון לפי סוג, בשלות, כשרות ומחיר."],
-    ["♡", "Wishlist", "יינות שרוצים לקנות או לטעום. כשקונים, לוחצים \"קניתי\" והפרטים כבר ממולאים."],
-    ["📊", "סטטיסטיקות", "כמה שווה המרתף, מה בשל, ומה אתם הכי אוהבים לפי הדירוגים."],
-    ["🏠", "בני הבית וחברים", "מזמינים בקישור: שותף מנהל איתכם את המרתף, חבר רק רואה. אפשר להסתיר ממנו מחירים."],
-    ["✨", "חיבור AI", "מחברים את Claude או ChatGPT, ושואלים \"מה לפתוח הערב?\". הוא רק מציע, ואתם מאשרים."],
-    ["🌓", "מראה", "ב\"עוד\" ← \"מראה\": אוטומטי, בהיר או כהה."],
+    ["📋", "רשימה", "כל הבקבוקים, עם חיפוש וסינון."],
+    ["♡", "Wishlist", "יינות שרוצים לקנות או לטעום."],
+    ["📊", "סטטיסטיקות", "שווי המרתף, מה בשל, ומה אתם הכי אוהבים."],
+    ["🏠", "בני הבית וחברים", "מזמינים בקישור. שותף מנהל איתכם, חבר רק צופה."],
+    ["✨", "חיבור AI", "שואלים את Claude או ChatGPT \"מה לפתוח הערב?\"."],
+    ["🌓", "מראה", "בהיר, כהה או אוטומטי. ב\"עוד\"."],
   ];
   const [open, setOpen] = useState<string | null>(null);
   return (
