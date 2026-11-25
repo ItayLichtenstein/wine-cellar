@@ -95,6 +95,14 @@ export function AddBottlesForm({
     });
   }
 
+  /** A pile place has no number: un-picking takes back one pick from that layer. */
+  function unpick(place: Place) {
+    setPicked((prev) => {
+      const i = prev.findLastIndex((p) => p.zoneId === place.zoneId && p.slot === null);
+      return i < 0 ? prev : prev.filter((_, k) => k !== i);
+    });
+  }
+
   function changeQuantity(n: number) {
     const q = clamp(n, 1, 48);
     setQuantity(q);
@@ -297,7 +305,7 @@ export function AddBottlesForm({
             {fridges.map((f) => (
               <div key={f.id} className="flex flex-col gap-1">
                 {fridges.length > 1 && <h3 className="font-medium">{f.name}</h3>}
-                <FridgePreview shelves={f.shelves} onPick={pick} picked={picked} />
+                <FridgePreview shelves={f.shelves} onPick={pick} onUnpick={unpick} picked={picked} />
               </div>
             ))}
           </>
