@@ -77,7 +77,7 @@ export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottle
     // w-fit: the fridge is as wide as its widest shelf, not the whole page.
     <ol className="mx-auto flex w-fit min-w-72 max-w-full flex-col gap-2 rounded-2xl bg-fridge p-3" aria-label="שרטוט המקרר">
       {shelves.map((shelf, i) => (
-        <li key={i} className="flex items-start gap-2 rounded-lg bg-shelf p-2">
+        <li key={i} className="wood flex items-start gap-2 rounded-lg p-2">
           <span className="w-5 shrink-0 pt-1 text-center text-xs text-on-fridge/60" aria-hidden="true">
             {i + 1}
           </span>
@@ -184,7 +184,7 @@ function ZoneLine({
               aria-pressed={isPicked}
               aria-label={isStack ? `${isPicked ? "ביטול בחירה" : "מקום פנוי"}, ${where}` : `${where} ${slot}`}
               className={`${shape} border-2 ${
-                isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/35 bg-shelf hover:border-on-fridge/80"
+                isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/35 bg-slot hover:border-on-fridge/80"
               }`}
             />
           );
@@ -192,7 +192,7 @@ function ZoneLine({
         return (
           <span
             key={slot}
-            className={`${shape} border-2 ${isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/25 bg-shelf"}`}
+            className={`${shape} border-2 ${isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/25 bg-slot"}`}
             aria-hidden="true"
           />
         );

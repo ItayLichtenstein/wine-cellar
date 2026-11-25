@@ -46,6 +46,8 @@ function presetOf(shelf: Shelf): PresetKey {
 }
 
 const OTHER = "other";
+/** Dropdown value suffix: the arrangement plus a row lying across the front. */
+const FRONT_SUFFIX = "+front";
 
 /** The new-fridge form; with `existing` it edits that fridge instead. */
 export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
@@ -118,26 +120,21 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
     if (found) setShelves(estimateShelves(found).map((s) => ({ preset: presetOf(s), ...s })));
   }
 
-  /** A new arrangement replaces the shelf's zones, but keeps its front row. */
-  function changePreset(index: number, preset: PresetKey) {
+  /**
+   * The dropdown picks an arrangement, with or without bottles lying across
+   * the front ("בחזית"). Same arrangement: its zones (and their bottles)
+   * stay and only the front row is added or removed.
+   */
+  function changeArrangement(index: number, value: string) {
+    const [preset, front] = [value.replace(FRONT_SUFFIX, "") as PresetKey, value.endsWith(FRONT_SUFFIX)];
     setShelves((prev) =>
       prev.map((s, i) => {
         if (i !== index) return s;
-        const front = frontZone(s.zones);
-        const shelf = makeShelf(preset);
-        return front ? { ...shelf, zones: [...shelf.zones, front] } : shelf;
+        const oldFront = frontZone(s.zones);
+        const base = preset === s.preset ? { ...s, zones: withoutFront(s.zones) } : makeShelf(preset);
+        if (!front) return base;
+        return { ...base, zones: [...base.zones, oldFront ?? { kind: "row" as const, capacity: 2, label: FRONT_LABEL }] };
       }),
-    );
-  }
-
-  /** Adds or removes a row of bottles lying across the front of the shelf. */
-  function toggleFront(index: number) {
-    setShelves((prev) =>
-      prev.map((s, i) =>
-        i !== index
-          ? s
-          : { ...s, zones: frontZone(s.zones) ? withoutFront(s.zones) : [...s.zones, { kind: "row" as const, capacity: 2, label: FRONT_LABEL }] },
-      ),
     );
   }
 
@@ -281,16 +278,19 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
                 <span className="font-medium">מדף {i + 1}</span>
                 <select
                   aria-label={`סידור מדף ${i + 1}`}
-                  value={shelf.preset}
-                  onChange={(e) => changePreset(i, e.target.value as PresetKey)}
-                  className="rounded-lg border border-muted/40 bg-background px-2 py-1 text-sm"
+                  value={shelf.preset + (frontZone(shelf.zones) ? FRONT_SUFFIX : "")}
+                  onChange={(e) => changeArrangement(i, e.target.value)}
+                  className="max-w-[60%] rounded-lg border border-muted/40 bg-background px-2 py-1 text-sm"
                 >
                   {/* An existing stack shelf keeps its own entry, so the select shows the truth. */}
-                  {[...new Set([...CHOOSABLE_PRESETS, shelf.preset])].map((key) => (
+                  {[...new Set([...CHOOSABLE_PRESETS, shelf.preset])].flatMap((key) => [
                     <option key={key} value={key}>
                       {SHELF_PRESETS[key].title}
-                    </option>
-                  ))}
+                    </option>,
+                    <option key={key + FRONT_SUFFIX} value={key + FRONT_SUFFIX}>
+                      {SHELF_PRESETS[key].title} + בחזית
+                    </option>,
+                  ])}
                 </select>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
@@ -307,15 +307,6 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
                   </label>
                 ))}
               </div>
-              {(frontZone(shelf.zones) || shelf.zones.length < LIMITS.zonesPerShelf.max) && (
-                <button
-                  type="button"
-                  onClick={() => toggleFront(i)}
-                  className="self-start text-sm text-accent underline-offset-2 hover:underline"
-                >
-                  {frontZone(shelf.zones) ? "− בלי בקבוקים בחזית" : "+ בקבוקים בחזית (שוכבים לרוחב)"}
-                </button>
-              )}
             </li>
           ))}
         </ol>
