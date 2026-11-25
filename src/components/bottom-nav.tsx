@@ -19,7 +19,7 @@ const ICONS = {
 const ITEMS = [
   { href: "/", label: "מקרר", icon: ICONS.fridge },
   { href: "/bottles", label: "רשימה", icon: ICONS.list },
-  { href: "/wishlist", label: "משאלות", icon: ICONS.wish },
+  { href: "/wishlist", label: "לקנות", icon: ICONS.wish },
   { href: "/stats", label: "סטטיסטיקות", icon: ICONS.stats },
   { href: "/more", label: "עוד", icon: ICONS.more },
 ] as const;

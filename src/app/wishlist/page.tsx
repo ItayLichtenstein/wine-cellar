@@ -4,12 +4,12 @@ import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Wishlist, type Wish } from "./wishlist";
 
-export const metadata: Metadata = { title: "משאלות · מרתף יין" };
+export const metadata: Metadata = { title: "רשימת קניות · מרתף יין" };
 
 export default function WishlistPage() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 py-8">
-      <h1 className="text-2xl font-bold">רשימת משאלות</h1>
+      <h1 className="text-2xl font-bold">רשימת קניות</h1>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <WithData />
       </Suspense>

@@ -207,13 +207,13 @@ function AddToMyWishlist({ wineId, year }: { wineId: string; year: number | null
   if (state === "done") {
     return (
       <Link href="/wishlist" className="font-medium underline underline-offset-2">
-        נוסף לרשימת המשאלות ✓
+        נוסף לרשימת הקניות ✓
       </Link>
     );
   }
   return (
     <button type="button" onClick={add} disabled={state === "busy"} className="font-medium underline underline-offset-2">
-      {state === "failed" ? "לא הצליח. לנסות שוב?" : "♡ גם אני רוצה (לרשימת המשאלות)"}
+      {state === "failed" ? "לא הצליח. לנסות שוב?" : "♡ גם אני רוצה (לרשימת הקניות)"}
     </button>
   );
 }

@@ -152,7 +152,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={buyAgain} onChange={(e) => setBuyAgain(e.target.checked)} />
-        לקנות שוב (מוסיף לרשימת המשאלות)
+        לקנות שוב (מוסיף לרשימת הקניות)
       </label>
 
       <ErrorNote message={error} />
