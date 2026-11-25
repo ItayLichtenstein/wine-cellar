@@ -8,9 +8,9 @@ const STATUS: Record<string, string> = { stored: "במקרר", unplaced: "מחו
 
 /**
  * Downloads the whole cellar as a CSV file, built in the browser from the
- * user's own data (RLS returns only their cellar). Nothing is sent anywhere.
+ * user's own cellar. Nothing is sent anywhere.
  */
-export function ExportButton() {
+export function ExportButton({ cellarId }: { cellarId: string }) {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -22,6 +22,7 @@ export function ExportButton() {
       .select(
         "status, added_on, consumed_on, note, link_url, bottle_prices(paid, regular, is_gift), wine_vintages(year, drink_from, drink_to, peak_from, peak_to, alcohol, wines(winery, name, type, grape, country, region, kosher))",
       )
+      .eq("cellar_id", cellarId)
       .order("added_on");
     setBusy(false);
     if (error) {

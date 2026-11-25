@@ -75,6 +75,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
   if (error || !b.wine_vintages) throw new Error("not found");
 
   const v = b.wine_vintages;
+  const cellarId = v.wines?.cellar_id ?? "";
   const [{ data: ratings }, { data: siblings }, { data: members }] = await Promise.all([
     supabase.from("ratings").select("score, vintage_id, rater_id, profiles(display_name)").eq("wine_id", v.wine_id),
     supabase
@@ -82,10 +83,15 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
       .select("wine_vintages!inner(year, wine_id)")
       .eq("wine_vintages.wine_id", v.wine_id)
       .neq("status", "consumed"),
-    supabase.from("cellar_members").select("user_id, profiles(display_name)").eq("role", "member").order("joined_at"),
+    supabase
+      .from("cellar_members")
+      .select("user_id, profiles(display_name)")
+      .eq("cellar_id", cellarId)
+      .eq("role", "member")
+      .order("joined_at"),
   ]);
   const shared = (ratings ?? []).filter((r) => r.rater_id === null);
-  const { data: canEdit } = await supabase.rpc("is_cellar_editor", { p_cellar_id: v.wines?.cellar_id ?? "" });
+  const { data: canEdit } = await supabase.rpc("is_cellar_editor", { p_cellar_id: cellarId });
 
   // One price per bottle, but the composite foreign key makes the generated
   // type a list – accept both shapes.
@@ -129,7 +135,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
       link: b.link_url ?? "",
     },
     wineYears: (siblings ?? []).map((x) => x.wine_vintages.year),
-    cellarId: v.wines?.cellar_id ?? "",
+    cellarId,
     labelPath: v.wines?.label_image_path ?? null,
     personalRatings: (ratings ?? [])
       .filter((r) => r.rater_id !== null)

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { getCurrentUser } from "@/lib/auth";
 import { getCellarBottles } from "@/lib/fridges";
 import { BottleList } from "./bottle-list";
 
@@ -17,5 +18,6 @@ export default function BottlesPage() {
 }
 
 async function ListWithData() {
-  return <BottleList bottles={await getCellarBottles()} />;
+  const { cellarId } = await getCurrentUser();
+  return <BottleList bottles={await getCellarBottles(cellarId)} />;
 }

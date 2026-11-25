@@ -29,20 +29,22 @@ export type FridgeView = {
 };
 
 /**
- * The fridges of the signed-in user's cellar: layout plus the bottles in it.
- * No cellar filter is needed: RLS only returns the user's own rows.
+ * The fridges of a cellar: layout plus the bottles in it. The cellar filter
+ * says which cellar we want; RLS says whether we may (ADR 0008).
  */
-export async function getMyFridges(): Promise<FridgeView[]> {
+export async function getFridges(cellarId: string): Promise<FridgeView[]> {
   const supabase = await createClient();
 
   const [fridgesRes, bottlesRes] = await Promise.all([
     supabase
       .from("fridges")
       .select("id, name, brand, model, position, shelves(id, position, shelf_zones(id, position, kind, capacity, label))")
+      .eq("cellar_id", cellarId)
       .order("position"),
     supabase
       .from("bottles")
       .select("id, zone_id, slot, wine_vintages(year, drink_from, drink_to, peak_from, peak_to, wines(winery, name))")
+      .eq("cellar_id", cellarId)
       .eq("status", "stored"),
   ]);
   if (fridgesRes.error || bottlesRes.error) throw new Error("Could not load fridges");
@@ -92,9 +94,9 @@ export async function getMyFridges(): Promise<FridgeView[]> {
 }
 
 /** Winery + name of every wine in the cellar, for autocomplete. */
-export async function getMyWineNames(): Promise<{ winery: string; name: string }[]> {
+export async function getWineNames(cellarId: string): Promise<{ winery: string; name: string }[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("wines").select("winery, name").order("winery");
+  const { data, error } = await supabase.from("wines").select("winery, name").eq("cellar_id", cellarId).order("winery");
   if (error) throw new Error("Could not load wines");
   return data;
 }
@@ -108,11 +110,12 @@ export type LooseBottle = {
   title: string;
 };
 
-export async function getLooseBottles(): Promise<LooseBottle[]> {
+export async function getLooseBottles(cellarId: string): Promise<LooseBottle[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("bottles")
     .select("id, status, wine_vintages(year, drink_from, drink_to, peak_from, peak_to, wines(winery, name))")
+    .eq("cellar_id", cellarId)
     .in("status", ["unplaced", "in_transit"])
     .order("added_on", { ascending: false });
   if (error) throw new Error("Could not load bottles");
@@ -133,13 +136,14 @@ export async function getLooseBottles(): Promise<LooseBottle[]> {
 }
 
 /** Every bottle still in the cellar (stored, outside the fridge, on its way), for the list page. */
-export async function getCellarBottles(): Promise<import("./bottle-list").ListBottle[]> {
+export async function getCellarBottles(cellarId: string): Promise<import("./bottle-list").ListBottle[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("bottles")
     .select(
       "id, status, bottle_prices(paid, regular), shelf_zones(shelves(position)), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, wines(winery, name, type, country, kosher, shape))",
     )
+    .eq("cellar_id", cellarId)
     .neq("status", "consumed");
   if (error) throw new Error("Could not load bottles");
 
@@ -186,11 +190,12 @@ export type HistoryEntry = {
 };
 
 /** Bottles we drank, newest first. */
-export async function getHistory(): Promise<HistoryEntry[]> {
+export async function getHistory(cellarId: string): Promise<HistoryEntry[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tastings")
     .select("id, tasted_on, place, notes, wine_vintages(year), wines(winery, name)")
+    .eq("cellar_id", cellarId)
     .order("tasted_on", { ascending: false })
     .order("created_at", { ascending: false });
   if (error) throw new Error("Could not load history");
@@ -227,8 +232,8 @@ export type WinePage = {
   tastings: { id: string; tastedOn: string; year: number | null; place: string; notes: string }[];
 };
 
-/** One wine with all its vintages, ratings and history (RLS: own cellar only). */
-export async function getWine(id: string): Promise<WinePage | null> {
+/** One wine of a cellar with all its vintages, ratings and history. */
+export async function getWine(cellarId: string, id: string): Promise<WinePage | null> {
   const supabase = await createClient();
   const { data: w } = await supabase
     .from("wines")
@@ -236,6 +241,7 @@ export async function getWine(id: string): Promise<WinePage | null> {
       "id, winery, name, type, grape, country, region, label_image_path, wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, bottles(id, status)), ratings(score, vintage_id, profiles(display_name)), tastings(id, tasted_on, place, notes, vintage_id)",
     )
     .eq("id", id)
+    .eq("cellar_id", cellarId)
     .maybeSingle();
   if (!w) return null;
 

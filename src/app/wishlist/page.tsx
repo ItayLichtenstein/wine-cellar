@@ -19,10 +19,10 @@ export default function WishlistPage() {
 
 async function WithData() {
   const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
-  // RLS: the household's own list only.
   const { data } = await supabase
     .from("wishlist_items")
     .select("id, year, note, link_url, source_note, wines(winery, name, type)")
+    .eq("cellar_id", user.cellarId)
     .order("created_at", { ascending: false });
   const wishes: Wish[] = (data ?? []).map((w) => ({
     id: w.id,
