@@ -1,6 +1,6 @@
 "use client";
 
-import type { Zone } from "@/lib/fridge-layout";
+import { frontZone, type Zone } from "@/lib/fridge-layout";
 import { DRINK_STATES } from "@/lib/drink-state";
 import type { PlacedBottle } from "@/lib/fridges";
 
@@ -21,12 +21,28 @@ const HALF_STEP: Record<FridgeViewMode, string> = {
   dots: "ms-[1.25rem] sm:ms-[1.5rem]", //      (2.25rem + 0.25rem) / 2, (2.75rem + 0.25rem) / 2
 };
 
-/** Index of the row to shift: two rows on a shelf, one shorter by exactly one. */
+/**
+ * Index of the zone to shift half a slot: two rows on a shelf where one is
+ * shorter by exactly one, or the two layers of a pile (the upper layer
+ * rests in the grooves of the lower one; with equal layers the upper moves).
+ */
 export function staggeredZone(zones: { kind: string; capacity: number }[]): number | null {
+  if (isPile(zones)) {
+    const diff = zones[0].capacity - zones[1].capacity;
+    return Math.abs(diff) > 1 ? null : diff > 0 ? 1 : 0;
+  }
   if (zones.length !== 2 || zones.some((z) => z.kind !== "row")) return null;
-  const [a, b] = zones;
-  if (Math.abs(a.capacity - b.capacity) !== 1) return null;
-  return a.capacity < b.capacity ? 0 : 1;
+  const diff = zones[0].capacity - zones[1].capacity;
+  if (Math.abs(diff) !== 1) return null;
+  return diff < 0 ? 0 : 1;
+}
+
+/**
+ * A pile: the shelf starts with two stack layers (upper, lower), maybe
+ * with a row in front ("בחזית"). Drawn as bottles lying on each other.
+ */
+function isPile(zones: { kind: string }[]): boolean {
+  return zones.length >= 2 && zones[0].kind === "stack" && zones[1].kind === "stack";
 }
 
 // Slot size per view. On a phone labels are 3rem wide so 5 slots still fit
@@ -42,6 +58,8 @@ type Props = {
   onPick?: (place: Place) => void;
   /** Places already picked (shown highlighted). */
   picked?: Place[];
+  /** Tapping a picked place in a pile un-picks it (row slots toggle through onPick). */
+  onUnpick?: (place: Place) => void;
   /** When set, bottles become buttons (open the card, or swap while moving). */
   onBottleClick?: (bottle: PlacedBottle, place: Place) => void;
   /** The bottle being moved, drawn highlighted. */
@@ -54,7 +72,7 @@ type Props = {
  * Bottles are neutral; only the small year badge carries the drink-window
  * color (never red frames – red reads as "bad wine").
  */
-export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, activeBottleId, view = "labels" }: Props) {
+export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottleClick, activeBottleId, view = "labels" }: Props) {
   return (
     // w-fit: the fridge is as wide as its widest shelf, not the whole page.
     <ol className="mx-auto flex w-fit min-w-72 max-w-full flex-col gap-2 rounded-2xl bg-fridge p-3" aria-label="שרטוט המקרר">
@@ -63,14 +81,18 @@ export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, act
           <span className="w-5 shrink-0 pt-1 text-center text-xs text-on-fridge/60" aria-hidden="true">
             {i + 1}
           </span>
-          <div className="flex flex-1 flex-col gap-1.5">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             {shelf.zones.map((zone, j) => (
               <ZoneLine
                 key={zone.id ?? j}
                 zone={zone}
                 shifted={staggeredZone(shelf.zones) === j}
+                // The lower layer of a pile tucks under the upper one, so they read as stacked.
+                layer={isPile(shelf.zones) && j < 2 ? (j === 0 ? "upper" : "lower") : undefined}
+                front={frontZone(shelf.zones) === zone}
                 shelfNo={i + 1}
                 onPick={onPick}
+                onUnpick={onUnpick}
                 picked={picked}
                 onBottleClick={onBottleClick}
                 activeBottleId={activeBottleId}
@@ -84,11 +106,16 @@ export function FridgePreview({ shelves, onPick, picked = [], onBottleClick, act
   );
 }
 
+type Cell = { bottle?: PlacedBottle; picked: boolean; place: Place | null; slot: number };
+
 function ZoneLine({
   zone,
   shifted = false,
+  layer,
+  front = false,
   shelfNo,
   onPick,
+  onUnpick,
   picked,
   onBottleClick,
   activeBottleId,
@@ -96,118 +123,79 @@ function ZoneLine({
 }: {
   zone: DrawnZone;
   shifted?: boolean;
+  layer?: "upper" | "lower";
+  /** Bottles lying across the front of the shelf: set apart by a dashed line. */
+  front?: boolean;
   shelfNo: number;
   onPick?: (p: Place) => void;
+  onUnpick?: (p: Place) => void;
   picked: Place[];
   onBottleClick?: (bottle: PlacedBottle, place: Place) => void;
   activeBottleId?: string;
   view: FridgeViewMode;
 }) {
-  const shape = SLOT_SHAPE[view];
+  // A pile layer never wraps (that would break the picture): its bottles shrink instead.
+  const shape = layer ? `${SLOT_SHAPE[view]} min-w-0` : SLOT_SHAPE[view];
   const bottles = zone.bottles ?? [];
   const pickedHere = picked.filter((p) => p.zoneId === zone.id);
+  const isStack = zone.kind === "stack";
 
-  if (zone.kind === "stack") {
-    const used = bottles.length + pickedHere.length;
-    const canPick = onPick && zone.id && used < zone.capacity;
-    const content = (
-      <>
-        <span>
-          {zone.label || "ערימה"} · {used}/{zone.capacity}
-        </span>
-        <span className="flex flex-wrap gap-0.5">
-          {bottles.map((b) =>
-            onBottleClick && zone.id ? (
-              <button
-                key={b.id}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onBottleClick(b, { zoneId: zone.id!, slot: null });
-                }}
-                aria-label={`${b.title} ${b.year ?? "NV"}`}
-                className={b.id === activeBottleId ? "rounded-sm ring-2 ring-on-fridge" : ""}
-              >
-                <StackBottle bottle={b} view={view} />
-              </button>
-            ) : (
-              <StackBottle key={b.id} bottle={b} view={view} />
-            ),
-          )}
-          {pickedHere.map((_, k) => (
-            <span key={k} className="h-4 w-7 rounded-sm bg-on-fridge" aria-hidden="true" />
-          ))}
-        </span>
-      </>
-    );
-    // w-0 min-w-full: a stack wraps to the width the rows set, instead of
-    // stretching the whole fridge (the fridge itself has a minimum width).
-    const className =
-      "flex w-0 min-w-full flex-wrap items-center gap-2 rounded-md border border-dashed border-on-fridge/40 px-2 py-1 text-xs text-on-fridge/80";
-    return canPick && !onBottleClick ? (
-      <button
-        type="button"
-        onClick={() => onPick({ zoneId: zone.id!, slot: null })}
-        className={`${className} hover:border-on-fridge`}
-        aria-label={`הוספה ל${zone.label || "ערימה"}, מדף ${shelfNo}`}
-      >
-        {content}
-      </button>
-    ) : canPick ? (
-      // Bottles inside are buttons, so the stack itself can't be one.
-      <div className={className}>
-        {content}
-        <button
-          type="button"
-          onClick={() => onPick({ zoneId: zone.id!, slot: null })}
-          className="rounded-full border border-on-fridge/50 px-2 leading-5 hover:border-on-fridge"
-          aria-label={`הוספה ל${zone.label || "ערימה"}, מדף ${shelfNo}`}
-        >
-          +
-        </button>
-      </div>
-    ) : (
-      <div className={className}>{content}</div>
-    );
-  }
+  // A row has numbered places. A stack has none: its bottles fill it from
+  // the start, then the places just picked, then empty room.
+  const cells: Cell[] = Array.from({ length: Math.max(zone.capacity, isStack ? bottles.length : 0) }, (_, k) => {
+    const slot = k + 1;
+    const place = zone.id ? { zoneId: zone.id, slot: isStack ? null : slot } : null;
+    if (isStack) return { bottle: bottles[k], picked: k >= bottles.length && k < bottles.length + pickedHere.length, place, slot };
+    return { bottle: bottles.find((b) => b.slot === slot), picked: pickedHere.some((p) => p.slot === slot), place, slot };
+  });
+  const where = isStack ? `${zone.label || "ערימה"}, מדף ${shelfNo}` : `מדף ${shelfNo}, ${zone.label}, מקום`;
+  const layerClass =
+    layer === "upper" ? "relative z-10" : layer === "lower" ? "-mt-3.5" : front ? "mt-0.5 border-t border-dashed border-on-fridge/30 pt-1.5" : "";
 
   return (
-    <div className={`flex flex-wrap items-center gap-1 ${shifted ? HALF_STEP[view] : ""}`} title={zone.label}>
-      {Array.from({ length: zone.capacity }, (_, k) => {
-        const slot = k + 1;
-        const bottle = bottles.find((b) => b.slot === slot);
+    <div
+      className={`flex items-center gap-1 ${layer ? "flex-nowrap" : "flex-wrap"} ${shifted ? HALF_STEP[view] : ""} ${layerClass}`}
+      title={zone.label}
+    >
+      {cells.map(({ bottle, picked: isPicked, place, slot }) => {
         if (bottle) {
-          return onBottleClick && zone.id ? (
+          return onBottleClick && place ? (
             <button
               key={slot}
               type="button"
-              onClick={() => onBottleClick(bottle, { zoneId: zone.id!, slot })}
+              onClick={() => onBottleClick(bottle, place)}
               className={`${shape} ${bottle.id === activeBottleId ? "ring-2 ring-on-fridge ring-offset-2 ring-offset-shelf" : ""}`}
-              aria-label={`${bottle.title} ${bottle.year ?? "NV"}, מדף ${shelfNo}, מקום ${slot}`}
+              aria-label={`${bottle.title} ${bottle.year ?? "NV"}, ${isStack ? where : `${where} ${slot}`}`}
             >
-              <BottleSlot bottle={bottle} view={view} />
+              <BottleSlot bottle={bottle} view={view} shape={`${shape} !w-full`} />
             </button>
           ) : (
-            <BottleSlot key={slot} bottle={bottle} view={view} />
+            <BottleSlot key={slot} bottle={bottle} view={view} shape={shape} />
           );
         }
-
-        const isPicked = pickedHere.some((p) => p.slot === slot);
-        if (onPick && zone.id) {
+        // Un-picking: a row slot toggles through onPick; a pile place has no number, so it needs onUnpick.
+        const action = !place ? undefined : isPicked ? (isStack ? onUnpick : onPick) : onPick;
+        if (action && place) {
           return (
             <button
               key={slot}
               type="button"
-              onClick={() => onPick({ zoneId: zone.id!, slot })}
+              onClick={() => action(place)}
               aria-pressed={isPicked}
-              aria-label={`מדף ${shelfNo}, ${zone.label}, מקום ${slot}`}
+              aria-label={isStack ? `${isPicked ? "ביטול בחירה" : "מקום פנוי"}, ${where}` : `${where} ${slot}`}
               className={`${shape} border-2 ${
-                isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/35 hover:border-on-fridge/80"
+                isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/35 bg-shelf hover:border-on-fridge/80"
               }`}
             />
           );
         }
-        return <span key={slot} className={`${shape} border-2 border-on-fridge/25`} aria-hidden="true" />;
+        return (
+          <span
+            key={slot}
+            className={`${shape} border-2 ${isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/25 bg-shelf"}`}
+            aria-hidden="true"
+          />
+        );
       })}
       {/* In the labels view the slots fill the row; the back row is always drawn first. */}
       {zone.label && view === "dots" && <span className="ms-1 text-[10px] text-on-fridge/50">{zone.label}</span>}
@@ -219,24 +207,13 @@ function ZoneLine({
  * An occupied row slot: a neutral bottle with the colored year badge.
  * In the labels view the wine's name sits above the badge.
  */
-function BottleSlot({ bottle, view }: { bottle: PlacedBottle; view: FridgeViewMode }) {
+function BottleSlot({ bottle, view, shape = SLOT_SHAPE[view] }: { bottle: PlacedBottle; view: FridgeViewMode; shape?: string }) {
   return (
     <span
-      className={`flex flex-col items-center justify-center gap-0.5 bg-[#d9d2cb] ${SLOT_SHAPE[view]}`}
+      className={`flex flex-col items-center justify-center gap-0.5 bg-[#d9d2cb] ${shape}`}
       title={`${bottle.title} · ${bottle.year ?? "NV"} · ${DRINK_STATES[bottle.state].label}`}
     >
       {view === "labels" && <WineLabel text={bottle.label} className="w-full px-0.5" />}
-      <YearBadge bottle={bottle} />
-    </span>
-  );
-}
-
-/** A bottle inside a stack: the badge, plus the name in the labels view. */
-function StackBottle({ bottle, view }: { bottle: PlacedBottle; view: FridgeViewMode }) {
-  if (view === "dots") return <YearBadge bottle={bottle} />;
-  return (
-    <span className="flex items-center gap-1 rounded bg-[#d9d2cb] py-0.5 ps-1 pe-0.5">
-      <WineLabel text={bottle.label} className="max-w-16" />
       <YearBadge bottle={bottle} />
     </span>
   );

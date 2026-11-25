@@ -38,13 +38,14 @@ export const SHELF_PRESETS = {
     title: "שורה אחת",
     make: (n: number): Shelf => ({ zones: [{ kind: "row", capacity: n, label: "שורה" }] }),
   },
-  // A stack is always at least two layers high, so it is modelled as an
-  // upper and a lower layer: the card can then say which layer a bottle is in.
+  // A pile: bottles lie on top of each other, the upper layer in the
+  // grooves of the lower one (so it holds one bottle less). No numbered
+  // places – a bottle is just "in the upper layer".
   doubleStack: {
-    title: "ערימה (שכבה עליונה ותחתונה)",
+    title: "ערימה (שכבה על שכבה)",
     make: (n: number): Shelf => ({
       zones: [
-        { kind: "stack", capacity: n, label: "שכבה עליונה" },
+        { kind: "stack", capacity: Math.max(1, n - 1), label: "שכבה עליונה" },
         { kind: "stack", capacity: n, label: "שכבה תחתונה" },
       ],
     }),
@@ -64,17 +65,28 @@ export const SHELF_PRESETS = {
 export type PresetKey = keyof typeof SHELF_PRESETS;
 
 /**
- * Stacks (bottles piled in layers, no numbered places) stay in the data
- * model and the code, but are not offered in the UI for now: users found
- * them unclear next to rows. Flip this to offer them again (a better
- * "pile" look would come with it). Existing stacks still show.
+ * The shelf types a user can pick. "Stacks at the back and a row in front"
+ * stays in the code (existing shelves still show) but is not offered:
+ * a pile and plain rows cover real fridges more clearly.
  */
-export const STACKS_IN_UI = false;
+export const CHOOSABLE_PRESETS: PresetKey[] = ["twoRows", "oneRow", "doubleStack"];
 
-/** The shelf types a user can pick. */
-export const CHOOSABLE_PRESETS = (Object.keys(SHELF_PRESETS) as PresetKey[]).filter(
-  (key) => STACKS_IN_UI || SHELF_PRESETS[key].make(1).zones.every((z) => z.kind === "row"),
-);
+/**
+ * Some shelves have room for a few more bottles lying across the front.
+ * That is an extra row added to any shelf (not part of a preset), always
+ * the last zone, so it survives a change of the shelf's arrangement.
+ */
+export const FRONT_LABEL = "בחזית";
+
+export function frontZone<Z extends Zone>(zones: Z[]): Z | undefined {
+  const last = zones.at(-1);
+  return zones.length > 1 && last?.kind === "row" && last.label === FRONT_LABEL ? last : undefined;
+}
+
+/** The shelf's zones without the front row. */
+export function withoutFront<Z extends Zone>(zones: Z[]): Z[] {
+  return frontZone(zones) ? zones.slice(0, -1) : zones;
+}
 
 /** Total bottles a shelf (or fridge) can hold. */
 export function shelfCapacity(shelf: Shelf): number {

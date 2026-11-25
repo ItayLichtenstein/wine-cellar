@@ -9,10 +9,13 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LIMITS,
   CHOOSABLE_PRESETS,
+  FRONT_LABEL,
   SHELF_PRESETS,
   bottlesLeaving,
   clamp,
   fridgeCapacity,
+  frontZone,
+  withoutFront,
   type PresetKey,
   type Shelf,
 } from "@/lib/fridge-layout";
@@ -36,9 +39,10 @@ function makeShelf(preset: PresetKey): FormShelf {
 
 /** Which dropdown entry a catalog shelf matches. */
 function presetOf(shelf: Shelf): PresetKey {
-  if (shelf.zones.every((z) => z.kind === "stack")) return "doubleStack";
-  if (shelf.zones.some((z) => z.kind === "stack")) return "stacksAndRow";
-  return shelf.zones.length === 2 ? "twoRows" : "oneRow";
+  const zones = withoutFront(shelf.zones); // the front row is an extra, not part of the arrangement
+  if (zones.every((z) => z.kind === "stack")) return "doubleStack";
+  if (zones.some((z) => z.kind === "stack")) return "stacksAndRow";
+  return zones.length === 2 ? "twoRows" : "oneRow";
 }
 
 const OTHER = "other";
@@ -114,8 +118,27 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
     if (found) setShelves(estimateShelves(found).map((s) => ({ preset: presetOf(s), ...s })));
   }
 
+  /** A new arrangement replaces the shelf's zones, but keeps its front row. */
   function changePreset(index: number, preset: PresetKey) {
-    setShelves((prev) => prev.map((s, i) => (i === index ? makeShelf(preset) : s)));
+    setShelves((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) return s;
+        const front = frontZone(s.zones);
+        const shelf = makeShelf(preset);
+        return front ? { ...shelf, zones: [...shelf.zones, front] } : shelf;
+      }),
+    );
+  }
+
+  /** Adds or removes a row of bottles lying across the front of the shelf. */
+  function toggleFront(index: number) {
+    setShelves((prev) =>
+      prev.map((s, i) =>
+        i !== index
+          ? s
+          : { ...s, zones: frontZone(s.zones) ? withoutFront(s.zones) : [...s.zones, { kind: "row" as const, capacity: 2, label: FRONT_LABEL }] },
+      ),
+    );
   }
 
   function changeCapacity(shelfIndex: number, zoneIndex: number, value: number) {
@@ -284,6 +307,15 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
                   </label>
                 ))}
               </div>
+              {(frontZone(shelf.zones) || shelf.zones.length < LIMITS.zonesPerShelf.max) && (
+                <button
+                  type="button"
+                  onClick={() => toggleFront(i)}
+                  className="self-start text-sm text-accent underline-offset-2 hover:underline"
+                >
+                  {frontZone(shelf.zones) ? "− בלי בקבוקים בחזית" : "+ בקבוקים בחזית (שוכבים לרוחב)"}
+                </button>
+              )}
             </li>
           ))}
         </ol>

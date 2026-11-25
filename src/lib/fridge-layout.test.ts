@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { staggeredZone } from "@/components/fridge-preview";
-import { CHOOSABLE_PRESETS, LIMITS, SHELF_PRESETS, bottlesLeaving, clamp, fridgeCapacity, shelfCapacity } from "./fridge-layout";
+import { CHOOSABLE_PRESETS, FRONT_LABEL, LIMITS, frontZone, withoutFront, SHELF_PRESETS, bottlesLeaving, clamp, fridgeCapacity, shelfCapacity } from "./fridge-layout";
 
 describe("shelf presets", () => {
   it("every preset stays within the database limits", () => {
@@ -16,9 +16,9 @@ describe("shelf presets", () => {
     }
   });
 
-  it("a two-high stack is two stack zones", () => {
+  it("a pile is two stack layers, the upper one a bottle shorter", () => {
     const shelf = SHELF_PRESETS.doubleStack.make(6);
-    expect(shelf.zones.map((z) => z.kind)).toEqual(["stack", "stack"]);
+    expect(shelf.zones.map((z) => [z.kind, z.capacity])).toEqual([["stack", 5], ["stack", 6]]);
   });
 
   it("stacks-and-row keeps a 2-slot front row", () => {
@@ -30,9 +30,9 @@ describe("shelf presets", () => {
 describe("capacity", () => {
   it("adds up zones and shelves", () => {
     const twoRows = SHELF_PRESETS.twoRows.make(5); // 10
-    const stack = SHELF_PRESETS.doubleStack.make(4); // 8
+    const stack = SHELF_PRESETS.doubleStack.make(4); // 3 + 4
     expect(shelfCapacity(twoRows)).toBe(10);
-    expect(fridgeCapacity([twoRows, twoRows, stack])).toBe(28);
+    expect(fridgeCapacity([twoRows, twoRows, stack])).toBe(27);
   });
 });
 
@@ -71,20 +71,42 @@ describe("bottlesLeaving", () => {
 
 describe("staggeredZone", () => {
   const row = (capacity: number) => ({ kind: "row", capacity });
+  const stack = (capacity: number) => ({ kind: "stack", capacity });
   it("shifts the row that is shorter by one", () => {
     expect(staggeredZone([row(5), row(4)])).toBe(1);
     expect(staggeredZone([row(4), row(5)])).toBe(0);
   });
-  it("leaves equal rows, single rows and stacks alone", () => {
+  it("in a pile shifts the shorter layer, or the upper one when equal", () => {
+    expect(staggeredZone([stack(5), stack(6)])).toBe(0);
+    expect(staggeredZone([stack(6), stack(5)])).toBe(1);
+    expect(staggeredZone([stack(6), stack(6)])).toBe(0);
+    expect(staggeredZone([stack(5), stack(6), row(2)])).toBe(0); // a row in front, as in the old app
+  });
+  it("leaves equal rows, single rows, mixed shelves and big gaps alone", () => {
     expect(staggeredZone([row(5), row(5)])).toBeNull();
     expect(staggeredZone([row(5)])).toBeNull();
-    expect(staggeredZone([{ kind: "stack", capacity: 4 }, row(5)])).toBeNull();
+    expect(staggeredZone([stack(4), row(5)])).toBeNull();
     expect(staggeredZone([row(6), row(4)])).toBeNull();
+    expect(staggeredZone([stack(8), stack(5)])).toBeNull();
   });
 });
 
 describe("CHOOSABLE_PRESETS", () => {
-  it("offers only row shelves while stacks are off", () => {
-    expect(CHOOSABLE_PRESETS).toEqual(["twoRows", "oneRow"]);
+  it("offers rows and the pile, not the old stacks-and-row", () => {
+    expect(CHOOSABLE_PRESETS).toEqual(["twoRows", "oneRow", "doubleStack"]);
+  });
+});
+
+describe("front row", () => {
+  const z = (kind: "row" | "stack", label: string) => ({ kind, capacity: 2, label });
+  it("is a last row labelled בחזית, on a shelf with something behind it", () => {
+    const shelf = [z("stack", "שכבה עליונה"), z("stack", "שכבה תחתונה"), z("row", FRONT_LABEL)];
+    expect(frontZone(shelf)?.label).toBe(FRONT_LABEL);
+    expect(withoutFront(shelf)).toHaveLength(2);
+  });
+  it("is not found elsewhere or alone", () => {
+    expect(frontZone([z("row", FRONT_LABEL), z("row", "קדמית")])).toBeUndefined();
+    expect(frontZone([z("row", FRONT_LABEL)])).toBeUndefined();
+    expect(withoutFront([z("row", "שורה")])).toHaveLength(1);
   });
 });

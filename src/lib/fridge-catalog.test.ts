@@ -37,11 +37,11 @@ describe("fridge catalog", () => {
 describe("estimateShelves", () => {
   const spec = (s: Partial<ModelSpec>): ModelSpec => ({ model: "X", capacity: 0, shelves: 1, source: "https://x", ...s });
 
-  it("7 shelves + bottom, 75 bottles (SU-75B): 9 per shelf in staggered rows, 12 in a bottom row (stacks are off)", () => {
+  it("7 shelves + bottom, 75 bottles (SU-75B): 9 per shelf in staggered rows, 12 in a two-layer pile", () => {
     const shelves = estimateShelves(spec({ capacity: 75, shelves: 7, bottom: true }));
     expect(shelves).toHaveLength(8);
     expect(shelves[0].zones.map((z) => z.capacity)).toEqual([5, 4]);
-    expect(shelves[7].zones.map((z) => [z.kind, z.capacity])).toEqual([["row", 12]]);
+    expect(shelves[7].zones.map((z) => [z.kind, z.capacity])).toEqual([["stack", 6], ["stack", 6]]);
   });
 
   it("without a bottom, the lowest shelves take the remainder", () => {
