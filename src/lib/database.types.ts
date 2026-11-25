@@ -299,6 +299,32 @@ isOneToOne: false
       referencedColumns: ["id","cellar_id"]
     }
                   ]
+                },"share_links": {
+                  Row: {
+                    "cellar_id": string,"created_at": string,"created_by": string | null,"hide_history": boolean,"hide_prices": boolean,"id": string,"revoked_at": string | null,"token_hash": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"hide_history"?: boolean,"hide_prices"?: boolean,"id"?: string,"revoked_at"?: string | null,"token_hash": string
+                  }
+                  Update: {
+                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"hide_history"?: boolean,"hide_prices"?: boolean,"id"?: string,"revoked_at"?: string | null,"token_hash"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "share_links_cellar_id_fkey"
+      columns: ["cellar_id"]
+isOneToOne: false
+      referencedRelation: "cellars"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "share_links_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"shelf_zones": {
                   Row: {
                     "capacity": number,"cellar_id": string,"created_at": string,"id": string,"kind": Database["public"]['Enums']["zone_kind"],"label": string | null,"position": number,"shelf_id": string
@@ -470,6 +496,9 @@ isOneToOne: false
 "create_invite":
 { Args: { "p_role"?: Database["public"]['Enums']["member_role"] }; Returns: string
                            },
+"create_share_link":
+{ Args: { "p_hide_history"?: boolean,"p_hide_prices"?: boolean }; Returns: string
+                           },
 "drink_bottle":
 { Args: { "p_bottle_id": string,"p_notes"?: string,"p_tasted_on"?: string }; Returns: string
                            },
@@ -520,6 +549,9 @@ isOneToOne: false
 "remove_member":
 { Args: { "p_user_id": string }; Returns: undefined
                            },
+"revoke_share_link":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "set_friend_prices":
 { Args: { "p_friend_cellar": string,"p_shows": boolean }; Returns: undefined
                            },
@@ -528,6 +560,9 @@ isOneToOne: false
                            },
 "set_rating":
 { Args: { "p_rater_id"?: string,"p_score": number,"p_vintage_id"?: string,"p_wine_id": string }; Returns: undefined
+                           },
+"shared_cellar":
+{ Args: { "p_token": string }; Returns: Json
                            },
 "update_bottle":
 { Args: { "p_bottle_id": string,"p_drink_from": number,"p_drink_to": number,"p_is_gift": boolean,"p_name": string,"p_note": string,"p_paid": number,"p_regular": number,"p_type": Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year": number }; Returns: undefined
