@@ -203,3 +203,81 @@ export async function getHistory(): Promise<HistoryEntry[]> {
     notes: t.notes ?? "",
   }));
 }
+
+export type WinePage = {
+  id: string;
+  winery: string;
+  name: string;
+  type: string;
+  grape: string;
+  country: string;
+  region: string;
+  labelPath: string | null;
+  vintages: {
+    id: string;
+    year: number | null;
+    state: DrinkState;
+    drinkFrom: number | null;
+    drinkTo: number | null;
+    inCellar: number;
+    drunk: number;
+    firstBottleId: string | null; // to open a bottle card from the page
+  }[];
+  ratings: { score: number; year: number | null; rater: string | null }[];
+  tastings: { id: string; tastedOn: string; year: number | null; place: string; notes: string }[];
+};
+
+/** One wine with all its vintages, ratings and history (RLS: own cellar only). */
+export async function getWine(id: string): Promise<WinePage | null> {
+  const supabase = await createClient();
+  const { data: w } = await supabase
+    .from("wines")
+    .select(
+      "id, winery, name, type, grape, country, region, label_image_path, wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, bottles(id, status)), ratings(score, vintage_id, profiles(display_name)), tastings(id, tasted_on, place, notes, vintage_id)",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (!w) return null;
+
+  const year = new Date().getFullYear();
+  const yearOf = new Map(w.wine_vintages.map((v) => [v.id, v.year]));
+  return {
+    id: w.id,
+    winery: w.winery,
+    name: w.name,
+    type: w.type,
+    grape: w.grape ?? "",
+    country: w.country ?? "",
+    region: w.region ?? "",
+    labelPath: w.label_image_path,
+    vintages: [...w.wine_vintages]
+      .sort((a, b) => (b.year ?? -Infinity) - (a.year ?? -Infinity))
+      .map((v) => {
+        const open = v.bottles.filter((b) => b.status !== "consumed");
+        return {
+          id: v.id,
+          year: v.year,
+          state: drinkState({ drinkFrom: v.drink_from, drinkTo: v.drink_to, peakFrom: v.peak_from, peakTo: v.peak_to }, year),
+          drinkFrom: v.drink_from,
+          drinkTo: v.drink_to,
+          inCellar: open.length,
+          drunk: v.bottles.length - open.length,
+          firstBottleId: open[0]?.id ?? v.bottles[0]?.id ?? null,
+        };
+      }),
+    ratings: w.ratings.map((r) => ({
+      score: r.score,
+      year: r.vintage_id ? (yearOf.get(r.vintage_id) ?? null) : null,
+      rater: r.profiles?.display_name ?? null,
+    })),
+    tastings: [...w.tastings]
+      .sort((a, b) => b.tasted_on.localeCompare(a.tasted_on))
+      .map((t) => ({
+        id: t.id,
+        tastedOn: t.tasted_on,
+        year: t.vintage_id ? (yearOf.get(t.vintage_id) ?? null) : null,
+        place: t.place ?? "",
+        notes: t.notes ?? "",
+      })),
+  };
+}

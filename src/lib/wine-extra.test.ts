@@ -44,7 +44,7 @@ describe("ratingLine", () => {
     expect(ratingLine([p("נועה", 3, null)], null, "v1")).toBe("נועה 3");
   });
   it("falls back to the shared score, or nothing", () => {
-    expect(ratingLine([], 4.5, "v1")).toBe("4.5 / 5");
+    expect(ratingLine([], 4.5, "v1")).toBe("4.5 מתוך 5");
     expect(ratingLine([], null, "v1")).toBeNull();
   });
 });
