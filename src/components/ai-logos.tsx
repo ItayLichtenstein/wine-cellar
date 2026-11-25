@@ -1,4 +1,4 @@
-import type { AiKey } from "@/lib/ai-providers";
+import { CONNECTABLE, type AiKey } from "@/lib/ai-providers";
 
 /**
  * Small marks for the three assistants, drawn in the app's own simple
@@ -53,11 +53,11 @@ const MARK: Record<AiKey, React.ReactNode> = {
   ),
 };
 
-/** The three marks overlapping, as on an "available on" badge. */
+/** The marks of the assistants you can connect, overlapping, as on a "works with" badge. */
 export function AiLogoStack({ className = "" }: { className?: string }) {
   return (
     <span className={`flex items-center ${className}`} aria-hidden="true">
-      {(["claude", "chatgpt", "gemini"] as const).map((ai, i) => (
+      {CONNECTABLE.map((ai, i) => (
         <AiLogo key={ai} ai={ai} className={`size-8 ${i > 0 ? "-ms-2" : ""}`} />
       ))}
     </span>

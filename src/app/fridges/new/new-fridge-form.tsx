@@ -46,8 +46,8 @@ function presetOf(shelf: Shelf): PresetKey {
 }
 
 const OTHER = "other";
-/** Dropdown value suffix: the arrangement plus a row lying across the front. */
-const FRONT_SUFFIX = "+front";
+/** The one extra dropdown entry: adds bottles lying across the front. */
+const ADD_FRONT = "add-front";
 
 /** The new-fridge form; with `existing` it edits that fridge instead. */
 export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
@@ -121,31 +121,31 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
   }
 
   /**
-   * The dropdown picks an arrangement, with or without bottles lying across
-   * the front ("בחזית"). Same arrangement: its zones (and their bottles)
-   * stay and only the front row is added or removed.
+   * The dropdown picks an arrangement; a new arrangement keeps the shelf's
+   * front row. Its last entry, "+ בקבוקים בחזית", adds that row instead
+   * (then it has its own counter; down to 0 removes it).
    */
   function changeArrangement(index: number, value: string) {
-    const [preset, front] = [value.replace(FRONT_SUFFIX, "") as PresetKey, value.endsWith(FRONT_SUFFIX)];
     setShelves((prev) =>
       prev.map((s, i) => {
         if (i !== index) return s;
-        const oldFront = frontZone(s.zones);
-        const base = preset === s.preset ? { ...s, zones: withoutFront(s.zones) } : makeShelf(preset);
-        if (!front) return base;
-        return { ...base, zones: [...base.zones, oldFront ?? { kind: "row" as const, capacity: 2, label: FRONT_LABEL }] };
+        if (value === ADD_FRONT) return { ...s, zones: [...s.zones, { kind: "row" as const, capacity: 2, label: FRONT_LABEL }] };
+        const front = frontZone(s.zones);
+        const shelf = makeShelf(value as PresetKey);
+        return front ? { ...shelf, zones: [...shelf.zones, front] } : shelf;
       }),
     );
   }
 
   function changeCapacity(shelfIndex: number, zoneIndex: number, value: number) {
-    const capacity = clamp(value, LIMITS.capacity.min, LIMITS.capacity.max);
     setShelves((prev) =>
-      prev.map((s, i) =>
-        i !== shelfIndex
-          ? s
-          : { ...s, zones: s.zones.map((z, j) => (j === zoneIndex ? { ...z, capacity } : z)) },
-      ),
+      prev.map((s, i) => {
+        if (i !== shelfIndex) return s;
+        // The front row counts down to 0, which removes it.
+        if (value < 1 && s.zones[zoneIndex] === frontZone(s.zones)) return { ...s, zones: withoutFront(s.zones) };
+        const capacity = clamp(value, LIMITS.capacity.min, LIMITS.capacity.max);
+        return { ...s, zones: s.zones.map((z, j) => (j === zoneIndex ? { ...z, capacity } : z)) };
+      }),
     );
   }
 
@@ -278,19 +278,19 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
                 <span className="font-medium">מדף {i + 1}</span>
                 <select
                   aria-label={`סידור מדף ${i + 1}`}
-                  value={shelf.preset + (frontZone(shelf.zones) ? FRONT_SUFFIX : "")}
+                  value={shelf.preset}
                   onChange={(e) => changeArrangement(i, e.target.value)}
                   className="max-w-[60%] rounded-lg border border-muted/40 bg-background px-2 py-1 text-sm"
                 >
                   {/* An existing stack shelf keeps its own entry, so the select shows the truth. */}
-                  {[...new Set([...CHOOSABLE_PRESETS, shelf.preset])].flatMap((key) => [
+                  {[...new Set([...CHOOSABLE_PRESETS, shelf.preset])].map((key) => (
                     <option key={key} value={key}>
                       {SHELF_PRESETS[key].title}
-                    </option>,
-                    <option key={key + FRONT_SUFFIX} value={key + FRONT_SUFFIX}>
-                      {SHELF_PRESETS[key].title} + בחזית
-                    </option>,
-                  ])}
+                    </option>
+                  ))}
+                  {!frontZone(shelf.zones) && shelf.zones.length < LIMITS.zonesPerShelf.max && (
+                    <option value={ADD_FRONT}>+ בקבוקים בחזית</option>
+                  )}
                 </select>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
@@ -300,7 +300,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
                     <Stepper
                       value={zone.capacity}
                       onChange={(v) => changeCapacity(i, j, v)}
-                      min={LIMITS.capacity.min}
+                      min={zone === frontZone(shelf.zones) ? 0 : LIMITS.capacity.min}
                       max={LIMITS.capacity.max}
                       label={`${zone.label}, מדף ${i + 1}`}
                     />

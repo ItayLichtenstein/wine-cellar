@@ -11,10 +11,10 @@ export type ConnectStep = { text: string; link?: { href: string; label: string }
 
 export type AiProvider = {
   name: string;
-  /** Who can connect a custom server (plan, account, country); shown before the steps. */
+  /** Who can connect it, in one short sentence; shown before the steps. */
   who: string;
-  /** Whether a regular personal account can expect to have it. */
-  forEveryone: boolean;
+  /** Offered in "connect an AI". False where it can't be done from Israel today. */
+  connectable: boolean;
   /** Steps after copying the address and before approving on our site. */
   steps: ConnectStep[];
   /** Opens a new chat; with the request typed in when the app supports it. */
@@ -22,16 +22,16 @@ export type AiProvider = {
   prefills: boolean;
 };
 
-// Checked against each company's help pages (Nov 2026). Sources:
+// Checked against each company's help pages (26 Nov 2026). Sources:
 // support.claude.com/en/articles/11176164, help.openai.com/en/articles/12584461,
 // support.google.com/gemini/answer/17209137
 export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
   claude: {
     name: "Claude",
-    who: "כל חשבון Claude, גם החינמי (בחינמי: חיבור אחד כזה).",
-    forEveryone: true,
+    who: "עובד בכל חשבון Claude, גם בחינמי.",
+    connectable: true,
     steps: [
-      { text: "פתחו את דף החיבורים של Claude (אם צריך, התחברו לחשבון שלכם).", link: { href: "https://claude.ai/customize/connectors", label: "פתיחת דף החיבורים" } },
+      { text: "פתחו את דף החיבורים של Claude. אם צריך, התחברו לחשבון.", link: { href: "https://claude.ai/customize/connectors", label: "פתיחת דף החיבורים" } },
       { text: "לחצו על הכפתור + ואז על Add custom connector." },
       { text: "בשדה Name כתבו: מרתף יין. בשדה URL הדביקו את הכתובת שהעתקתם. לחצו Add." },
       { text: "ליד \"מרתף יין\" לחצו Connect." },
@@ -41,31 +41,33 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
   },
   chatgpt: {
     name: "ChatGPT",
-    who: "לפי OpenAI, כרגע רק בחשבונות עבודה (Business, Enterprise, Edu). בחשבון רגיל, גם Plus, כנראה לא תמצאו את האפשרות. במקרה כזה השתמשו בהעתקה הידנית בתחתית העמוד.",
-    forEveryone: false,
+    who: "עובד רק בחשבון ChatGPT של עבודה (Business או Enterprise). בחשבון חינמי או Plus אי אפשר.",
+    connectable: true,
     steps: [
-      { text: "פתחו את ChatGPT באתר, במחשב.", link: { href: "https://chatgpt.com/", label: "פתיחת ChatGPT" } },
-      { text: "בתפריט שבצד לחצו על Plugins, אחר כך על + ואז על Add custom MCP server." },
-      { text: "בשדה Name כתבו: מרתף יין. בשדה URL הדביקו את הכתובת שהעתקתם. אשרו את האזהרה ולחצו Create." },
+      { text: "פתחו את דף ה־Plugins של ChatGPT, במחשב.", link: { href: "https://chatgpt.com/plugins", label: "פתיחת Plugins" } },
+      { text: "לחצו על + ואז על Add custom MCP server." },
+      { text: "בשדה Name כתבו: מרתף יין. בשדה URL הדביקו את הכתובת שהעתקתם." },
+      { text: "לחצו I understand and want to continue, ואחר כך Create as a plugin ו־Install." },
     ],
     chatUrl: (q) => `https://chatgpt.com/?q=${encodeURIComponent(q)}`,
     prefills: true,
   },
+  // Custom connections in Gemini are US-only and English-only for now, so
+  // it is not offered; kept so a connection made elsewhere is recognised.
   gemini: {
     name: "Gemini",
-    who: "חשבון גוגל אישי (לא של עבודה או לימודים), מגיל 18. Google פותחת את זה בהדרגה, וייתכן שעוד לא בכל המדינות.",
-    forEveryone: false,
-    steps: [
-      { text: "פתחו את Gemini באתר, במחשב.", link: { href: "https://gemini.google.com/app", label: "פתיחת Gemini" } },
-      { text: "לחצו על Settings (גלגל השיניים, למטה בצד) ואז על Connected Apps." },
-      { text: "לחצו Add a custom app, הדביקו את הכתובת שהעתקתם ואשרו." },
-    ],
+    who: "בינתיים רק בארה\"ב.",
+    connectable: false,
+    steps: [],
     chatUrl: () => "https://gemini.google.com/app",
     prefills: false,
   },
 };
 
 export const AI_KEYS = Object.keys(AI_PROVIDERS) as AiKey[];
+
+/** The assistants offered in "connect an AI". */
+export const CONNECTABLE = AI_KEYS.filter((k) => AI_PROVIDERS[k].connectable);
 
 /** The requests the main screen opens the chat with. */
 export const AI_REQUESTS = {

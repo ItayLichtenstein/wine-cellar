@@ -35,7 +35,7 @@ function NotConnected() {
         <span className="inline-block">צלמו תווית, והבקבוקים מחכים כאן לאישור.</span>{" "}
         <span className="inline-block">שאלו מה לפתוח הערב, והתשובה לפי מה שבמקרר.</span>
       </span>
-      <span className="text-sm text-accent">עם Claude, ChatGPT או Gemini ←</span>
+      <span className="text-sm text-accent">עם Claude או ChatGPT ←</span>
     </Link>
   );
 }
