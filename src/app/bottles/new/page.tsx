@@ -5,11 +5,12 @@ import { Suspense } from "react";
 import type { Place } from "@/components/fridge-preview";
 import { getFridges, getWineNames, type FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
-import { AddBottlesForm } from "./add-bottles-form";
+import { parseBottleDraft } from "@/lib/drafts";
+import { AddBottlesForm, type Prefill } from "./add-bottles-form";
 
 export const metadata: Metadata = { title: "הוספת בקבוקים · מרתף יין" };
 
-type SearchParams = Promise<{ zone?: string; slot?: string; wish?: string }>;
+type SearchParams = Promise<{ zone?: string; slot?: string; wish?: string; draft?: string }>;
 
 export default function AddBottlesPage({ searchParams }: { searchParams: SearchParams }) {
   return (
@@ -36,7 +37,7 @@ async function FormWithData({ searchParams }: { searchParams: SearchParams }) {
       fridges={fridges}
       wines={wines}
       initialPlace={findEmptyPlace(fridges, params)}
-      fromWish={params.wish ? await loadWish(cellarId, params.wish) : undefined}
+      prefill={params.wish ? await loadWish(cellarId, params.wish) : params.draft ? await loadDraft(cellarId, params.draft) : undefined}
     />
   );
 }
@@ -46,7 +47,38 @@ async function loadWish(cellarId: string, id: string) {
   const supabase = await createClient();
   const { data } = await supabase.from("wishlist_items").select("id, year, wines(winery, name, type)").eq("id", id).eq("cellar_id", cellarId).maybeSingle();
   if (!data?.wines) return undefined;
-  return { id: data.id, winery: data.wines.winery, name: data.wines.name, type: data.wines.type, year: data.year };
+  return { wishId: data.id, winery: data.wines.winery, name: data.wines.name, type: data.wines.type, year: data.year };
+}
+
+/**
+ * An AI draft opens the same form, pre-filled, as its approval screen.
+ * The payload is checked again here (it was stored as JSON).
+ */
+async function loadDraft(cellarId: string, id: string): Promise<Prefill | undefined> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("drafts")
+    .select("id, payload")
+    .eq("id", id)
+    .eq("cellar_id", cellarId)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (!data) return undefined;
+  const r = parseBottleDraft(data.payload, new Date().getFullYear());
+  if (!r.ok) return undefined;
+  const d = r.draft;
+  return {
+    draftId: data.id,
+    winery: d.winery,
+    name: d.name,
+    type: d.type,
+    year: d.year,
+    quantity: d.quantity,
+    price: d.price,
+    drinkFrom: d.drinkFrom,
+    drinkTo: d.drinkTo,
+    extra: { grape: d.grape, country: d.country, region: d.region },
+  };
 }
 
 /**

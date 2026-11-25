@@ -161,6 +161,32 @@ isOneToOne: false
       referencedColumns: ["id","cellar_id"]
     }
                   ]
+                },"drafts": {
+                  Row: {
+                    "cellar_id": string,"created_at": string,"created_by": string | null,"decided_at": string | null,"id": string,"kind": Database["public"]['Enums']["draft_kind"],"payload": NonNullable<Json>,"source": Database["public"]['Enums']["draft_source"],"status": Database["public"]['Enums']["draft_status"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"decided_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["draft_kind"],"payload": NonNullable<Json>,"source": Database["public"]['Enums']["draft_source"],"status"?: Database["public"]['Enums']["draft_status"]
+                  }
+                  Update: {
+                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"decided_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["draft_kind"],"payload"?: NonNullable<Json>,"source"?: Database["public"]['Enums']["draft_source"],"status"?: Database["public"]['Enums']["draft_status"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "drafts_cellar_id_fkey"
+      columns: ["cellar_id"]
+isOneToOne: false
+      referencedRelation: "cellars"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "drafts_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"fridge_models": {
                   Row: {
                     "brand": string,"created_at": string,"id": string,"layout": NonNullable<Json>,"model": string
@@ -575,7 +601,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "bottle_shape": "standard"|"burgundy","bottle_status": "stored"|"unplaced"|"in_transit"|"consumed","kosher_status": "yes"|"no"|"unknown","member_role": "member"|"viewer","window_source": "critic"|"estimate","wine_type": "red"|"white"|"rose"|"orange"|"sparkling"|"dessert"|"fortified"|"other","zone_kind": "row"|"stack"
+            "bottle_shape": "standard"|"burgundy","bottle_status": "stored"|"unplaced"|"in_transit"|"consumed","draft_kind": "add_bottles","draft_source": "mcp"|"paste","draft_status": "pending"|"approved"|"rejected","kosher_status": "yes"|"no"|"unknown","member_role": "member"|"viewer","window_source": "critic"|"estimate","wine_type": "red"|"white"|"rose"|"orange"|"sparkling"|"dessert"|"fortified"|"other","zone_kind": "row"|"stack"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -695,7 +721,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "bottle_shape": ["standard", "burgundy"],"bottle_status": ["stored", "unplaced", "in_transit", "consumed"],"kosher_status": ["yes", "no", "unknown"],"member_role": ["member", "viewer"],"window_source": ["critic", "estimate"],"wine_type": ["red", "white", "rose", "orange", "sparkling", "dessert", "fortified", "other"],"zone_kind": ["row", "stack"]
+            "bottle_shape": ["standard", "burgundy"],"bottle_status": ["stored", "unplaced", "in_transit", "consumed"],"draft_kind": ["add_bottles"],"draft_source": ["mcp", "paste"],"draft_status": ["pending", "approved", "rejected"],"kosher_status": ["yes", "no", "unknown"],"member_role": ["member", "viewer"],"window_source": ["critic", "estimate"],"wine_type": ["red", "white", "rose", "orange", "sparkling", "dessert", "fortified", "other"],"zone_kind": ["row", "stack"]
           }
         }
 } as const

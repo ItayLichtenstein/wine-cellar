@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 const CELLAR_TABLES = [
   "fridges", "shelves", "shelf_zones", "wines", "wine_vintages", "critic_scores", "bottles",
   "bottle_prices", "ratings", "tastings", "wishlist_items", "cellar_members", "cellar_invites",
-  "friend_invites", "share_links",
+  "friend_invites", "share_links", "drafts",
 ];
 const SCOPED = /\.eq\("(cellar_id|user_id|id|wine_id|wine_vintages\.wine_id)"|\.in\("id"/;
 

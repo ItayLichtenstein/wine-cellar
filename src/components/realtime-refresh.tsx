@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const TABLES = [
   "bottles", "bottle_prices", "wines", "wine_vintages", "critic_scores", "ratings",
-  "tastings", "fridges", "shelves", "shelf_zones", "cellar_members", "wishlist_items",
+  "tastings", "fridges", "shelves", "shelf_zones", "cellar_members", "wishlist_items", "drafts",
 ] as const;
 
 /**

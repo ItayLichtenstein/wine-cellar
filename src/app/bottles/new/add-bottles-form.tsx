@@ -6,7 +6,7 @@ import { FridgePreview, type Place } from "@/components/fridge-preview";
 import { clamp } from "@/lib/fridge-layout";
 import type { FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/client";
-import { EMPTY_EXTRA, validateExtra } from "@/lib/wine-extra";
+import { EMPTY_EXTRA, validateExtra, type WineExtra } from "@/lib/wine-extra";
 import { saveExtra } from "@/app/bottle/details";
 import { ExtraFields } from "@/app/bottle/extra-fields";
 
@@ -28,35 +28,53 @@ const OTHER_TYPES: [WineType, string][] = [
 
 const THIS_YEAR = new Date().getFullYear();
 
+export type Prefill = {
+  winery: string;
+  name: string;
+  type: WineType;
+  year: number | null;
+  quantity?: number;
+  price?: number | null;
+  drinkFrom?: number | null;
+  drinkTo?: number | null;
+  extra?: Partial<WineExtra>;
+  wishId?: string;
+  draftId?: string;
+};
+
 export function AddBottlesForm({
   fridges,
   wines,
   initialPlace,
-  fromWish,
+  prefill,
 }: {
   fridges: FridgeView[];
   wines: { winery: string; name: string }[];
   /** An empty slot tapped on the home page: start with it already picked. */
   initialPlace?: Place;
-  /** "קניתי" on the wishlist: pre-fill, and remove the wish after saving. */
-  fromWish?: { id: string; winery: string; name: string; type: WineType; year: number | null };
+  /**
+   * Pre-filled form: "קניתי" on the wishlist (the wish is removed after
+   * saving) or an AI draft (marked approved after saving). This form IS the
+   * approval screen for AI drafts: the person checks and fixes every field.
+   */
+  prefill?: Prefill;
 }) {
   const router = useRouter();
 
-  const [winery, setWinery] = useState(fromWish?.winery ?? "");
-  const [name, setName] = useState(fromWish?.name ?? "");
-  const [type, setType] = useState<WineType>(fromWish?.type ?? "red");
-  const [year, setYear] = useState(fromWish?.year ? String(fromWish.year) : "");
-  const [quantity, setQuantity] = useState(1);
-  const [paid, setPaid] = useState("");
+  const [winery, setWinery] = useState(prefill?.winery ?? "");
+  const [name, setName] = useState(prefill?.name ?? "");
+  const [type, setType] = useState<WineType>(prefill?.type ?? "red");
+  const [year, setYear] = useState(prefill?.year ? String(prefill.year) : "");
+  const [quantity, setQuantity] = useState(prefill?.quantity ?? 1);
+  const [paid, setPaid] = useState(prefill?.price ? String(prefill.price) : "");
   const [morePrice, setMorePrice] = useState(false);
   const [regular, setRegular] = useState("");
   const [isGift, setIsGift] = useState(false);
-  const [drinkFrom, setDrinkFrom] = useState("");
-  const [drinkTo, setDrinkTo] = useState("");
+  const [drinkFrom, setDrinkFrom] = useState(prefill?.drinkFrom ? String(prefill.drinkFrom) : "");
+  const [drinkTo, setDrinkTo] = useState(prefill?.drinkTo ? String(prefill.drinkTo) : "");
   const [destination, setDestination] = useState<Destination>(fridges.length ? "fridge" : "unplaced");
   const [picked, setPicked] = useState<Place[]>(initialPlace ? [initialPlace] : []);
-  const [extra, setExtra] = useState(EMPTY_EXTRA);
+  const [extra, setExtra] = useState({ ...EMPTY_EXTRA, ...prefill?.extra });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -141,7 +159,11 @@ export function AddBottlesForm({
       }
     }
     // Bought it: the wish is done. (If this fails the wish just stays.)
-    if (fromWish) await supabase.from("wishlist_items").delete().eq("id", fromWish.id);
+    if (prefill?.wishId) await supabase.from("wishlist_items").delete().eq("id", prefill.wishId);
+    // Approved: the draft leaves the waiting list.
+    if (prefill?.draftId) {
+      await supabase.from("drafts").update({ status: "approved", decided_at: new Date().toISOString() }).eq("id", prefill.draftId);
+    }
     router.push("/");
     router.refresh();
   }
