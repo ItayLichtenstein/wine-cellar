@@ -19,10 +19,13 @@ export function CellarView({
   fridges,
   loose,
   drinkNow,
+  canEdit = true,
 }: {
   fridges: FridgeView[];
   loose: LooseBottle[];
   drinkNow: ListRow[];
+  /** false for a viewer: no "add here" on empty slots. */
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -137,10 +140,13 @@ export function CellarView({
             view={view}
             activeBottleId={movingId ?? undefined}
             // Moving: an empty place is the target. Otherwise: add a bottle right there.
-            onPick={(p) =>
-              movingId
-                ? moveTo(p)
-                : router.push(`/bottles/new?zone=${p.zoneId}${p.slot === null ? "" : `&slot=${p.slot}`}`)
+            onPick={
+              canEdit
+                ? (p) =>
+                    movingId
+                      ? moveTo(p)
+                      : router.push(`/bottles/new?zone=${p.zoneId}${p.slot === null ? "" : `&slot=${p.slot}`}`)
+                : undefined
             }
             onBottleClick={(bottle, place) => {
               if (!movingId) setOpenId(bottle.id);

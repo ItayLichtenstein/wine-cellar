@@ -42,7 +42,7 @@ async function Header() {
 }
 
 async function Fridges() {
-  const [fridges, loose, all] = await Promise.all([getMyFridges(), getLooseBottles(), getCellarBottles()]);
+  const [fridges, loose, all, user] = await Promise.all([getMyFridges(), getLooseBottles(), getCellarBottles(), getCurrentUser()]);
 
   if (fridges.length === 0) {
     return (
@@ -72,12 +72,14 @@ async function Fridges() {
           {unplaced > 0 && ` · ${unplaced} מחוץ למקרר`}
           {inTransit > 0 && ` · ${inTransit} בדרך`}
         </p>
-        <Link href="/bottles/new" className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white dark:text-black">
-          + הוספת בקבוקים
-        </Link>
+        {user.canEdit && (
+          <Link href="/bottles/new" className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white dark:text-black">
+            + הוספת בקבוקים
+          </Link>
+        )}
       </div>
 
-      <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} />
+      <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={user.canEdit} />
 
       {(stored.length > 0 || loose.length > 0) && <Legend />}
     </section>

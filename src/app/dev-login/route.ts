@@ -9,6 +9,8 @@ import { supabaseUrl } from "@/lib/supabase/env";
  *   /dev-login          → dev@example.com, the full (imported) cellar
  *   /dev-login?as=new   → new@example.com, emptied on every sign-in, so it
  *                         always looks like a brand-new sign-up
+ *   /dev-login?as=new&keep → the same user, without the reset (to test it
+ *                         as a member or viewer of a shared cellar)
  *
  * Two independent guards keep it out of production:
  * 1. It answers 404 unless Next.js runs in development mode.
@@ -34,7 +36,7 @@ export async function GET(request: NextRequest) {
     password: "local-dev-password",
   });
 
-  if (!error && as === "new") {
+  if (!error && as === "new" && !request.nextUrl.searchParams.has("keep")) {
     // Back to a fresh sign-up. Runs as the user itself, so RLS limits the
     // deletes to its own cellar. Deleting wines cascades to vintages,
     // bottles, prices, ratings and tastings; fridges cascade to shelves.

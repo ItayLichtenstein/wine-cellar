@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Wishlist, type Wish } from "./wishlist";
 
@@ -17,7 +18,7 @@ export default function WishlistPage() {
 }
 
 async function WithData() {
-  const supabase = await createClient();
+  const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
   // RLS: the household's own list only.
   const { data } = await supabase
     .from("wishlist_items")
@@ -32,5 +33,5 @@ async function WithData() {
     link: w.link_url ?? "",
     source: w.source_note ?? "",
   }));
-  return <Wishlist wishes={wishes} />;
+  return <Wishlist wishes={wishes} canEdit={user.canEdit} />;
 }

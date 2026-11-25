@@ -29,7 +29,7 @@ export function DetailsView({
     new Date().getFullYear(),
   );
   const rating = d.vintageRating ?? d.wineRating;
-  const canDrink = d.status !== "consumed";
+  const canDrink = d.canEdit && d.status !== "consumed";
 
   return (
     <>
@@ -40,7 +40,7 @@ export function DetailsView({
         </h2>
       </header>
 
-      <LabelPhoto wineId={d.wineId} cellarId={d.cellarId} path={d.labelPath} canEdit={d.status !== "consumed"} />
+      <LabelPhoto wineId={d.wineId} cellarId={d.cellarId} path={d.labelPath} canEdit={d.canEdit && d.status !== "consumed"} />
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
         <dt className="text-muted">בשלות</dt>
@@ -116,10 +116,14 @@ export function DetailsView({
         <Link href={`/wines/${d.wineId}`} className="underline underline-offset-2">
           עמוד היין
         </Link>
-        <button type="button" onClick={onEdit} className="underline underline-offset-2">
-          עריכה
-        </button>
-        <DeleteButton bottleId={d.id} onDeleted={onDeleted} />
+        {d.canEdit && (
+          <>
+            <button type="button" onClick={onEdit} className="underline underline-offset-2">
+              עריכה
+            </button>
+            <DeleteButton bottleId={d.id} onDeleted={onDeleted} />
+          </>
+        )}
         <button type="button" onClick={onClose} className="text-muted underline underline-offset-2">
           סגירה
         </button>
