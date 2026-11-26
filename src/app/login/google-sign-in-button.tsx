@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 import { safeNextPath } from "@/lib/safe-redirect";
 
 export function GoogleSignInButton() {
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -38,11 +40,11 @@ export function GoogleSignInButton() {
         className="flex w-full items-center justify-center gap-3 rounded-full border border-muted/40 bg-white px-5 py-3 font-medium text-[#1f1f1f] shadow-sm transition hover:shadow disabled:opacity-60"
       >
         <GoogleLogo />
-        {loading ? "מעביר לגוגל…" : "המשך עם Google"}
+        {loading ? t.login.toGoogle : t.login.google}
       </button>
       {failed && (
         <p role="alert" className="text-sm text-red-700 dark:text-red-400">
-          לא הצלחנו להתחיל את ההתחברות, נסו שוב
+          {t.login.startFailed}
         </p>
       )}
     </div>

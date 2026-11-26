@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getT } from "@/i18n/server";
 import { BackLink } from "@/components/back-link";
 import { notFound } from "next/navigation";
@@ -8,7 +8,7 @@ import { yearSummary } from "@/lib/stats";
 import { getStatsData } from "@/lib/stats-data";
 import { Card, nis, today } from "../parts";
 
-export const metadata: Metadata = { title: "סיכום שנה · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.yearInReview);
 
 export default async function YearPage({ params }: PageProps<"/stats/[year]">) {
   const t = await getT();

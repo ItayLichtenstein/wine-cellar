@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Heebo } from "next/font/google";
 import { BottomNav } from "@/components/bottom-nav";
 import { I18nProvider } from "@/i18n/provider";
-import { getLocale } from "@/i18n/server";
+import { getLocale, getT } from "@/i18n/server";
 import "./globals.css";
 
 // Heebo supports both Hebrew and Latin, so one font covers the whole UI.
@@ -17,16 +17,21 @@ const heebo = Heebo({
 const PREVIEW_TITLE = "מרתף יין · יודעים בדיוק מה יש במקרר";
 const PREVIEW_TEXT = "עוזר לך להחליט איזה בקבוק פותחים הערב";
 
-export const metadata: Metadata = {
+// Link previews stay Hebrew: WhatsApp's crawler has no language cookie.
+// The tab title follows the visitor's language.
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { ...BASE_METADATA, title: t.titles.app, appleWebApp: { capable: true, title: t.titles.app, statusBarStyle: "default" } };
+}
+
+const BASE_METADATA: Metadata = {
   // Absolute URLs for the preview image; Vercel sets the production host.
   metadataBase: new URL(
     process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000",
   ),
-  title: "מרתף יין",
   description: PREVIEW_TEXT,
   openGraph: { title: PREVIEW_TITLE, description: PREVIEW_TEXT, siteName: "מרתף יין", locale: "he_IL", type: "website" },
   twitter: { card: "summary_large_image", title: PREVIEW_TITLE, description: PREVIEW_TEXT },
-  appleWebApp: { capable: true, title: "מרתף יין", statusBarStyle: "default" },
 };
 
 // The browser bar and the installed app's status bar match the page.

@@ -1,5 +1,5 @@
+import { pageTitle } from "@/i18n/metadata";
 import { getConnectedAis } from "@/lib/ai-grants";
-import type { Metadata } from "next";
 import { BackLink } from "@/components/back-link";
 import { getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
@@ -11,7 +11,7 @@ import { resolvePlaces } from "@/lib/draft-places";
 import { parseBottleDraft } from "@/lib/drafts";
 import { AddBottlesForm, type Prefill } from "./add-bottles-form";
 
-export const metadata: Metadata = { title: "הוספת בקבוקים · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.addBottles);
 
 type SearchParams = Promise<{ zone?: string; slot?: string; wish?: string; draft?: string }>;
 

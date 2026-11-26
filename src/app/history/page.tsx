@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getLocale, getT } from "@/i18n/server";
 import { intlTag } from "@/i18n/locales";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getHistory } from "@/lib/fridges";
 import { formatScore } from "@/lib/wine-extra";
 
-export const metadata: Metadata = { title: "היסטוריה ודירוגים · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.history);
 
 export default async function HistoryPage() {
   const t = await getT();

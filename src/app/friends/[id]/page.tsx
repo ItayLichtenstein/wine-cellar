@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -9,7 +9,7 @@ import { drinkNow } from "@/lib/bottle-list";
 import { getFriendList } from "@/lib/friend-list";
 import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
 
-export const metadata: Metadata = { title: "מרתף של חברים · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.friendCellar);
 
 export default async function FriendCellarPage({ params }: PageProps<"/friends/[id]">) {
   const t = await getT();

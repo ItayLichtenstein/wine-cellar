@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { BackLink } from "@/components/back-link";
 import { GuideTour } from "./tour";
 
-export const metadata: Metadata = { title: "מדריך למתחילים · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.guide);
 
 /** The beginner's guide: a short, touchable tour (see tour.tsx). */
 export default function GuidePage() {

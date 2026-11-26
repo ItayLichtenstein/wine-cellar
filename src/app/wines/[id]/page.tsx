@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getLocale, getT } from "@/i18n/server";
 import { intlTag } from "@/i18n/locales";
 import { BackLink } from "@/components/back-link";
@@ -11,7 +11,7 @@ import { getWine } from "@/lib/fridges";
 import { WineVintages } from "./wine-vintages";
 import { formatScore } from "@/lib/wine-extra";
 
-export const metadata: Metadata = { title: "יין · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.wine);
 
 export default async function WinePagePage({ params }: PageProps<"/wines/[id]">) {
   const t = await getT();

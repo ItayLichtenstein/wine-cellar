@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getT } from "@/i18n/server";
 import { BackLink } from "@/components/back-link";
 import { Suspense } from "react";
@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getWineNames } from "@/lib/fridges";
 import { OutsideTastingForm } from "./outside-tasting-form";
 
-export const metadata: Metadata = { title: "הוספת דירוג · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.addRating);
 
 export default async function NewTastingPage() {
   const t = await getT();

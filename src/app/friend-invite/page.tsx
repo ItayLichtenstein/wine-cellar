@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { AcceptFriend } from "./accept-friend";
 
-export const metadata: Metadata = { title: "הזמנה לחברות · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.friendInvite);
 
 export default function FriendInvitePage() {
   return (

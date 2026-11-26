@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 
 export function ConsentButtons({ authorizationId }: { authorizationId: string }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -29,12 +31,12 @@ export function ConsentButtons({ authorizationId }: { authorizationId: string })
         disabled={busy}
         className="rounded-full bg-accent px-5 py-3 font-medium text-white disabled:opacity-60 dark:text-black"
       >
-        אישור
+        {t.consent.approve}
       </button>
       <button type="button" onClick={() => decide(false)} disabled={busy} className="rounded-full border border-muted/40 px-5 py-3">
-        לא עכשיו
+        {t.consent.notNow}
       </button>
-      {failed && <p className="text-sm text-red-700 dark:text-red-400">משהו השתבש, נסו לחבר שוב מה־AI</p>}
+      {failed && <p className="text-sm text-red-700 dark:text-red-400">{t.consent.failed}</p>}
     </div>
   );
 }

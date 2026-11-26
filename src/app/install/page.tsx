@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { BackLink } from "@/components/back-link";
 import { getT } from "@/i18n/server";
 import { InstallSteps } from "./install-steps";
 
-export const metadata: Metadata = { title: "התקנה כאפליקציה · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.install);
 
 /** How to put the site on the home screen, so it opens like an app (iPhone and Android). */
 export default async function InstallPage() {

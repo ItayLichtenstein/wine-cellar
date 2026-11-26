@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getT } from "@/i18n/server";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Wishlist, type Wish } from "./wishlist";
 
-export const metadata: Metadata = { title: "Wishlist · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.wishlist);
 
 export default async function WishlistPage() {
   const t = await getT();

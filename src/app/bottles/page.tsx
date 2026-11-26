@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getLocale, getT } from "@/i18n/server";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { getCellarBottles } from "@/lib/fridges";
 import { BottleList } from "./bottle-list";
 
-export const metadata: Metadata = { title: "רשימה · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.list);
 
 export default async function BottlesPage() {
   const t = await getT();

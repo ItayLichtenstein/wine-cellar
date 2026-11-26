@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
 import { getT } from "@/i18n/server";
+import { pageTitle } from "@/i18n/metadata";
 import { BackLink } from "@/components/back-link";
 import { NewFridgeForm } from "./new-fridge-form";
 
-export const metadata: Metadata = { title: "מקרר חדש · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.newFridge);
 
 export default async function NewFridgePage() {
   const t = await getT();
