@@ -7,11 +7,11 @@
  * and writes through the normal API, so RLS applies exactly as in the app.
  * The export holds personal data: this script never prints its contents.
  *
- * Env (optional): IMPORT_EMAIL, IMPORT_PASSWORD, and the Supabase URL/key
- * from .env.local.
+ * Target and identity: see scripts/import-target.ts (local by default;
+ * production as yourself, via .env.import.local).
  */
-import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
+import { connect } from "./import-target.ts";
 
 // ---------- Old app format (only the fields we use) ----------
 
@@ -114,22 +114,12 @@ async function main() {
   const file = process.argv[2];
   if (!file) throw new Error("Usage: node --experimental-strip-types scripts/import-old-app.ts <export.html>");
 
-  const env = Object.fromEntries(
-    readFileSync(".env.local", "utf8")
-      .split("\n")
-      .filter((l) => l.includes("=") && !l.startsWith("#"))
-      .map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]),
-  );
-  const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
-
-  const { error: authError } = await supabase.auth.signInWithPassword({
-    email: process.env.IMPORT_EMAIL ?? "dev@example.com",
-    password: process.env.IMPORT_PASSWORD ?? "local-dev-password",
-  });
-  if (authError) throw new Error(`Sign-in failed: ${authError.message}`);
+  const { supabase, where } = await connect();
+  console.log(`Importing into: ${where}`);
 
   const { data: cellarId } = await supabase.rpc("my_cellar_id");
-  const { count } = await supabase.from("wines").select("id", { count: "exact", head: true });
+  // Own cellar only: RLS also shows friends' wines.
+  const { count } = await supabase.from("wines").select("id", { count: "exact", head: true }).eq("cellar_id", cellarId);
   if (count) throw new Error(`This cellar already has ${count} wines. Import into an empty cellar only.`);
 
   const snap = readSnapshot(file);
