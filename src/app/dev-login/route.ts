@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     }
     await supabase
       .from("profiles")
-      .update({ display_name: "משתמש חדש", onboarded_at: null })
+      .update({ display_name: "משתמש חדש", onboarded_at: null, first_steps: null })
       .eq("id", data.user.id);
   }
 
