@@ -53,7 +53,7 @@ async function Header() {
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted">{t.home.hello(user.displayName)}</p>
         {/* Friends' fridges one tap away (before: More → Sharing, mid-page). */}
-        {friends.length > 0 && <FriendsPicker friends={friends} />}
+        <FriendsPicker friends={friends} />
       </div>
       {!user.onboarded && <NamePrompt userId={user.id} initial={user.displayName === "משתמש חדש" ? "" : user.displayName} />}
     </header>
