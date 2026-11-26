@@ -19,3 +19,8 @@ export function toLocale(value: string | undefined): Locale {
 export function dirOf(locale: Locale): "rtl" | "ltr" {
   return locale === "he" ? "rtl" : "ltr";
 }
+
+/** For Intl date/number formatting (day-month order in both). */
+export function intlTag(locale: Locale): string {
+  return locale === "he" ? "he-IL" : "en-GB";
+}

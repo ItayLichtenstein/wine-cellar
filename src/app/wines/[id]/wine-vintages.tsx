@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/provider";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BottleSheet } from "@/app/bottle-sheet";
@@ -9,6 +10,7 @@ import type { WinePage } from "@/lib/fridges";
 /** One row per vintage; tapping it opens a bottle card of that vintage. */
 export function WineVintages({ vintages }: { vintages: WinePage["vintages"] }) {
   const router = useRouter();
+  const t = useT();
   const [openId, setOpenId] = useState<string | null>(null);
 
   return (
@@ -30,7 +32,7 @@ export function WineVintages({ vintages }: { vintages: WinePage["vintages"] }) {
               </span>
               <span className="flex min-w-0 flex-1 flex-col text-sm">
                 <span>
-                  {DRINK_STATES[v.state].label}
+                  {t.drinkState[v.state]}
                   {(v.drinkFrom || v.drinkTo) && (
                     <span className="text-muted" dir="ltr">
                       {" "}
@@ -39,8 +41,8 @@ export function WineVintages({ vintages }: { vintages: WinePage["vintages"] }) {
                   )}
                 </span>
                 <span className="text-xs text-muted">
-                  {v.inCellar > 0 ? `${v.inCellar} במרתף` : "אין במרתף"}
-                  {v.drunk > 0 ? ` · ${v.drunk} נשתו` : ""}
+                  {v.inCellar > 0 ? t.wine.inCellarCount(v.inCellar) : t.wine.noneInCellar}
+                  {v.drunk > 0 ? ` · ${t.wine.drunk(v.drunk)}` : ""}
                 </span>
               </span>
             </button>

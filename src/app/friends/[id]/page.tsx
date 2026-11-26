@@ -34,7 +34,7 @@ async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["pa
   const friend = friends.find((f) => f.id === id);
   if (!friend) notFound();
 
-  const [fridges, loose, all] = await Promise.all([getFridges(id), getLooseBottles(id), getCellarBottles(id)]);
+  const [fridges, loose, all] = await Promise.all([getFridges(id), getLooseBottles(id), getCellarBottles(id, undefined, locale)]);
   const stored = fridges.flatMap((f) => f.shelves.flatMap((s) => s.zones.flatMap((z) => z.bottles))).length;
 
   return (
