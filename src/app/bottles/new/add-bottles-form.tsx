@@ -1,5 +1,6 @@
 "use client";
 
+import { markAiHintSeen, readAiHintSeen, shouldShowAiHint, writeAiHintSeen } from "@/lib/ai-hint";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -173,8 +174,13 @@ export function AddBottlesForm({
       await supabase.from("drafts").update({ status: "approved", decided_at: new Date().toISOString() }).eq("id", prefill.draftId);
     }
     if (!aiConnected) {
-      setSavedNoAi(true);
-      return;
+      const seen = readAiHintSeen();
+      const now = Date.now();
+      if (shouldShowAiHint(seen, now)) {
+        writeAiHintSeen(markAiHintSeen(seen, now));
+        setSavedNoAi(true);
+        return;
+      }
     }
     router.push("/");
     router.refresh();
