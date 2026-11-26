@@ -271,21 +271,9 @@ export function AddBottlesForm({
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-2 text-lg font-semibold">{quantity > 1 ? "איפה הבקבוקים?" : "איפה הבקבוק?"}</legend>
-        {/* The fridge is the usual answer, so it is the big choice; the rare ones sit below it. */}
-        {fridges.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setDestination("fridge")}
-            aria-pressed={destination === "fridge"}
-            className={`rounded-xl border-2 px-4 py-3 text-base font-medium ${
-              destination === "fridge" ? "border-accent bg-accent text-white dark:text-black" : "border-muted/40"
-            }`}
-          >
-            במקרר
-          </button>
-        )}
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          {fridges.length > 0 && <span className="text-muted">או:</span>}
+        {/* A choice, not an action: radio options in one row. Saving is only the button at the bottom. */}
+        <div role="radiogroup" aria-label="מיקום" className="grid auto-cols-fr grid-flow-col gap-1 rounded-xl bg-surface p-1 text-sm shadow-sm">
+          {fridges.length > 0 && <Choice value="fridge" current={destination} onChange={setDestination} label="במקרר" />}
           <Choice value="unplaced" current={destination} onChange={setDestination} label="מחוץ למקרר" />
           <Choice value="in_transit" current={destination} onChange={setDestination} label="בדרך אלינו" />
         </div>
@@ -297,7 +285,12 @@ export function AddBottlesForm({
                 לחצו על מקומות פנויים (נבחרו {picked.length} מתוך {quantity}).
               </span>{" "}
               <span className="inline-block">לחיצה נוספת מבטלת.</span>
-              {leftOver > 0 && <span className="inline-block">{` ${leftOver} שלא ישובצו יישמרו כ"מחוץ למקרר".`}</span>}
+              {leftOver > 0 && (
+                <>
+                  {" "}
+                  <span className="inline-block">{`${leftOver} שלא ישובצו יישמרו כ"מחוץ למקרר".`}</span>
+                </>
+              )}
             </p>
             {picked.length > 0 && (
               <button type="button" onClick={() => setPicked([])} className="self-start text-sm underline underline-offset-2">
@@ -320,9 +313,12 @@ export function AddBottlesForm({
         </p>
       )}
 
-      <button type="submit" disabled={saving} className="rounded-full bg-accent px-5 py-3 font-medium text-white disabled:opacity-60 dark:text-black">
-        {saving ? "שומר…" : quantity > 1 ? `הוספת ${quantity} בקבוקים` : "הוספת הבקבוק"}
-      </button>
+      {/* Always in view, just above the tab bar: nothing is saved until this is pressed. */}
+      <div className="sticky bottom-[calc(57px+env(safe-area-inset-bottom))] z-30 -mx-4 bg-gradient-to-t from-background from-70% to-transparent px-4 pt-4 pb-3">
+        <button type="submit" disabled={saving} className="w-full rounded-full bg-accent px-5 py-3 font-medium text-white shadow-md disabled:opacity-60 dark:text-black">
+          {saving ? "שומר…" : saveLabel(quantity, destination)}
+        </button>
+      </div>
     </form>
   );
 }
@@ -338,6 +334,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+/** The button says where the bottles go, so it reads as the one step that saves. */
+function saveLabel(quantity: number, destination: Destination) {
+  const what = quantity > 1 ? `${quantity} בקבוקים` : "בקבוק";
+  const where = { fridge: "למקרר", unplaced: "מחוץ למקרר", in_transit: "כ״בדרך אלינו״" }[destination];
+  return destination === "unplaced" ? `שמירת ${what} ${where}` : `הוספת ${what} ${where}`;
+}
+
 function Choice({
   value,
   current,
@@ -351,14 +354,14 @@ function Choice({
 }) {
   const on = value === current;
   return (
-    <button
-      type="button"
-      onClick={() => onChange(value)}
-      aria-pressed={on}
-      className={`rounded-full border px-3 py-1 text-sm ${on ? "border-accent bg-accent text-white dark:text-black" : "border-muted/40 text-muted"}`}
+    <label
+      className={`flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-center has-[:focus-visible]:outline-2 ${
+        on ? "bg-background font-medium text-foreground shadow-sm" : "text-muted"
+      }`}
     >
+      <input type="radio" name="destination" checked={on} onChange={() => onChange(value)} className="size-3.5 shrink-0 accent-[var(--accent)]" />
       {label}
-    </button>
+    </label>
   );
 }
 
