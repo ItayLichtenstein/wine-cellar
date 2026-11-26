@@ -1,9 +1,10 @@
 import type { ListBottle } from "./bottle-list";
+import type { CriticScore } from "./wine-extra";
 import { drinkState } from "./drink-state";
 import type { ZoneKind } from "./fridge-layout";
 import type { FridgeView, LooseBottle, PlacedBottle } from "./fridges";
 
-/** What shared_cellar(token) returns (see migrations 0021, 0027). No drinking history. */
+/** What shared_cellar(token) returns (see migrations 0021, 0027, 0030). No notes, ratings or history. */
 export type SharedCellarJson = {
   names: string[];
   hide_prices: boolean;
@@ -32,8 +33,25 @@ export type SharedCellarJson = {
     kosher: ListBottle["kosher"];
     shape: ListBottle["shape"];
     thumb: string | null;
+    grape: string | null;
+    region: string | null;
+    alcohol: number | null;
+    critics: CriticScore[];
     price: number | null;
   }[];
+};
+
+/** A bottle as the guest's card shows it: the list row plus public facts about the wine. */
+export type SharedBottle = ListBottle & {
+  grape: string;
+  region: string;
+  alcohol: number | null;
+  critics: CriticScore[];
+  drinkFrom: number | null;
+  drinkTo: number | null;
+  peakFrom: number | null;
+  peakTo: number | null;
+  thumb: string | null;
 };
 
 export type SharedCellar = {
@@ -41,7 +59,7 @@ export type SharedCellar = {
   hidePrices: boolean;
   fridges: FridgeView[];
   loose: LooseBottle[];
-  bottles: ListBottle[];
+  bottles: SharedBottle[];
 };
 
 const WHERE = { unplaced: "מחוץ למקרר", in_transit: "בדרך אלינו" } as const;
@@ -53,7 +71,7 @@ const WHERE = { unplaced: "מחוץ למקרר", in_transit: "בדרך אלינ�
 export function fromSharedCellar(json: SharedCellarJson, year: number): SharedCellar {
   const placed = new Map<string, PlacedBottle[]>();
   const loose: LooseBottle[] = [];
-  const bottles: ListBottle[] = [];
+  const bottles: SharedBottle[] = [];
 
   for (const b of json.bottles) {
     const window = { drinkFrom: b.drink_from, drinkTo: b.drink_to, peakFrom: b.peak_from, peakTo: b.peak_to };
@@ -81,6 +99,12 @@ export function fromSharedCellar(json: SharedCellarJson, year: number): SharedCe
       drinkBy: b.peak_to ?? b.drink_to,
       price: b.price,
       where: b.status === "stored" ? (b.shelf ? `מדף ${b.shelf}` : "במקרר") : WHERE[b.status],
+      grape: b.grape ?? "",
+      region: b.region ?? "",
+      alcohol: b.alcohol ?? null,
+      critics: b.critics ?? [],
+      ...window,
+      thumb: b.thumb ?? null,
     });
   }
 
