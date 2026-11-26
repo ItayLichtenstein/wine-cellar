@@ -17,6 +17,9 @@ export function cellarTitle(names: string[], customName?: string | null, locale:
   const list = names.map((n) => n.trim()).filter(Boolean);
   if (locale === "en") {
     if (list.length === 0) return "Wine Cellar";
+    // A Hebrew name followed by "'s cellar" reads badly (two scripts glued
+    // into one word). Lead with the English instead: "Cellar of נועה & יונתן".
+    if (list.some((n) => !/^[\p{Script=Latin}\d\s.'’-]+$/u.test(n))) return `Cellar of ${list.join(" & ")}`;
     const joined = list.length === 1 ? list[0] : `${list.slice(0, -1).join(", ")} and ${list.at(-1)}`;
     return `${joined}'s cellar`;
   }

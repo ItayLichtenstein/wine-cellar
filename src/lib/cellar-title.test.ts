@@ -33,6 +33,9 @@ describe("cellarTitle in English", () => {
   });
   it("falls back to the app name, and a custom name wins", () => {
     expect(cellarTitle([], null, "en")).toBe("Wine Cellar");
+    expect(cellarTitle(["נועה"], null, "en")).toBe("Cellar of נועה");
+    expect(cellarTitle(["נועה", "Yonatan"], null, "en")).toBe("Cellar of נועה & Yonatan");
+    expect(cellarTitle(["Zoë"], null, "en")).toBe("Zoë's cellar");
     expect(cellarTitle(["Noa"], "The bunker", "en")).toBe("The bunker");
   });
 });
