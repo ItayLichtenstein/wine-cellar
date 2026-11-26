@@ -92,8 +92,8 @@ function lyingShelf(n: number): Shelf {
   if (n < TWO_ROWS_FROM) return { zones: [{ kind: "row", capacity: n, label: "שורה" }] };
   return {
     zones: [
-      { kind: "row", capacity: Math.ceil(n / 2), label: "אחורית" },
-      { kind: "row", capacity: Math.floor(n / 2), label: "קדמית" },
+      { kind: "row", capacity: Math.ceil(n / 2), label: "אחורי" },
+      { kind: "row", capacity: Math.floor(n / 2), label: "קדמי" },
     ],
   };
 }

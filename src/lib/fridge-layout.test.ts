@@ -105,7 +105,7 @@ describe("front row", () => {
     expect(withoutFront(shelf)).toHaveLength(2);
   });
   it("is not found elsewhere or alone", () => {
-    expect(frontZone([z("row", FRONT_LABEL), z("row", "קדמית")])).toBeUndefined();
+    expect(frontZone([z("row", FRONT_LABEL), z("row", "קדמי")])).toBeUndefined();
     expect(frontZone([z("row", FRONT_LABEL)])).toBeUndefined();
     expect(withoutFront([z("row", "שורה")])).toHaveLength(1);
   });

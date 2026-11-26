@@ -72,7 +72,7 @@ erDiagram
         int position
         enum kind "row / stack"
         int capacity
-        text label "קדמית, אחורית..."
+        text label "קדמי, אחורי..."
     }
     wines {
         uuid id PK

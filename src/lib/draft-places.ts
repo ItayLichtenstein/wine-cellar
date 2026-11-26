@@ -105,7 +105,7 @@ export function findBottle(
   return outside ? { id: outside.id, where: "מחוץ למקרר" } : null;
 }
 
-/** "מדף 1, קדמית, מקום 1": one place in words, with the zone's own name from the fridge. */
+/** "מדף 1, קדמי, מקום 1": one place in words, with the zone's own name from the fridge. */
 export function placeText(fridges: Fridge[], p: DraftPlace): string {
   const fridge = (p.fridge && fridges.find((f) => f.name.trim() === p.fridge.trim())) || fridges[0];
   const zone = fridge?.shelves[p.shelf - 1]?.zones[p.zone - 1];
