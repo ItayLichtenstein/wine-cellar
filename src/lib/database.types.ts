@@ -229,14 +229,14 @@ isOneToOne: false
                   ]
                 },"friend_invites": {
                   Row: {
-                    "cellar_id": string,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"shows_prices": boolean,"token_hash": string,"used_at": string | null
+                    "cellar_id": string,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"max_uses": number,"shows_prices": boolean,"token_hash": string,"use_count": number,"used_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"shows_prices"?: boolean,"token_hash": string,"used_at"?: string | null
+                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"max_uses"?: number,"shows_prices"?: boolean,"token_hash": string,"use_count"?: number,"used_at"?: string | null
                   }
                   Update: {
-                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"shows_prices"?: boolean,"token_hash"?: string,"used_at"?: string | null
+                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"max_uses"?: number,"shows_prices"?: boolean,"token_hash"?: string,"use_count"?: number,"used_at"?: string | null
                   }
                   Relationships: [
                     {

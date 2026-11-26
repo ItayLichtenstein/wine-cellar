@@ -74,7 +74,7 @@ export function AcceptFriend() {
   if (state === "invalid") {
     return (
       <p className="text-muted">
-        <span className="inline-block">הקישור לא תקף, כי כבר השתמשו בו או שעברו 7 ימים.</span>{" "}
+        <span className="inline-block">הקישור לא תקף, כי עברו 7 ימים או שכבר הצטרפו דרכו 10 חברים.</span>{" "}
         <span className="inline-block">בקשו מהחבר קישור חדש</span>
       </p>
     );
