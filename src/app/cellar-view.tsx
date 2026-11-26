@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
@@ -178,6 +179,13 @@ export function CellarView({
 
       {/* Wherever the fridge is drawn (home, a friend's cellar, a view link), so are the colors' meanings. */}
       {hasBottles && <Legend />}
+
+      {/* An empty cellar of one's own: offer to bring an existing list (spec: "ייבוא מקובץ"). */}
+      {!hasBottles && canEdit && !sheet && fridges.length > 0 && (
+        <Link href="/import" className="self-start text-sm text-muted underline underline-offset-2">
+          {t.importer.emptyCellar}
+        </Link>
+      )}
 
       {openId && sheet && sheet(openId, () => setOpenId(null))}
       {openId && !sheet && (
