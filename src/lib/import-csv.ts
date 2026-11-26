@@ -103,29 +103,31 @@ function count(s: string, ch: string): number {
 // ---------------------------------------------------------------------
 const norm = (s: string) => s.trim().toLowerCase().replace(/[׳'"’]/g, "").replace(/\s+/g, " ");
 
+// Besides our own export, the headers of CellarTracker ("BeginConsume", "Varietal")
+// and Vivino ("Wine type", "Personal Note") exports are recognised too.
 const ALIASES: Record<ImportField, string[]> = {
   winery: ["יקב", "winery", "producer", "יצרן"],
   name: ["יין", "wine", "שם", "שם היין", "name", "wine name"],
-  type: ["סוג", "type", "color", "צבע"],
+  type: ["סוג", "type", "wine type", "color", "צבע"],
   year: ["בציר", "vintage", "year", "שנה", "שנת בציר"],
   status: ["מצב", "status", "סטטוס", "state"],
   quantity: ["כמות", "quantity", "qty", "בקבוקים", "bottles", "count", "מספר בקבוקים"],
-  grape: ["זן", "grape", "grapes", "variety", "זנים"],
+  grape: ["זן", "grape", "grapes", "variety", "זנים", "varietal", "mastervarietal"],
   country: ["ארץ", "country", "מדינה"],
   region: ["אזור", "region", "appellation"],
   alcohol: ["אלכוהול", "alcohol", "abv", "% אלכוהול"],
-  drinkFrom: ["שתייה מ־", "שתייה מ", "drink from", "drink from year"],
-  drinkTo: ["שתייה עד", "drink until", "drink to"],
+  drinkFrom: ["שתייה מ־", "שתייה מ", "drink from", "drink from year", "beginconsume", "begin consume"],
+  drinkTo: ["שתייה עד", "drink until", "drink to", "endconsume", "end consume"],
   peakFrom: ["שיא מ־", "שיא מ", "peak from"],
   peakTo: ["שיא עד", "peak until", "peak to"],
-  paid: ["שולם", "paid", "מחיר", "price", "מחיר ששולם", "cost"],
+  paid: ["שולם", "paid", "מחיר", "price", "מחיר ששולם", "cost", "wine price"],
   regular: ["מחיר רגיל", "regular price", "value", "שווי"],
   gift: ["מתנה", "gift"],
   kosher: ["כשר", "kosher", "כשרות"],
-  added: ["נוסף", "added", "תאריך הוספה", "date added", "purchased", "נקנה"],
+  added: ["נוסף", "added", "תאריך הוספה", "date added", "purchased", "נקנה", "purchasedate", "purchase date", "scan date"],
   consumed: ["נשתה", "drunk", "consumed", "date drunk", "תאריך שתייה"],
-  note: ["הערה", "note", "notes", "הערות"],
-  link: ["קישור", "link", "url"],
+  note: ["הערה", "note", "notes", "הערות", "personal note"],
+  link: ["קישור", "link", "url", "link to wine"],
 };
 
 /** Guesses which column holds which field, from the header row. */
