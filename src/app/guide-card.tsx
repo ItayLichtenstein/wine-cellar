@@ -43,7 +43,7 @@ export function GuideCard() {
       </span>
       <Link href="/guide" className="flex flex-1 flex-col">
         <span className="font-medium">חדשים כאן? מדריך קצר</span>
-        <span className="text-sm text-muted">כל מה שצריך לדעת, בחמש דקות ←</span>
+        <span className="text-sm text-muted">כל מה שצריך לדעת בחמש דקות ←</span>
       </Link>
       <button type="button" onClick={dismiss} aria-label="סגירת ההצעה למדריך" className="size-8 shrink-0 rounded-full text-lg text-muted hover:bg-surface">
         ×

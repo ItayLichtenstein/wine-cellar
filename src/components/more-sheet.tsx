@@ -34,7 +34,7 @@ const GROUPS: { title: string; links: { href: string; label: string; hint: strin
   {
     title: "עזרה וחשבון",
     links: [
-      { href: "/guide", label: "מדריך למתחילים", hint: "כל מה שצריך לדעת, בחמש דקות", icon: "📖" },
+      { href: "/guide", label: "מדריך למתחילים", hint: "כל מה שצריך לדעת בחמש דקות", icon: "📖" },
       { href: "/more#account", label: "חשבון", hint: "ייצוא לאקסל, התנתקות, פרטיות", icon: "👤" },
     ],
   },
