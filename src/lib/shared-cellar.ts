@@ -1,13 +1,12 @@
 import type { ListBottle } from "./bottle-list";
 import { drinkState } from "./drink-state";
 import type { ZoneKind } from "./fridge-layout";
-import type { FridgeView, HistoryEntry, LooseBottle, PlacedBottle } from "./fridges";
+import type { FridgeView, LooseBottle, PlacedBottle } from "./fridges";
 
-/** What shared_cellar(token) returns (see migration 0021). */
+/** What shared_cellar(token) returns (see migrations 0021, 0027). No drinking history. */
 export type SharedCellarJson = {
   names: string[];
   hide_prices: boolean;
-  hide_history: boolean;
   fridges: {
     id: string;
     name: string;
@@ -34,17 +33,14 @@ export type SharedCellarJson = {
     shape: ListBottle["shape"];
     price: number | null;
   }[];
-  history: { id: string; tasted_on: string; place: string | null; notes: string | null; year: number | null; winery: string; name: string }[];
 };
 
 export type SharedCellar = {
   names: string[];
   hidePrices: boolean;
-  hideHistory: boolean;
   fridges: FridgeView[];
   loose: LooseBottle[];
   bottles: ListBottle[];
-  history: HistoryEntry[];
 };
 
 const WHERE = { unplaced: "מחוץ למקרר", in_transit: "בדרך אלינו" } as const;
@@ -90,7 +86,6 @@ export function fromSharedCellar(json: SharedCellarJson, year: number): SharedCe
   return {
     names: json.names,
     hidePrices: json.hide_prices,
-    hideHistory: json.hide_history,
     fridges: json.fridges.map((f) => ({
       id: f.id,
       name: f.name,
@@ -109,15 +104,5 @@ export function fromSharedCellar(json: SharedCellarJson, year: number): SharedCe
     })),
     loose,
     bottles,
-    history: json.history.map((t) => ({
-      id: t.id,
-      tastedOn: t.tasted_on,
-      wineId: null, // guests have no wine pages
-      title: `${t.winery} – ${t.name}`,
-      year: t.year,
-      place: t.place ?? "",
-      notes: t.notes ?? "",
-      score: null, // the view link does not share ratings
-    })),
   };
 }

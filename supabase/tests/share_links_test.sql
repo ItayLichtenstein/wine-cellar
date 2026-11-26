@@ -32,7 +32,7 @@ select pg_temp.login_as('cccccccc-0000-0000-0000-000000000002');
 select throws_ok($$ select create_share_link() $$, '42501', null, 'a viewer cannot create a view link');
 
 select pg_temp.login_as('cccccccc-0000-0000-0000-000000000001');
-select set_config('test.t1', create_share_link(true, false), true);
+select set_config('test.t1', create_share_link(true), true);
 select is((select count(*)::int from share_links where revoked_at is null), 1, 'the owner created a link');
 
 -- ---------- The guest ----------
@@ -42,18 +42,18 @@ select throws_ok($$ select count(*) from bottles $$, '42501', null, 'a guest can
 select is(shared_cellar('nope'), null, 'an unknown token returns nothing');
 select is(jsonb_array_length(shared_cellar(current_setting('test.t1')) -> 'bottles'), 1, 'the guest sees the bottles');
 select is(shared_cellar(current_setting('test.t1')) -> 'bottles' -> 0 ->> 'price', null, 'prices hidden by default');
-select is(jsonb_array_length(shared_cellar(current_setting('test.t1')) -> 'history'), 1, 'history shown when not hidden');
+select is(shared_cellar(current_setting('test.t1')) ? 'history', false, 'the drinking history is never shared');
 select is(shared_cellar(current_setting('test.t1')) -> 'names', '["רון"]'::jsonb, 'only full members'' names, not the viewer');
 select is(shared_cellar(current_setting('test.t1'))::text ~ 'example\.com', false, 'no email anywhere in the answer');
 
 -- ---------- A new link cuts the old one ----------
 select pg_temp.login_as('cccccccc-0000-0000-0000-000000000001');
-select set_config('test.t2', create_share_link(false, true), true);
+select set_config('test.t2', create_share_link(false), true);
 select is((select count(*)::int from share_links where revoked_at is null), 1, 'still one active link');
 select pg_temp.as_guest();
 select is(shared_cellar(current_setting('test.t1')), null, 'the old link stopped working');
 select is((shared_cellar(current_setting('test.t2')) -> 'bottles' -> 0 ->> 'price')::numeric, 180::numeric, 'this link shows prices');
-select is(jsonb_array_length(shared_cellar(current_setting('test.t2')) -> 'history'), 0, 'and hides history');
+select is(shared_cellar(current_setting('test.t2'))::text ~ 'great', false, 'tasting notes never leak');
 
 -- ---------- Revoking ----------
 select pg_temp.login_as('cccccccc-0000-0000-0000-000000000001');

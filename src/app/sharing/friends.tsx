@@ -107,7 +107,17 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
         <div className="flex flex-col gap-2 rounded-xl bg-surface p-3 text-sm shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={showPrices} onChange={(e) => setShowPrices(e.target.checked)} className="size-4 accent-accent" />
+              <input
+                type="checkbox"
+                checked={showPrices}
+                onChange={(e) => {
+                  // A link already shown carries the old choice: hide it, so the
+                  // one copied always matches the checkbox.
+                  setShowPrices(e.target.checked);
+                  setLink(null);
+                }}
+                className="size-4 accent-accent"
+              />
               החבר יראה את המחירים שלנו
             </label>
             <button type="button" onClick={invite} className="rounded-full bg-accent px-3 py-1 font-medium text-white dark:text-black">
@@ -118,7 +128,8 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
             <>
               <p className="text-muted">
                 <span className="inline-block">שלחו את הקישור לחבר.</span>{" "}
-                <span className="inline-block">הוא עובד פעם אחת ובתוקף 7 ימים.</span>
+                <span className="inline-block">הוא עובד פעם אחת ובתוקף 7 ימים.</span>{" "}
+                <span className="inline-block">את המחירים אפשר לשנות גם אחר כך, ליד שם החבר.</span>
               </p>
               <div className="flex gap-2">
                 <input readOnly value={link} dir="ltr" aria-label="קישור ההזמנה לחבר" className="min-w-0 flex-1 rounded-lg border border-muted/40 bg-background px-2 py-1 text-xs" />

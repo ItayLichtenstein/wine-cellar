@@ -70,9 +70,9 @@ async function ShareSection() {
   if (!user.canEdit) return null;
   const { data } = await supabase
     .from("share_links")
-    .select("hide_prices, hide_history")
+    .select("hide_prices")
     .eq("cellar_id", user.cellarId)
     .is("revoked_at", null)
     .maybeSingle();
-  return <ShareLink active={data ? { hidePrices: data.hide_prices, hideHistory: data.hide_history } : null} />;
+  return <ShareLink active={data ? { hidePrices: data.hide_prices } : null} />;
 }

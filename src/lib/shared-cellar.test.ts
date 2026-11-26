@@ -12,10 +12,8 @@ const bottle = (over: Partial<SharedCellarJson["bottles"][number]>): SharedCella
 const json: SharedCellarJson = {
   names: ["רון"],
   hide_prices: true,
-  hide_history: false,
   fridges: [{ id: "f1", name: "מקרר", brand: null, model: null, shelves: [{ id: "s1", zones: [{ id: "z1", kind: "row", capacity: 6, label: null }] }] }],
   bottles: [bottle({}), bottle({ id: "b2", status: "unplaced", zone_id: null, slot: null, shelf: null })],
-  history: [{ id: "t1", tasted_on: "2026-01-01", place: null, notes: "great", year: 2018, winery: "Yatir", name: "Forest" }],
 };
 
 describe("fromSharedCellar", () => {
@@ -36,7 +34,4 @@ describe("fromSharedCellar", () => {
     expect(c.bottles[0].vintageId).toBe(c.bottles[1].vintageId);
   });
 
-  it("maps history entries", () => {
-    expect(c.history[0]).toMatchObject({ title: "Yatir – Forest", notes: "great", place: "" });
-  });
 });
