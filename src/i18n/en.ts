@@ -112,9 +112,16 @@ export const en: Dictionary = {
     fullText: ["Photograph a label and the bottles wait here for approval,", "or ask what to open tonight from what's in the fridge"],
     withWhich: "With Claude or ChatGPT",
     yourAi: "Your AI",
-    fill: ["🍾 Fill the fridge", "Photograph shelf by shelf, each bottle goes to its place"],
+    fill: ["Fill the fridge", "Photograph shelf by shelf, each bottle goes to its place"],
     scan: ["Add from a photo", "Opens the chat, you attach a photo"],
     drink: ["What to open tonight?", "Opens the chat, you add the occasion"],
+    dismiss: "Hide this suggestion",
+    later: {
+      title: "You can connect an AI later",
+      text: "It's always waiting here",
+      ok: "Got it",
+      connectNow: "Connect now",
+    },
     copied: (ai: string) => `The link to ${ai} can't carry a ready request, so it was copied and you just paste it in the chat`,
   },
   language: {

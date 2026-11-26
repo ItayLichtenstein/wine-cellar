@@ -9,6 +9,7 @@ import { cellarTitle } from "@/lib/cellar-title";
 import { getConnectedAis } from "@/lib/ai-grants";
 import { createClient } from "@/lib/supabase/server";
 import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
+import { LineIcon } from "@/components/line-icon";
 import { AiCard } from "./ai-card";
 import { CellarView } from "./cellar-view";
 import { LabelThumbBackfill } from "./label-thumb-backfill";
@@ -67,7 +68,9 @@ async function Fridges() {
   if (fridges.length === 0) {
     return (
       <section className="flex flex-col items-center gap-4 rounded-2xl bg-surface p-8 text-center shadow-sm">
-        <div className="text-4xl" aria-hidden="true">🧊</div>
+        <span className="text-accent">
+          <LineIcon name="fridge" className="size-10" strokeWidth={1.4} />
+        </span>
         <h2 className="text-xl font-semibold">{t.home.noFridgeTitle}</h2>
         <p className="text-muted">
           <span className="inline-block">{t.home.noFridgeText[0]}</span>{" "}

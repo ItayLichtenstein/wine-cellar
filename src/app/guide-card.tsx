@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import { LineIcon } from "@/components/line-icon";
 import { useT } from "@/i18n/provider";
 
 const KEY = "guide-card-dismissed";
@@ -40,8 +41,8 @@ export function GuideCard() {
   if (dismissed) return null;
   return (
     <div className="flex items-center gap-3 rounded-xl bg-accent/15 p-3">
-      <span className="text-2xl" aria-hidden="true">
-        📖
+      <span className="text-accent">
+        <LineIcon name="book" className="size-7" />
       </span>
       <Link href="/guide" className="flex flex-1 flex-col">
         <span className="font-medium">{t.home.guideCard.title}</span>

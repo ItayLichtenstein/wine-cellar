@@ -3,6 +3,7 @@ import { AI_PROVIDERS, AI_REQUESTS, type AiKey } from "@/lib/ai-providers";
 import { AiLogo, AiLogoStack } from "@/components/ai-logos";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { getT } from "@/i18n/server";
+import { AiCardGate } from "./ai-card-gate";
 import { OpenChat } from "./open-chat";
 
 /**
@@ -14,9 +15,19 @@ import { OpenChat } from "./open-chat";
  */
 export async function AiCard({ connected, pendingDrafts, nearlyEmpty }: { connected: AiKey | null; pendingDrafts: number; nearlyEmpty: boolean }) {
   const t = await getT();
+  // Not connected: an invitation that shows twice and can be closed (AiCardGate).
+  const card = connected ? (
+    <Connected ai={connected} nearlyEmpty={nearlyEmpty} t={t} />
+  ) : (
+    <AiCardGate>
+      <NotConnected nearlyEmpty={nearlyEmpty} t={t} />
+    </AiCardGate>
+  );
+  // Nothing else to say: no wrapper, so a hidden card leaves no empty gap.
+  if (pendingDrafts === 0) return card;
   return (
     <section aria-label={t.aiCard.label} className="flex flex-col gap-2">
-      {connected ? <Connected ai={connected} nearlyEmpty={nearlyEmpty} t={t} /> : <NotConnected nearlyEmpty={nearlyEmpty} t={t} />}
+      {card}
       {pendingDrafts > 0 && (
         <Link href="/ai" className="flex items-center justify-between rounded-xl bg-accent/15 px-4 py-2 text-sm">
           <span>{t.aiCard.pending(pendingDrafts)}</span>
