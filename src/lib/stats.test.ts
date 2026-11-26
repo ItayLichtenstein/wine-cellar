@@ -25,8 +25,8 @@ describe("breakdown", () => {
       { label: "אחר", count: 2 },
     ]);
   });
-  it("names an empty value", () => {
-    expect(breakdown([b({ grape: "" })], "grape")).toEqual([{ label: "לא ידוע", count: 1 }]);
+  it("leaves out bottles with the field empty", () => {
+    expect(breakdown([b({ grape: "" }), b({ grape: "Syrah" })], "grape")).toEqual([{ label: "Syrah", count: 1 }]);
   });
 });
 
