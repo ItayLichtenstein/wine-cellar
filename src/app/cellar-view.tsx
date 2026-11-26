@@ -137,14 +137,19 @@ export function CellarView({
           <div className="flex items-baseline justify-between gap-2">
             <h2 className="text-lg font-semibold">{fridge.name}</h2>
             <span className="text-sm text-muted">
-              {[fridge.brand, fridge.model].filter(Boolean).join(" ")}
-              {fridge.brand || fridge.model ? " · " : ""}
-              מקום ל־{fridgeCapacity(fridge.shelves)}
+              {/* Free room matters to the household, not to visitors. */}
+              {[
+                [fridge.brand, fridge.model].filter(Boolean).join(" "),
+                canEdit ? `מקום ל־${fridgeCapacity(fridge.shelves)}` : "",
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
           </div>
           <FridgePreview
             shelves={fridge.shelves}
             view={view}
+            hideEmpty={!canEdit}
             activeBottleId={movingId ?? undefined}
             // Moving: an empty place is the target. Otherwise: add a bottle right there.
             onPick={

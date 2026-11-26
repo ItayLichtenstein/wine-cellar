@@ -65,6 +65,8 @@ type Props = {
   /** The bottle being moved, drawn highlighted. */
   activeBottleId?: string;
   view?: FridgeViewMode;
+  /** Visitors: draw only the bottles, no empty places or empty shelves. */
+  hideEmpty?: boolean;
 };
 
 /**
@@ -72,25 +74,33 @@ type Props = {
  * Bottles are neutral; only the small year badge carries the drink-window
  * color (never red frames – red reads as "bad wine").
  */
-export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottleClick, activeBottleId, view = "labels" }: Props) {
+export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottleClick, activeBottleId, view = "labels", hideEmpty = false }: Props) {
+  // Visitors (friends, a view link) care about the bottles, not the free
+  // places: only shelves and rows that hold something, packed together.
+  const shown = shelves
+    .map((shelf, i) => ({ shelf, no: i + 1 }))
+    .filter(({ shelf }) => !hideEmpty || shelf.zones.some((z) => (z.bottles ?? []).length > 0));
+  if (shown.length === 0) return <p className="text-center text-sm text-muted">המקרר ריק כרגע.</p>;
   return (
     // w-fit: the fridge is as wide as its widest shelf, not the whole page.
     <ol className="mx-auto flex w-fit min-w-72 max-w-full touch-manipulation flex-col gap-2 rounded-2xl bg-fridge p-3 select-none [-webkit-touch-callout:none]" aria-label="שרטוט המקרר">
-      {shelves.map((shelf, i) => (
-        <li key={i} className="wood flex items-start gap-2 rounded-lg p-2">
+      {shown.map(({ shelf, no }) => (
+        <li key={no} className="wood flex items-start gap-2 rounded-lg p-2">
           <span className="w-5 shrink-0 pt-1 text-center text-xs text-on-fridge/60" aria-hidden="true">
-            {i + 1}
+            {no}
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             {shelf.zones.map((zone, j) => (
+              hideEmpty && (zone.bottles ?? []).length === 0 ? null : (
               <ZoneLine
                 key={zone.id ?? j}
                 zone={zone}
-                shifted={staggeredZone(shelf.zones) === j}
+                hideEmpty={hideEmpty}
+                shifted={!hideEmpty && staggeredZone(shelf.zones) === j}
                 // A pile: the upper layer is shifted half a bottle and sits close above the lower one.
                 layer={isPile(shelf.zones) && j < 2 ? (j === 0 ? "upper" : "lower") : undefined}
                 front={frontZone(shelf.zones) === zone}
-                shelfNo={i + 1}
+                shelfNo={no}
                 onPick={onPick}
                 onUnpick={onUnpick}
                 picked={picked}
@@ -98,6 +108,7 @@ export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottle
                 activeBottleId={activeBottleId}
                 view={view}
               />
+              )
             ))}
           </div>
         </li>
@@ -120,8 +131,10 @@ function ZoneLine({
   onBottleClick,
   activeBottleId,
   view,
+  hideEmpty = false,
 }: {
   zone: DrawnZone;
+  hideEmpty?: boolean;
   shifted?: boolean;
   layer?: "upper" | "lower";
   /** Bottles lying across the front of the shelf: set apart by a dashed line. */
@@ -158,6 +171,7 @@ function ZoneLine({
       title={zone.label}
     >
       {cells.map(({ bottle, picked: isPicked, place, slot }) => {
+        if (!bottle && hideEmpty) return null;
         if (bottle) {
           return onBottleClick && place ? (
             <button
