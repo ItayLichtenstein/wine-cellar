@@ -15,7 +15,7 @@ export type PlacedBottle = {
   year: number | null;
   state: DrinkState;
   title: string; // "יקב – שם"
-  label: string; // short text for the labels view when there is no photo: always the winery
+  label: string; // the labels view without a photo: the wine's name, as the user wrote it
   thumb: string | null; // the label photo, ~4KB data: URL (wines.label_thumb)
 };
 
@@ -74,7 +74,7 @@ export async function getFridges(cellarId: string, db?: Db): Promise<FridgeView[
         year,
       ),
       title: v.wines ? `${v.wines.winery} – ${v.wines.name}` : "",
-      label: v.wines?.winery ?? "",
+      label: v.wines?.name ?? "",
       thumb: v.wines?.label_thumb ?? null,
     });
     byZone.set(b.zone_id, list);

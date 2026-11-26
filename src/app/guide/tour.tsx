@@ -218,8 +218,8 @@ function PickDemo() {
   const shelves = [
     {
       zones: [
-        { id: "p1", kind: "row" as const, capacity: 4, label: "אחורית", bottles: [bottle("x1", "now", 2019, "Bodega Sol", 1), bottle("x2", "hold", 2020, "Cantina Lupo", 3)] },
-        { id: "p2", kind: "row" as const, capacity: 3, label: "קדמית", bottles: [bottle("x3", "soon", 2021, "Domaine Vert", 2)] },
+        { id: "p1", kind: "row" as const, capacity: 4, label: "אחורית", bottles: [bottle("x1", "now", 2019, "Rioja", 1), bottle("x2", "hold", 2020, "Barolo", 3)] },
+        { id: "p2", kind: "row" as const, capacity: 3, label: "קדמית", bottles: [bottle("x3", "soon", 2021, "Chianti", 2)] },
       ],
     },
   ];
@@ -241,7 +241,7 @@ function PickDemo() {
 /** Tap a bottle to see what its color means. */
 function ColorsDemo() {
   const states = DRINK_STATE_ORDER.filter((s) => s !== "none");
-  const bottles = states.map((s, k) => bottle(`c${k}`, s, 2014 + k, ["Quinta Alta", "Bodega Sol", "Cantina Lupo", "Domaine Vert", "Weingut Berg", "Château Pin"][k] ?? "Wine", null));
+  const bottles = states.map((s, k) => bottle(`c${k}`, s, 2014 + k, ["Port", "Rioja", "Chianti", "Barolo", "Pinot", "Syrah"][k] ?? "Wine", null));
   const [open, setOpen] = useState<DrinkState | null>(null);
   const half = Math.ceil(bottles.length / 2);
   const row = (id: string, bs: PlacedBottle[]) => ({ id, kind: "row" as const, capacity: bs.length, label: "", bottles: bs.map((b, k) => ({ ...b, slot: k + 1 })) });
@@ -267,7 +267,7 @@ function ColorsDemo() {
 function DrinkDemo() {
   const [stage, setStage] = useState<"shelf" | "card" | "rate" | "done">("shelf");
   const [score, setScore] = useState("");
-  const b = bottle("d1", "now", 2019, "Bodega Sol", 2);
+  const b = bottle("d1", "now", 2019, "Rioja", 2);
   if (stage === "shelf") {
     return (
       <div className="flex flex-col gap-3">
@@ -318,7 +318,7 @@ function DrinkDemo() {
 function MoveDemo() {
   const [slots, setSlots] = useState<Record<string, number>>({ m1: 1, m2: 3 });
   const [moving, setMoving] = useState<string | null>(null);
-  const all = [bottle("m1", "now", 2019, "Bodega Sol"), bottle("m2", "hold", 2020, "Cantina Lupo")];
+  const all = [bottle("m1", "now", 2019, "Rioja"), bottle("m2", "hold", 2020, "Barolo")];
   const shelves = [{ zones: [{ id: "m-row", kind: "row" as const, capacity: 4, label: "שורה", bottles: all.map((b) => ({ ...b, slot: slots[b.id] })) }] }];
   function to(slot: number | null) {
     if (!moving || slot === null) return;

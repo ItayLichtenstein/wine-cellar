@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(16);
+select plan(17);
 
 create function pg_temp.login_as(p_user uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -21,7 +21,7 @@ select set_config('test.cellar', (select cellar_id::text from cellar_members whe
 delete from cellars where id = (select cellar_id from cellar_members where user_id = 'cccccccc-0000-0000-0000-000000000002');
 insert into cellar_members (cellar_id, user_id, role) values (current_setting('test.cellar')::uuid, 'cccccccc-0000-0000-0000-000000000002', 'viewer');
 
-insert into wines (id, cellar_id, winery, name) values ('cccccccc-1111-0000-0000-000000000001', current_setting('test.cellar')::uuid, 'Yatir', 'Forest');
+insert into wines (id, cellar_id, winery, name, label_thumb) values ('cccccccc-1111-0000-0000-000000000001', current_setting('test.cellar')::uuid, 'Yatir', 'Forest', 'data:image/webp;base64,AA');
 insert into wine_vintages (id, wine_id, cellar_id, year) values ('cccccccc-2222-0000-0000-000000000001', 'cccccccc-1111-0000-0000-000000000001', current_setting('test.cellar')::uuid, 2019);
 insert into bottles (id, cellar_id, vintage_id) values ('cccccccc-3333-0000-0000-000000000001', current_setting('test.cellar')::uuid, 'cccccccc-2222-0000-0000-000000000001');
 insert into bottle_prices (bottle_id, cellar_id, paid) values ('cccccccc-3333-0000-0000-000000000001', current_setting('test.cellar')::uuid, 180);
@@ -43,6 +43,7 @@ select is(shared_cellar('nope'), null, 'an unknown token returns nothing');
 select is(jsonb_array_length(shared_cellar(current_setting('test.t1')) -> 'bottles'), 1, 'the guest sees the bottles');
 select is(shared_cellar(current_setting('test.t1')) -> 'bottles' -> 0 ->> 'price', null, 'prices hidden by default');
 select is(shared_cellar(current_setting('test.t1')) ? 'history', false, 'the drinking history is never shared');
+select is(shared_cellar(current_setting('test.t1')) -> 'bottles' -> 0 ->> 'thumb', 'data:image/webp;base64,AA', 'the guest sees the label photo');
 select is(shared_cellar(current_setting('test.t1')) -> 'names', '["רון"]'::jsonb, 'only full members'' names, not the viewer');
 select is(shared_cellar(current_setting('test.t1'))::text ~ 'example\.com', false, 'no email anywhere in the answer');
 

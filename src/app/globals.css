@@ -107,23 +107,26 @@ input[dir="ltr"]:placeholder-shown {
 /* Wooden shelf boards. The grain is a real photo of an oak floor
    (public/textures/shelf-wood.webp, 36KB), with its glare flattened and
    tinted to --shelf. A generated noise texture looked artificial. Each shelf
-   shows a different part of the photo, so no two boards repeat. Over it:
-   light at the front edge, shade towards the back, a bevel. */
+   shows a different part of the photo, so no two boards repeat. Positions
+   are percentages and the photo is never smaller than the board, so the
+   photo never runs out and repeats (a visible seam). Over it: light at the
+   front edge, shade towards the back, a bevel. */
 .wood {
   background-color: var(--shelf);
   background-image:
     linear-gradient(180deg, rgb(255 236 210 / 0.1), transparent 30%, transparent 70%, rgb(0 0 0 / 0.3)),
     url("/textures/shelf-wood.webp");
-  background-size: 100% 100%, 640px auto;
-  background-position: 0 0, 0 -20px;
+  background-size: 100% 100%, max(640px, 100%) auto;
+  background-repeat: no-repeat;
+  background-position: 0 0, 0% 0%;
   box-shadow:
     inset 0 1px 0 rgb(255 228 196 / 0.18),
     inset 0 -4px 0 rgb(0 0 0 / 0.3),
     0 2px 3px rgb(0 0 0 / 0.35);
 }
-.wood:nth-child(4n + 2) { background-position: 0 0, -120px -150px; }
-.wood:nth-child(4n + 3) { background-position: 0 0, -60px -290px; }
-.wood:nth-child(4n + 4) { background-position: 0 0, -200px -410px; }
+.wood:nth-child(4n + 2) { background-position: 0 0, 35% 30%; }
+.wood:nth-child(4n + 3) { background-position: 0 0, 15% 65%; }
+.wood:nth-child(4n + 4) { background-position: 0 0, 55% 100%; }
 
 /* Score cheer (score-input.tsx): a soft pop, and sparks flying outwards. */
 @keyframes cheer-pop {

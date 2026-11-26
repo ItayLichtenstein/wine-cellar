@@ -205,7 +205,7 @@ function ZoneLine({
 
 /**
  * An occupied row slot with the colored year badge. In the labels view it
- * shows the label photo; without one, the winery (one rule for every bottle).
+ * shows the label photo; without one, the wine's name.
  */
 function BottleSlot({ bottle, view, shape = SLOT_SHAPE[view] }: { bottle: PlacedBottle; view: FridgeViewMode; shape?: string }) {
   return (
