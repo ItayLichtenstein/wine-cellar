@@ -39,8 +39,8 @@ export function Household({ members, me }: { members: Member[]; me: string }) {
       <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
         {members.map((m) => (
           <li key={m.userId} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-            <span dir="auto">
-              {m.name}
+            <span>
+              <bdi>{m.name}</bdi>
               {m.userId === me && <span className="text-muted"> {s.you}</span>}
             </span>
             {m.userId !== me && (
