@@ -44,6 +44,9 @@ export function cellarValue(bottles: StatBottle[]): { value: number; priced: num
  * Counts by a field, biggest first; the tail beyond `top` is folded into "אחר".
  * Bottles with the field empty are left out: "unknown" says nothing about the cellar.
  */
+/** The folded tail's label; the page shows it translated. */
+export const OTHER_LABEL = "אחר";
+
 export function breakdown(bottles: StatBottle[], field: "type" | "country" | "grape", top = 6): Slice[] {
   const counts = new Map<string, number>();
   for (const b of bottles.filter(inCellar)) {
@@ -54,7 +57,7 @@ export function breakdown(bottles: StatBottle[], field: "type" | "country" | "gr
   const sorted = [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
   if (sorted.length <= top) return sorted;
   const rest = sorted.slice(top - 1).reduce((s, x) => s + x.count, 0);
-  return [...sorted.slice(0, top - 1), { label: "אחר", count: rest }];
+  return [...sorted.slice(0, top - 1), { label: OTHER_LABEL, count: rest }];
 }
 
 export function byDrinkState(bottles: StatBottle[], year: number): { state: DrinkState; count: number }[] {
