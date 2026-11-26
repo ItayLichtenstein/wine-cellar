@@ -305,7 +305,7 @@ export const en: Dictionary = {
     sample: "A sample fridge to practice on, nothing here is saved",
     aiTitle: "Wine advice comes from your own AI",
     aiText: "The app keeps track of what you have and where. To know when to open each bottle and get recommendations, connect the AI you already use, like Claude or ChatGPT",
-    aiWhere: "Connect it in \"More\", under \"Your AI\"",
+    aiWhere: "Details and setup in \"More\" → \"Your AI\"",
   },
   language: {
     he: "עברית",
