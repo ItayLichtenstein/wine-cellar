@@ -1,15 +1,12 @@
 "use client";
 
+import { useLocale, useT } from "@/i18n/provider";
+import { intlTag } from "@/i18n/locales";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ConnectedAi } from "@/lib/ai-grants";
 import { createClient } from "@/lib/supabase/client";
 
-const dateFormat = new Intl.DateTimeFormat("he-IL", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
 
 /**
  * AI assistants the user approved on the consent screen. Disconnecting
@@ -17,6 +14,8 @@ const dateFormat = new Intl.DateTimeFormat("he-IL", {
  */
 export function ConnectedAis({ ais }: { ais: ConnectedAi[] }) {
   const router = useRouter();
+  const a = useT().ai;
+  const dateFormat = new Intl.DateTimeFormat(intlTag(useLocale()), { day: "numeric", month: "long", year: "numeric" });
   const [failed, setFailed] = useState(false);
 
   async function disconnect(clientId: string) {
@@ -35,15 +34,15 @@ export function ConnectedAis({ ais }: { ais: ConnectedAi[] }) {
               <span dir="auto" className="font-medium">
                 {g.name}
               </span>
-              <span className="text-xs text-muted">מחובר מ־{dateFormat.format(new Date(g.since))} · רואה את המרתף ומציע בקבוקים</span>
+              <span className="text-xs text-muted">{a.connectedSince(dateFormat.format(new Date(g.since)))}</span>
             </span>
             <button type="button" onClick={() => disconnect(g.clientId)} className="text-sm text-muted underline underline-offset-2">
-              ניתוק
+              {a.disconnect}
             </button>
           </li>
         ))}
       </ul>
-      {failed && <p className="text-sm text-red-700 dark:text-red-400">הניתוק לא הצליח, נסו שוב</p>}
+      {failed && <p className="text-sm text-red-700 dark:text-red-400">{a.disconnectFailed}</p>}
     </>
   );
 }

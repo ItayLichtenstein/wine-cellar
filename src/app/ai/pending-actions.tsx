@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/provider";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FoundBottle, ResolvedPlace } from "@/lib/draft-places";
@@ -26,6 +27,7 @@ const today = () => new Date().toLocaleDateString("en-CA");
  */
 export function PendingActions({ actions }: { actions: PendingAction[] }) {
   const router = useRouter();
+  const ai = useT().ai;
   const [busy, setBusy] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
 
@@ -74,7 +76,7 @@ export function PendingActions({ actions }: { actions: PendingAction[] }) {
   if (actions.length === 0) return null;
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-lg font-semibold">הצעות לבקבוקים שבמרתף ({actions.length})</h2>
+      <h2 className="text-lg font-semibold">{ai.actionsTitle(actions.length)}</h2>
       <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
         {actions.map((p) => {
           const a = p.action;
@@ -83,20 +85,20 @@ export function PendingActions({ actions }: { actions: PendingAction[] }) {
               {a.winery} – {a.name} <span className="text-muted">{a.year ?? "NV"}</span>
             </span>
           );
-          const problem = !p.bottle ? "לא מצאנו את הבקבוק הזה במרתף" : a.kind === "move" && !p.target ? "המקום החדש לא קיים או תפוס" : null;
+          const problem = !p.bottle ? ai.noBottle : a.kind === "move" && !p.target ? ai.badTarget : null;
           return (
             <li key={p.id} className="flex flex-col gap-2 px-4 py-3">
               <span>
-                {a.kind === "drink" ? "🍷 שתיתם את " : "↔️ להזיז את "}
+                {a.kind === "drink" ? ai.drankIt : ai.moveIt}
                 {wine}
               </span>
               <span className="text-xs text-muted">
                 {[
                   p.bottle?.where,
-                  a.kind === "move" ? `אל ${p.targetText}` : "",
-                  a.kind === "drink" && a.score !== null ? `ציון ${formatScore(a.score)}` : "",
+                  a.kind === "move" ? ai.to(p.targetText) : "",
+                  a.kind === "drink" && a.score !== null ? ai.score(formatScore(a.score)) : "",
                   a.kind === "drink" && a.date ? a.date : "",
-                  "מה־AI המחובר",
+                  ai.fromConnected,
                 ]
                   .filter(Boolean)
                   .join(" · ")}
@@ -109,7 +111,7 @@ export function PendingActions({ actions }: { actions: PendingAction[] }) {
               {problem && <span className="text-sm text-red-700 dark:text-red-400">{problem}</span>}
               {failed === p.id && (
                 <span role="alert" className="text-sm text-red-700 dark:text-red-400">
-                  לא הצליח, אולי הבקבוק או המקום השתנו בינתיים
+                  {ai.actionFailed}
                 </span>
               )}
               <div className="flex flex-wrap items-center gap-4 text-sm">
@@ -120,11 +122,11 @@ export function PendingActions({ actions }: { actions: PendingAction[] }) {
                     disabled={busy === p.id}
                     className="rounded-full bg-accent px-4 py-1.5 font-medium text-white disabled:opacity-60 dark:text-black"
                   >
-                    {busy === p.id ? "רגע…" : a.kind === "drink" ? "כן, שתינו" : "כן, להזיז"}
+                    {busy === p.id ? ai.wait : a.kind === "drink" ? ai.yesDrank : ai.yesMove}
                   </button>
                 )}
                 <button type="button" onClick={() => reject(p.id)} className="text-muted underline underline-offset-2">
-                  לדחות
+                  {ai.reject}
                 </button>
               </div>
             </li>
