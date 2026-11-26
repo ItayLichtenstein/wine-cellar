@@ -28,15 +28,19 @@ export function drinkState(w: DrinkWindow, year: number): DrinkState {
   return "hold";
 }
 
-/** Badge colors. Digits are always black on the colored square (spec). */
+/**
+ * Badge colors: soft, and green grows stronger as the peak gets closer
+ * (chosen 26 Nov 2026 after testers found the old saturated set loud; no
+ * red/orange, which read as an error). Digits are always black (spec).
+ */
 export const DRINK_STATES: Record<DrinkState, { label: string; color: string }> = {
-  past:  { label: "עבר את השיא",              color: "#f2a23c" }, // orange
-  now:   { label: "בשיא",                       color: "#2e9e4a" }, // dark green
-  soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#7bd877" }, // light green
-  hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#4fc3d4" }, // turquoise
-  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#9db4cc" }, // blue-grey: visible on the light bottle
-  young: { label: "עוד לא בשיא",              color: "#8f8885" }, // dark grey
-  none:  { label: "בלי חלון שתייה",            color: "#e8e1da" }, // neutral
+  past:  { label: "עבר את השיא",              color: "#CDBFB4" }, // faded taupe
+  now:   { label: "בשיא",                       color: "#7FC28E" }, // strongest green
+  soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#AEDBA9" }, // mid green
+  hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#D3EBC6" }, // pale green
+  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#C6D5E5" }, // mist blue
+  young: { label: "עוד לא בשיא",              color: "#AAB5C3" }, // slate
+  none:  { label: "בלי חלון שתייה",            color: "#E6E1DA" }, // neutral
 };
 
 /** Order for legends and for "what to drink now" (most urgent first). */

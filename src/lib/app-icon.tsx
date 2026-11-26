@@ -1,9 +1,11 @@
 import { ImageResponse } from "next/og";
+import { DRINK_STATES } from "@/lib/drink-state";
 
 /**
  * The app icon, drawn in code (no image files to keep in sync): the
  * burgundy of the theme, and three bottles seen from the front, piled,
- * each with a year badge in one of the app's drink-window colors.
+ * each with a year badge in one of the app's drink-window colors
+ * (read from DRINK_STATES, so the icon follows a palette change).
  * `padding` leaves the safe zone Android needs for maskable icons.
  */
 export function appIcon(size: number, padding = 0.12): ImageResponse {
@@ -22,7 +24,7 @@ export function appIcon(size: number, padding = 0.12): ImageResponse {
         boxShadow: `0 ${size * 0.012}px ${size * 0.03}px rgba(0,0,0,0.4)`,
       }}
     >
-      <div style={{ width: d * 0.46, height: d * 0.28, borderRadius: d * 0.06, background: badge }} />
+      <div style={{ width: d * 0.46, height: d * 0.28, borderRadius: d * 0.06, background: badge, border: `${Math.max(1, d * 0.02)}px solid rgba(0,0,0,0.25)` }} />
     </div>
   );
   // A little pile: one bottle resting on two, like a pile shelf in the app.
@@ -30,10 +32,10 @@ export function appIcon(size: number, padding = 0.12): ImageResponse {
     (
       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#3a0f17" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          {bottle("#2e9e4a")}
+          {bottle(DRINK_STATES.now.color)}
           <div style={{ display: "flex", gap: d * 0.06, marginTop: -d * 0.12 }}>
-            {bottle("#4fc3d4")}
-            {bottle("#f2a23c")}
+            {bottle(DRINK_STATES.soon.color)}
+            {bottle(DRINK_STATES.young.color)}
           </div>
         </div>
       </div>

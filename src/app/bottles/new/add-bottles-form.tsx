@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
@@ -41,9 +42,12 @@ export function AddBottlesForm({
   wines,
   initialPlace,
   prefill,
+  aiConnected = true,
 }: {
   fridges: FridgeView[];
   wines: { winery: string; name: string }[];
+  /** No AI yet: after saving, say what a connected AI adds (instead of going straight home). */
+  aiConnected?: boolean;
   /** An empty slot tapped on the home page: start with it already picked. */
   initialPlace?: Place;
   /**
@@ -71,6 +75,7 @@ export function AddBottlesForm({
   const [picked, setPicked] = useState<Place[]>(prefill?.places?.length ? prefill.places : initialPlace ? [initialPlace] : []);
   const [extra, setExtra] = useState({ ...EMPTY_EXTRA, ...prefill?.extra });
   const [saving, setSaving] = useState(false);
+  const [savedNoAi, setSavedNoAi] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Autocomplete: wineries in the cellar, and names for the chosen winery.
@@ -167,8 +172,29 @@ export function AddBottlesForm({
     if (prefill?.draftId) {
       await supabase.from("drafts").update({ status: "approved", decided_at: new Date().toISOString() }).eq("id", prefill.draftId);
     }
+    if (!aiConnected) {
+      setSavedNoAi(true);
+      return;
+    }
     router.push("/");
     router.refresh();
+  }
+
+  if (savedNoAi) {
+    return (
+      <section className="flex flex-col items-center gap-4 py-8 text-center">
+        <h2 className="text-2xl font-bold">{t.bottleForm.savedTitle} 🍷</h2>
+        <p className="text-muted">{t.bottleForm.savedAiHint}</p>
+        <div className="flex w-full flex-col gap-2">
+          <Link href="/ai" className="rounded-full bg-accent px-4 py-3 font-medium text-white dark:text-black">
+            {t.bottleForm.savedConnect}
+          </Link>
+          <Link href="/" onClick={() => router.refresh()} className="rounded-full border border-muted/40 px-4 py-3">
+            {t.bottleForm.savedToFridge}
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   const leftOver = destination === "fridge" ? quantity - picked.length : 0;

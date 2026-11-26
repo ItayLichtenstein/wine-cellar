@@ -29,6 +29,7 @@ type Step = { emoji: string; title: string; text: string; demo?: React.ReactNode
  * Nothing in the demos is saved.
  */
 export function GuideTour() {
+  const t = useT();
   const steps: Step[] = [
     {
       emoji: "🍷",
@@ -67,6 +68,11 @@ export function GuideTour() {
       demo: <MoveDemo />,
     },
     {
+      emoji: "🤖",
+      title: t.guide.aiTitle,
+      text: `${t.guide.aiText}. ${t.guide.aiWhere}`,
+    },
+    {
       emoji: "✨",
       title: "ועוד כמה דברים",
       text: "ועוד כמה דברים",
@@ -80,7 +86,6 @@ export function GuideTour() {
     },
   ];
 
-  const t = useT();
   const [i, setI] = useState(0);
   const step = steps[i];
   const last = i === steps.length - 1;

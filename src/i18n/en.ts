@@ -180,6 +180,10 @@ export const en: Dictionary = {
     },
   },
   bottleForm: {
+    savedTitle: "Saved",
+    savedAiHint: "Want to know the best time to open it? Connect your AI, and it will fill in the drinking window and make recommendations",
+    savedConnect: "Connect your AI",
+    savedToFridge: "Back to the fridge",
     winery: "Winery",
     name: "Name",
     wineName: "Wine name",
@@ -299,6 +303,9 @@ export const en: Dictionary = {
   },
   guide: {
     sample: "A sample fridge to practice on, nothing here is saved",
+    aiTitle: "Wine advice comes from your own AI",
+    aiText: "The app keeps track of what you have and where. To know when to open each bottle and get recommendations, connect the AI you already use, like Claude or ChatGPT",
+    aiWhere: "Connect it in \"More\", under \"Your AI\"",
   },
   language: {
     he: "עברית",

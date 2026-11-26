@@ -263,7 +263,7 @@ function WineLabel({ text, className = "" }: { text: string; className?: string 
 function YearBadge({ bottle }: { bottle: PlacedBottle }) {
   return (
     <span
-      className="rounded-sm px-0.5 text-[10px] font-bold leading-4 text-black tabular-nums"
+      className="rounded-sm px-0.5 text-[10px] font-bold leading-4 text-black tabular-nums ring-1 ring-black/20"
       style={{ backgroundColor: DRINK_STATES[bottle.state].color }}
     >
       {bottle.year ? String(bottle.year).slice(-2) : "NV"}
