@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Locale } from "@/i18n/locales";
+import { whereLabel } from "./where";
 import type { Database } from "@/lib/database.types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -145,7 +147,7 @@ export async function getLooseBottles(cellarId: string): Promise<LooseBottle[]> 
 }
 
 /** Every bottle still in the cellar (stored, outside the fridge, on its way), for the list page. */
-export async function getCellarBottles(cellarId: string, db?: Db): Promise<import("./bottle-list").ListBottle[]> {
+export async function getCellarBottles(cellarId: string, db?: Db, locale: Locale = "he"): Promise<import("./bottle-list").ListBottle[]> {
   const supabase = db ?? (await createClient());
   const { data, error } = await supabase
     .from("bottles")
@@ -157,7 +159,6 @@ export async function getCellarBottles(cellarId: string, db?: Db): Promise<impor
   if (error) throw new Error("Could not load bottles");
 
   const year = new Date().getFullYear();
-  const WHERE = { unplaced: "מחוץ למקרר", in_transit: "בדרך אלינו" } as const;
 
   return data.flatMap((b) => {
     const v = b.wine_vintages;
@@ -183,7 +184,7 @@ export async function getCellarBottles(cellarId: string, db?: Db): Promise<impor
         state: drinkState({ drinkFrom: v.drink_from, drinkTo: v.drink_to, peakFrom: v.peak_from, peakTo: v.peak_to }, year),
         drinkBy: v.peak_to ?? v.drink_to,
         price: price?.regular ?? price?.paid ?? null,
-        where: status === "stored" ? (shelf ? `מדף ${shelf.position}` : "במקרר") : WHERE[status],
+        where: whereLabel(status, shelf?.position, locale),
       },
     ];
   });

@@ -1,4 +1,6 @@
 import type { ListBottle } from "./bottle-list";
+import type { Locale } from "@/i18n/locales";
+import { whereLabel } from "./where";
 import type { CriticScore } from "./wine-extra";
 import { drinkState } from "./drink-state";
 import type { ZoneKind } from "./fridge-layout";
@@ -62,13 +64,11 @@ export type SharedCellar = {
   bottles: SharedBottle[];
 };
 
-const WHERE = { unplaced: "מחוץ למקרר", in_transit: "בדרך אלינו" } as const;
-
 /**
  * The guest's JSON → the same shapes the app's own loaders return, so the
  * guest page reuses the fridge and list components. Pure, so it is tested.
  */
-export function fromSharedCellar(json: SharedCellarJson, year: number): SharedCellar {
+export function fromSharedCellar(json: SharedCellarJson, year: number, locale: Locale = "he"): SharedCellar {
   const placed = new Map<string, PlacedBottle[]>();
   const loose: LooseBottle[] = [];
   const bottles: SharedBottle[] = [];
@@ -98,7 +98,7 @@ export function fromSharedCellar(json: SharedCellarJson, year: number): SharedCe
       state,
       drinkBy: b.peak_to ?? b.drink_to,
       price: b.price,
-      where: b.status === "stored" ? (b.shelf ? `מדף ${b.shelf}` : "במקרר") : WHERE[b.status],
+      where: whereLabel(b.status, b.shelf, locale),
       grape: b.grape ?? "",
       region: b.region ?? "",
       alcohol: b.alcohol ?? null,
