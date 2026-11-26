@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ListBottle, ListRow } from "../bottle-list";
-import { formatHistory, formatRows } from "./format";
+import { formatHistory, formatRows, formatWineDetails } from "./format";
 
 const bottle = (over: Partial<ListBottle> = {}): ListBottle => ({
   id: "b", status: "stored", vintageId: "v", winery: "Yatir", name: "Forest", type: "red", year: 2019,
@@ -35,5 +35,18 @@ describe("formatHistory", () => {
   it("date, wine, place and notes", () => {
     const h = [{ id: "t", tastedOn: "2026-01-02", wineId: "w", title: "Yatir – Forest", year: 2019, place: "מסעדה", notes: "great", score: 4.5 }];
     expect(formatHistory(h, 10)).toBe("- 2026-01-02: Yatir – Forest 2019 (מסעדה) · rated 4.5/5 – great");
+  });
+});
+
+describe("formatWineDetails", () => {
+  const h = [{ id: "t", tastedOn: "2026-01-02", wineId: "w", title: "Yatir – Forest", year: 2018, place: "", notes: "great", score: 4.5 }];
+  it("the cellar's vintages and the history of the same wine", () => {
+    const out = formatWineDetails([row(2)], h, "forest");
+    expect(out).toContain("In the cellar:");
+    expect(out).toContain("Drunk before:");
+    expect(out).toContain("great");
+  });
+  it("says so when nothing matches", () => {
+    expect(formatWineDetails([], h, "barolo")).toContain("Nothing in the cellar");
   });
 });

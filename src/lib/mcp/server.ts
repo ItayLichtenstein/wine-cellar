@@ -6,7 +6,7 @@ import { describeFridges } from "../draft-places";
 import { getCellarBottles, getFridges, getHistory, type Db } from "../fridges";
 import { tasteProfile } from "../stats";
 import { getStatsData } from "../stats-data";
-import { formatHistory, formatRows } from "./format";
+import { formatHistory, formatRows, formatWineDetails } from "./format";
 
 /**
  * The MCP server (stage 7, ADR 0001). A thin client of the same service
@@ -21,7 +21,7 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
     {
       instructions: [
         "This is the user's home wine cellar (Hebrew-first app; wine names are usually in their original language).",
-        "Use search_cellar to see what they have, what_to_drink for a recommendation, history for what they drank.",
+        "Use search_cellar to see what they have, wine_details for everything about one wine, what_to_drink for a recommendation, history for what they drank.",
         "To add bottles (from a label photo, a receipt, or the user's words) call suggest_bottles. It only creates",
         "drafts; the user approves them on the site (one by one, or all at once). Never claim a bottle was added – say it awaits approval.",
         "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot) –",
@@ -86,6 +86,22 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
           "For a specific occasion, also call search_cellar (e.g. by type) to see everything that fits.",
         ].join("\n"),
       );
+    },
+  );
+
+  server.registerTool(
+    "wine_details",
+    {
+      title: "Wine details",
+      description:
+        "Everything about one wine (or a few): every vintage in the cellar with where each bottle is, readiness and price, plus when the household drank it, their notes and rating.",
+      inputSchema: { query: z.string().min(2).max(100).describe("Winery and/or wine name, e.g. 'Yatir Forest'") },
+      annotations: read,
+    },
+    async ({ query }) => {
+      const [bottles, history] = await Promise.all([getCellarBottles(cellarId, db), getHistory(cellarId, db)]);
+      const rows = buildRows(bottles, { ...EMPTY_FILTERS, text: query }, "year");
+      return text(formatWineDetails(rows, history, query));
     },
   );
 
