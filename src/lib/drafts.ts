@@ -3,6 +3,9 @@
 // Written to be forgiving of weaker models: loose field names, numbers as
 // strings, Hebrew type names, and error messages that say how to fix it.
 
+import { dictionaries } from "@/i18n/dictionaries";
+import type { Locale } from "@/i18n/locales";
+
 export const DRAFT_TYPES = ["red", "white", "rose", "orange", "sparkling", "dessert", "fortified", "other"] as const;
 export type DraftWineType = (typeof DRAFT_TYPES)[number];
 
@@ -118,18 +121,19 @@ export function parsePlace(input: unknown): DraftPlace[] {
  * Finds the JSON in an AI's free-text answer (it may add prose or a ```json
  * fence) and parses every bottle. Returns the good ones and why others failed.
  */
-export function parseAiAnswer(answer: string, thisYear: number): { drafts: BottleDraft[]; errors: string[] } {
+export function parseAiAnswer(answer: string, thisYear: number, locale: Locale = "he"): { drafts: BottleDraft[]; errors: string[] } {
+  const a = dictionaries[locale].ai;
   const start = answer.search(/[[{]/);
   const end = Math.max(answer.lastIndexOf("]"), answer.lastIndexOf("}"));
-  if (start === -1 || end < start) return { drafts: [], errors: ["לא מצאנו בתשובה רשימה של בקבוקים (JSON)"] };
+  if (start === -1 || end < start) return { drafts: [], errors: [a.parseNoJson] };
   let data: unknown;
   try {
     data = JSON.parse(answer.slice(start, end + 1));
   } catch {
-    return { drafts: [], errors: ["התשובה לא בפורמט JSON תקין, בקשו מה־AI להחזיר רק את הרשימה"] };
+    return { drafts: [], errors: [a.parseBadJson] };
   }
   const items = Array.isArray(data) ? data : typeof data === "object" && data && "bottles" in data ? (data as { bottles: unknown }).bottles : [data];
-  if (!Array.isArray(items) || items.length === 0) return { drafts: [], errors: ["הרשימה ריקה"] };
+  if (!Array.isArray(items) || items.length === 0) return { drafts: [], errors: [a.parseEmpty] };
 
   const drafts: BottleDraft[] = [];
   const errors: string[] = [];
@@ -138,9 +142,9 @@ export function parseAiAnswer(answer: string, thisYear: number): { drafts: Bottl
     if (r.ok) drafts.push(r.draft);
     // The reason stays in English on purpose: it is written for the AI, and
     // the user can paste it back so the AI fixes its answer.
-    else errors.push(`בקבוק ${i + 1} לא נקלט, אפשר להעביר ל־AI את השגיאה ${r.error}`);
+    else errors.push(a.parseBottle(i + 1, r.error));
   });
-  if (items.length > 30) errors.push("נלקחו רק 30 היינות הראשונים");
+  if (items.length > 30) errors.push(a.parseOnly30);
   return { drafts, errors };
 }
 

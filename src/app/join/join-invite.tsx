@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/provider";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -16,6 +17,7 @@ type State = "loading" | "no-token" | "signed-out" | "ready" | "has-data" | "joi
  * trip, and is removed from the address bar right away.
  */
 export function JoinInvite() {
+  const j = useT().join;
   const [state, setState] = useState<State>("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -47,27 +49,27 @@ export function JoinInvite() {
     setState("ready");
     if (rpcError.code === "P0002") {
       forget();
-      setError("הקישור כבר לא תקף, כי כבר השתמשו בו או שעברו 7 ימים. בקשו קישור חדש");
+      setError(j.usedUp);
     } else if (rpcError.code === "23505") {
       forget();
-      setError("את/ה כבר במרתף הזה");
+      setError(j.already);
     } else if (rpcError.hint === "has_data") {
       setState("has-data"); // ask first: the old cellar will be merged and deleted
     } else if (rpcError.hint === "last_member") {
-      setError("קודם צריך להפוך עוד מישהו במרתף הנוכחי לשותף");
+      setError(j.lastMember);
     } else {
-      setError("ההצטרפות לא הצליחה, נסו שוב");
+      setError(j.failed);
     }
   }
 
-  if (state === "loading") return <p className="text-muted">רגע…</p>;
-  if (state === "no-token") return <p className="text-muted">הקישור לא שלם, בקשו מבן/בת הבית קישור חדש</p>;
+  if (state === "loading") return <p className="text-muted">{j.wait}</p>;
+  if (state === "no-token") return <p className="text-muted">{j.noToken}</p>;
   if (state === "signed-out") {
     return (
       <>
-        <p className="text-muted">כדי להצטרף צריך קודם להתחבר</p>
+        <p className="text-muted">{j.signInFirst}</p>
         <Link href="/login?next=/join" className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
-          התחברות
+          {j.signIn}
         </Link>
       </>
     );
@@ -76,18 +78,18 @@ export function JoinInvite() {
     return (
       <>
         <div className="rounded-xl bg-amber-50 p-4 text-start text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
-          <p className="mb-2 font-semibold">כבר יש לך בקבוקים במרתף משלך</p>
+          <p className="mb-2 font-semibold">{j.haveBottles}</p>
           <ul className="list-disc space-y-1 ps-5">
-            <li>הבקבוקים, ההיסטוריה והציונים שלך יעברו למרתף המשותף</li>
-            <li>בקבוקים שהיו במקרר שלך יופיעו ב״מחוץ למקרר״, ואפשר לשבץ אותם מחדש</li>
-            <li>המקררים שלך ותמונות התוויות לא עוברים, והמרתף הישן יימחק</li>
+            <li>{j.moveBottles}</li>
+            <li>{j.moveOutside}</li>
+            <li>{j.notMoved}</li>
           </ul>
         </div>
         <button type="button" onClick={() => join(true)} className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
-          להצטרף עם הבקבוקים שלי
+          {j.joinWithBottles}
         </button>
         <Link href="/" className="text-sm text-muted underline underline-offset-2">
-          לא עכשיו
+          {j.notNow}
         </Link>
       </>
     );
@@ -96,8 +98,8 @@ export function JoinInvite() {
   return (
     <>
       <p className="text-muted">
-        <span className="inline-block">כל הבקבוקים, ההיסטוריה והציונים יהיו משותפים,</span>{" "}
-        <span className="inline-block">וכל שינוי יופיע אצל כולם</span>
+        <span className="inline-block">{j.shared[0]}</span>{" "}
+        <span className="inline-block">{j.shared[1]}</span>
       </p>
       <button
         type="button"
@@ -105,7 +107,7 @@ export function JoinInvite() {
         disabled={state === "joining"}
         className="rounded-full bg-accent px-5 py-3 font-medium text-white disabled:opacity-60 dark:text-black"
       >
-        {state === "joining" ? "מצטרף…" : "הצטרפות למרתף"}
+        {state === "joining" ? j.joining : j.join}
       </button>
       {error && (
         <p role="alert" className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">

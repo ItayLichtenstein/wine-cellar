@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useT } from "@/i18n/provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -24,6 +25,8 @@ const field = "rounded-lg border border-muted/40 bg-surface px-3 py-2 text-base"
  */
 export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]; cellarId: string; layout: string }) {
   const router = useRouter();
+  const locale = useLocale();
+  const a = useT().ai;
   const [task, setTask] = useState<"add" | "drink">("add");
   const [extra, setExtra] = useState("");
   const [copied, setCopied] = useState(false);
@@ -44,7 +47,7 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
   }
 
   async function importAnswer() {
-    const { drafts: parsed, errors } = parseAiAnswer(answer, new Date().getFullYear());
+    const { drafts: parsed, errors } = parseAiAnswer(answer, new Date().getFullYear(), locale);
     if (parsed.length === 0) return setResult({ added: 0, errors });
     setBusy(true);
     const { error } = await createClient()
@@ -61,7 +64,7 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
     if (error)
       return setResult({
         added: 0,
-        errors: [error.hint === "too_many_drafts" ? "יש כבר 50 טיוטות שמחכות, אשרו או דחו אותן קודם" : "השמירה לא הצליחה, נסו שוב"],
+        errors: [error.hint === "too_many_drafts" ? a.tooManyDrafts : a.saveFailed],
       });
     setAnswer("");
     setResult({ added: parsed.length, errors });
@@ -73,8 +76,8 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
       <summary className="cursor-pointer list-none rounded-xl border border-muted/30 px-4 py-3">
         <span className="flex items-center justify-between gap-2">
           <span className="flex flex-col">
-            <span className="font-medium">בלי חיבור, בהעתקה ידנית לכל צ׳אט</span>
-            <span className="text-xs text-muted">לכל צ׳אט אחר, למשל Gemini או ChatGPT החינמי</span>
+            <span className="font-medium">{a.manualTitle}</span>
+            <span className="text-xs text-muted">{a.manualWho}</span>
           </span>
           <span className="text-muted transition-transform group-open:rotate-180" aria-hidden="true">
             ⌄
@@ -82,18 +85,19 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
         </span>
       </summary>
       <p className="mt-3 text-sm text-muted">
-        <span className="inline-block">כאן ה־AI לא מחובר למרתף, אז האתר מכין בשבילו הודעה</span>{" "}
-        <span className="inline-block">עם רשימת הבקבוקים שלכם והוראות מדויקות.</span>{" "}
-        <span className="inline-block">מדביקים אותה בצ׳אט, ואם ביקשתם להוסיף בקבוקים,</span>{" "}
-        <span className="inline-block">מעתיקים לכאן את התשובה והיא הופכת לטיוטות</span>
+        {a.manualIntro.map((part, i) => (
+          <span key={i} className="inline-block">
+            {part}&nbsp;
+          </span>
+        ))}
       </p>
       <section className="mt-3 flex flex-col gap-3 rounded-xl bg-surface p-4 shadow-sm">
-        <h2 className="font-semibold">1. העתקת ההודעה לצ׳אט</h2>
-        <div className="flex gap-2" role="radiogroup" aria-label="מה לבקש">
+        <h2 className="font-semibold">{a.step1}</h2>
+        <div className="flex gap-2" role="radiogroup" aria-label={a.whatToAsk}>
           {(
             [
-              ["add", "זיהוי בקבוקים מתמונה"],
-              ["drink", "מה לשתות הערב"],
+              ["add", a.taskAdd],
+              ["drink", a.taskDrink],
             ] as const
           ).map(([v, label]) => (
             <button
@@ -119,34 +123,34 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
           }}
           dir="auto"
           maxLength={200}
-          placeholder={task === "drink" ? "האירוע (למשל ארוחה איטלקית עם חברים)" : "פרטים נוספים (למשל קניתי ב־120 ₪ כל אחד)"}
+          placeholder={task === "drink" ? a.extraDrink : a.extraAdd}
           className={field}
         />
         <button type="button" onClick={copy} className="self-start rounded-full bg-accent px-4 py-2 font-medium text-white dark:text-black">
-          {copied ? "הועתק ✓" : "העתקת הבקשה"}
+          {copied ? a.copied : a.copyRequest}
         </button>
         <p className="text-sm text-muted">
           {task === "add" ? (
             <>
-              <span className="inline-block">הדביקו בצ׳אט עם ה־AI שלכם, צרפו תמונה של התוויות או הקבלה,</span>{" "}
-              <span className="inline-block">והעתיקו לכאן את התשובה</span>
+              <span className="inline-block">{a.pasteAdd[0]}</span>{" "}
+              <span className="inline-block">{a.pasteAdd[1]}</span>
             </>
           ) : (
-            <span className="inline-block">הדביקו בצ׳אט עם ה־AI שלכם, וההמלצה תחכה לכם שם</span>
+            <span className="inline-block">{a.pasteDrink}</span>
           )}
         </p>
       </section>
 
       {task === "add" && (
         <section className="mt-3 flex flex-col gap-3 rounded-xl bg-surface p-4 shadow-sm">
-          <h2 className="font-semibold">2. הדבקת התשובה כאן</h2>
+          <h2 className="font-semibold">{a.step2}</h2>
           <textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             dir="auto"
             rows={5}
             maxLength={20000}
-            placeholder="התשובה של ה־AI"
+            placeholder={a.answerPlaceholder}
             className={`${field} font-mono text-sm`}
           />
           <button
@@ -155,12 +159,12 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
             disabled={busy || !answer.trim()}
             className="self-start rounded-full bg-accent px-4 py-2 font-medium text-white disabled:opacity-50 dark:text-black"
           >
-            יצירת טיוטות
+            {a.makeDrafts}
           </button>
           {result && (
             <div className="text-sm" role="status">
               {result.added > 0 && (
-                <p>{result.added === 1 ? "נוספה טיוטה אחת" : `נוספו ${result.added} טיוטות`}, אפשר לבדוק ולאשר ב״מחכים לאישור״ למעלה</p>
+                <p>{a.draftsAdded(result.added)}</p>
               )}
               {result.errors.map((e) => (
                 <p key={e} className="text-red-700 dark:text-red-400" dir="auto">
@@ -178,6 +182,7 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
 /** Bottles an AI suggested (connected or pasted), waiting for a person. */
 export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDraft[]; fridges: FridgeView[]; cellarId: string }) {
   const router = useRouter();
+  const a = useT().ai;
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<ApproveResult | null>(null);
   const bottleCount = drafts.reduce((n, d) => n + d.draft.quantity, 0);
@@ -199,15 +204,15 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
       <section className="flex flex-col gap-2">
         {done && (
           <p role="status" className="rounded-lg bg-accent/15 px-4 py-2 text-sm">
-            <span className="inline-block">נוספו {done.bottles} בקבוקים</span>
-            {done.placed > 0 && <span className="inline-block">, {done.placed} מהם במקום שלהם במקרר</span>}
-            {done.bottles - done.placed > 0 && <span className="inline-block">, {done.bottles - done.placed} מחוץ למקרר (אפשר לשבץ מהמסך הראשי)</span>}
-            {done.failed > 0 && <span className="inline-block">. {done.failed} לא נשמרו ועדיין מחכים כאן</span>}
+            <span className="inline-block">{a.addedBottles(done.bottles)}</span>
+            {done.placed > 0 && <span className="inline-block">{a.placedOf(done.placed)}</span>}
+            {done.bottles - done.placed > 0 && <span className="inline-block">{a.outside(done.bottles - done.placed)}</span>}
+            {done.failed > 0 && <span className="inline-block">{a.notSaved(done.failed)}</span>}
           </p>
         )}
         {drafts.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold">מחכים לאישור ({drafts.length})</h2>
+            <h2 className="text-lg font-semibold">{a.waiting(drafts.length)}</h2>
             {drafts.length > 1 && (
               <button
                 type="button"
@@ -215,7 +220,7 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
                 disabled={busy}
                 className="rounded-full bg-accent px-4 py-1.5 text-sm font-medium text-white disabled:opacity-60 dark:text-black"
               >
-                {busy ? "מוסיף…" : `לאשר הכול (${bottleCount} בקבוקים)`}
+                {busy ? a.adding : a.approveAll(bottleCount)}
               </button>
             )}
           </div>
@@ -241,7 +246,7 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
                   d.grape,
                   d.country,
                   d.price ? `₪${d.price}` : "",
-                  source === "mcp" ? "מה־AI המחובר" : "מתשובה שהודבקה",
+                  source === "mcp" ? a.fromConnected : a.fromPasted,
                 ]
                   .filter(Boolean)
                   .join(" · ")}
@@ -251,10 +256,10 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
                   href={`/bottles/new?draft=${id}`}
                   className="rounded-full bg-accent px-4 py-1.5 font-medium text-white dark:text-black"
                 >
-                  לבדוק ולהוסיף
+                  {a.review}
                 </Link>
                 <button type="button" onClick={() => reject(id)} className="text-muted underline underline-offset-2">
-                  לדחות
+                  {a.reject}
                 </button>
               </div>
             </li>
