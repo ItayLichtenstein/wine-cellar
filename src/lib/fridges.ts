@@ -38,8 +38,8 @@ export type FridgeView = {
  * The fridges of a cellar: layout plus the bottles in it. The cellar filter
  * says which cellar we want; RLS says whether we may (ADR 0008).
  */
-export async function getFridges(cellarId: string): Promise<FridgeView[]> {
-  const supabase = await createClient();
+export async function getFridges(cellarId: string, db?: Db): Promise<FridgeView[]> {
+  const supabase = db ?? (await createClient());
 
   const [fridgesRes, bottlesRes] = await Promise.all([
     supabase

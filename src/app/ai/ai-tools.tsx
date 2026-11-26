@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { buildPrompt, parseAiAnswer, type BottleDraft, type CellarLine } from "@/lib/drafts";
+import { placesSummary } from "@/lib/draft-places";
+import type { FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/client";
+import { approveAll, type ApproveResult } from "./approve-all";
 
 export type PendingDraft = {
   id: string;
@@ -19,7 +22,7 @@ const field = "rounded-lg border border-muted/40 bg-surface px-3 py-2 text-base"
  * plus instructions, paste the answer back, and every suggested bottle
  * becomes a draft that waits for a person to approve it.
  */
-export function ManualTools({ cellar, cellarId }: { cellar: CellarLine[]; cellarId: string }) {
+export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]; cellarId: string; layout: string }) {
   const router = useRouter();
   const [task, setTask] = useState<"add" | "drink">("add");
   const [extra, setExtra] = useState("");
@@ -33,7 +36,7 @@ export function ManualTools({ cellar, cellarId }: { cellar: CellarLine[]; cellar
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(buildPrompt(task, cellar, extra.trim()));
+      await navigator.clipboard.writeText(buildPrompt(task, cellar, extra.trim(), layout));
       setCopied(true);
     } catch {
       setCopied(false);
@@ -173,8 +176,18 @@ export function ManualTools({ cellar, cellarId }: { cellar: CellarLine[]; cellar
 }
 
 /** Bottles an AI suggested (connected or pasted), waiting for a person. */
-export function PendingDrafts({ drafts }: { drafts: PendingDraft[] }) {
+export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDraft[]; fridges: FridgeView[]; cellarId: string }) {
   const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<ApproveResult | null>(null);
+  const bottleCount = drafts.reduce((n, d) => n + d.draft.quantity, 0);
+
+  async function approveEverything() {
+    setBusy(true);
+    setDone(await approveAll(cellarId, fridges, drafts));
+    setBusy(false);
+    router.refresh();
+  }
 
   async function reject(id: string) {
     await createClient().from("drafts").update({ status: "rejected", decided_at: new Date().toISOString() }).eq("id", id);
@@ -182,9 +195,31 @@ export function PendingDrafts({ drafts }: { drafts: PendingDraft[] }) {
   }
 
   return (
-    drafts.length > 0 && (
+    (drafts.length > 0 || done) && (
       <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold">מחכים לאישור ({drafts.length})</h2>
+        {done && (
+          <p role="status" className="rounded-lg bg-accent/15 px-4 py-2 text-sm">
+            <span className="inline-block">נוספו {done.bottles} בקבוקים</span>
+            {done.placed > 0 && <span className="inline-block">, {done.placed} מהם במקום שלהם במקרר</span>}
+            {done.bottles - done.placed > 0 && <span className="inline-block">, {done.bottles - done.placed} מחוץ למקרר (אפשר לשבץ מהמסך הראשי)</span>}
+            .{done.failed > 0 && <span className="inline-block"> {done.failed} לא נשמרו, והם עדיין כאן.</span>}
+          </p>
+        )}
+        {drafts.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">מחכים לאישור ({drafts.length})</h2>
+            {drafts.length > 1 && (
+              <button
+                type="button"
+                onClick={approveEverything}
+                disabled={busy}
+                className="rounded-full bg-accent px-4 py-1.5 text-sm font-medium text-white disabled:opacity-60 dark:text-black"
+              >
+                {busy ? "מוסיף…" : `לאשר הכול (${bottleCount} בקבוקים)`}
+              </button>
+            )}
+          </div>
+        )}
         <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
           {drafts.map(({ id, source, draft: d }) => (
             <li key={id} className="flex flex-col gap-2 px-4 py-3">
@@ -201,7 +236,13 @@ export function PendingDrafts({ drafts }: { drafts: PendingDraft[] }) {
                 )}
               </span>
               <span className="text-xs text-muted">
-                {[d.grape, d.country, d.price ? `₪${d.price}` : "", source === "mcp" ? "מה־AI המחובר" : "מתשובה שהודבקה"]
+                {[
+                  d.places.length ? `📍 ${placesSummary(d.places)}` : "",
+                  d.grape,
+                  d.country,
+                  d.price ? `₪${d.price}` : "",
+                  source === "mcp" ? "מה־AI המחובר" : "מתשובה שהודבקה",
+                ]
                   .filter(Boolean)
                   .join(" · ")}
               </span>

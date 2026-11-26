@@ -10,10 +10,10 @@ import { OpenChat } from "./open-chat";
  *   that open that AI's chat with the request already typed.
  * Pending drafts get their own line, since they wait on the user.
  */
-export function AiCard({ connected, pendingDrafts }: { connected: AiKey | null; pendingDrafts: number }) {
+export function AiCard({ connected, pendingDrafts, nearlyEmpty }: { connected: AiKey | null; pendingDrafts: number; nearlyEmpty: boolean }) {
   return (
     <section aria-label="בינה מלאכותית" className="flex flex-col gap-2">
-      {connected ? <Connected ai={connected} /> : <NotConnected />}
+      {connected ? <Connected ai={connected} nearlyEmpty={nearlyEmpty} /> : <NotConnected nearlyEmpty={nearlyEmpty} />}
       {pendingDrafts > 0 && (
         <Link href="/ai" className="flex items-center justify-between rounded-xl bg-accent/15 px-4 py-2 text-sm">
           <span>{pendingDrafts === 1 ? "בקבוק אחד מה־AI מחכה לאישור שלכם" : `${pendingDrafts} בקבוקים מה־AI מחכים לאישור שלכם`}</span>
@@ -24,7 +24,7 @@ export function AiCard({ connected, pendingDrafts }: { connected: AiKey | null; 
   );
 }
 
-function NotConnected() {
+function NotConnected({ nearlyEmpty }: { nearlyEmpty: boolean }) {
   return (
     <Link href="/ai" className="flex flex-col gap-1 rounded-xl border border-accent/30 bg-surface p-4 shadow-sm hover:border-accent">
       <span className="flex items-center justify-between gap-3">
@@ -32,15 +32,24 @@ function NotConnected() {
         <AiLogoStack />
       </span>
       <span className="text-sm text-muted">
-        <span className="inline-block">צלמו תווית, והבקבוקים מחכים כאן לאישור.</span>{" "}
-        <span className="inline-block">שאלו מה לפתוח הערב, והתשובה לפי מה שבמקרר.</span>
+        {nearlyEmpty ? (
+          <>
+            <span className="inline-block">יש לכם כבר הרבה בקבוקים?</span>{" "}
+            <span className="inline-block">צלמו את המקרר מדף אחרי מדף, וה־AI יכניס כל בקבוק למקום שלו.</span>
+          </>
+        ) : (
+          <>
+            <span className="inline-block">צלמו תווית, והבקבוקים מחכים כאן לאישור.</span>{" "}
+            <span className="inline-block">שאלו מה לפתוח הערב, והתשובה לפי מה שבמקרר.</span>
+          </>
+        )}
       </span>
       <span className="text-sm text-accent">עם Claude או ChatGPT ←</span>
     </Link>
   );
 }
 
-function Connected({ ai }: { ai: AiKey }) {
+function Connected({ ai, nearlyEmpty }: { ai: AiKey; nearlyEmpty: boolean }) {
   const p = AI_PROVIDERS[ai];
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-accent/30 bg-surface p-3 shadow-sm">
@@ -55,6 +64,15 @@ function Connected({ ai }: { ai: AiKey }) {
           הגדרות
         </Link>
       </div>
+      {nearlyEmpty && (
+        <OpenChat
+          url={p.chatUrl(AI_REQUESTS.fill)}
+          request={AI_REQUESTS.fill}
+          copy={!p.prefills}
+          title="🍾 מילוי המקרר"
+          text="מצלמים מדף אחרי מדף, וכל בקבוק נכנס למקום שלו"
+        />
+      )}
       <div className="grid grid-cols-2 gap-2">
         <OpenChat
           url={p.chatUrl(AI_REQUESTS.scan)}

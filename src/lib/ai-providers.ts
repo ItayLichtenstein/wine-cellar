@@ -73,6 +73,7 @@ export const CONNECTABLE = AI_KEYS.filter((k) => AI_PROVIDERS[k].connectable);
 export const AI_REQUESTS = {
   drink: "מה כדאי לפתוח הערב מהמרתף שלי? האירוע: ",
   scan: "אני מצרף צילום של תוויות יין או של קבלה. זהה את הבקבוקים והצע אותם כטיוטות במרתף היין שלי.",
+  fill: "עזור לי להכניס למרתף היין שלי את כל הבקבוקים שכבר יש לי, כל אחד במקום שלו במקרר. תתחיל מ־fridge_layout, ואז תבקש ממני צילום של מדף אחרי מדף.",
 } as const;
 
 /**

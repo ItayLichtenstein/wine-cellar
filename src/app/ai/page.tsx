@@ -4,12 +4,13 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { DRINK_STATES } from "@/lib/drink-state";
 import { parseBottleDraft } from "@/lib/drafts";
-import { getCellarBottles } from "@/lib/fridges";
+import { getCellarBottles, getFridges } from "@/lib/fridges";
 import { buildRows, EMPTY_FILTERS } from "@/lib/bottle-list";
 import { createClient } from "@/lib/supabase/server";
 import { ManualTools, PendingDrafts, type PendingDraft } from "./ai-tools";
 import { getConnectedAis } from "@/lib/ai-grants";
 import { AI_PROVIDERS, type AiKey, CONNECTABLE } from "@/lib/ai-providers";
+import { describeFridges } from "@/lib/draft-places";
 import { ConnectAi } from "./connect-ai";
 import { ConnectedAis } from "./connected-ais";
 import { BackLink } from "@/components/back-link";
@@ -38,8 +39,9 @@ async function WithData() {
   const user = await getCurrentUser();
   if (!user.canEdit) redirect("/more"); // drafts are for the household's editors (RLS too)
   const supabase = await createClient();
-  const [bottles, ais, draftsRes] = await Promise.all([
+  const [bottles, fridges, ais, draftsRes] = await Promise.all([
     getCellarBottles(user.cellarId),
+    getFridges(user.cellarId),
     getConnectedAis(),
     supabase
       .from("drafts")
@@ -69,6 +71,9 @@ async function WithData() {
 
   return (
     <>
+      {/* What waits on the user comes first. */}
+      <PendingDrafts drafts={drafts} fridges={fridges} cellarId={user.cellarId} />
+
       {ais.length > 0 ? (
         <section className="flex flex-col gap-2">
           <h2 className="text-lg font-semibold">מחובר למרתף</h2>
@@ -86,8 +91,6 @@ async function WithData() {
         </section>
       )}
 
-      <PendingDrafts drafts={drafts} />
-
       {ais.length > 0 && CONNECTABLE.some((k) => !connectedKeys.includes(k)) && (
         <details className="flex flex-col gap-2">
           <summary className="cursor-pointer text-sm underline underline-offset-2">חיבור AI נוסף</summary>
@@ -97,7 +100,7 @@ async function WithData() {
         </details>
       )}
 
-      <ManualTools cellar={cellar} cellarId={user.cellarId} />
+      <ManualTools cellar={cellar} cellarId={user.cellarId} layout={describeFridges(fridges)} />
     </>
   );
 }
@@ -105,6 +108,7 @@ async function WithData() {
 /** What to say to the connected AI, so the first conversation is easy. */
 function Examples({ ai }: { ai: AiKey }) {
   const examples = [
+    "צילמתי את המדף העליון במקרר, תכניס את כל הבקבוקים למקום שלהם",
     "צילמתי את התווית הזו, תוסיף למרתף",
     "מה לפתוח הערב לארוחה איטלקית עם חברים?",
     "מה כדאי לשתות בקרוב לפני שיעבור השיא?",

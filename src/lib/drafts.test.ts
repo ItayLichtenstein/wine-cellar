@@ -52,3 +52,10 @@ describe("buildPrompt", () => {
     expect(buildPrompt("drink", cellar, "ארוחה איטלקית")).toContain("ארוחה איטלקית");
   });
 });
+
+describe("buildPrompt with the fridge layout", () => {
+  it("adds the layout and the places format only when given", () => {
+    expect(buildPrompt("add", [], "", "Fridge 1: \"x\"")).toContain("add `places`");
+    expect(buildPrompt("add", [], "")).not.toContain("add `places`");
+  });
+});
