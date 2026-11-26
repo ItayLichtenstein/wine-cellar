@@ -6,6 +6,7 @@ import { ThemePicker } from "@/components/more-sheet";
 import { LanguagePicker } from "@/i18n/language-picker";
 import { getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { DeleteAccount } from "./delete-account";
 import { ExportButton } from "./export-button";
 import { MyName } from "./my-name";
@@ -30,7 +31,8 @@ export default async function SettingsPage() {
 }
 
 async function Settings() {
-  const [user, t] = await Promise.all([getCurrentUser(), getT()]);
+  const supabase = await createClient();
+  const [user, t, { data: isAdmin }] = await Promise.all([getCurrentUser(), getT(), supabase.rpc("is_app_admin")]);
   return (
     <>
       <section className="flex flex-col gap-2">
@@ -64,6 +66,14 @@ async function Settings() {
         </div>
         <DeleteAccount cellarId={user.cellarId} />
       </section>
+      {isAdmin && (
+        <section className="flex flex-col items-start gap-2">
+          <h2 className="text-lg font-semibold">{t.admin.title}</h2>
+          <Link href="/admin" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
+            {t.admin.fromSettings}
+          </Link>
+        </section>
+      )}
     </>
   );
 }
