@@ -55,15 +55,19 @@ async function History() {
         {entries.map((e) => (
           <li key={e.id} className="flex flex-col gap-0.5 px-4 py-3">
             <span className="flex items-baseline justify-between gap-2">
-              {e.wineId ? (
-                <Link href={`/wines/${e.wineId}`} dir="auto" className="min-w-0 truncate underline-offset-2 hover:underline">
-                  {e.title} <span className="text-muted tabular-nums">{e.year ?? "NV"}</span>
-                </Link>
-              ) : (
-                <span dir="auto" className="min-w-0 truncate">
-                  {e.title} <span className="text-muted tabular-nums">{e.year ?? "NV"}</span>
-                </span>
-              )}
+              {/* The name may be cut ("…"), the vintage never is. */}
+              <span className="flex min-w-0 items-baseline gap-1">
+                {e.wineId ? (
+                  <Link href={`/wines/${e.wineId}`} dir="auto" className="min-w-0 truncate underline-offset-2 hover:underline">
+                    {e.title}
+                  </Link>
+                ) : (
+                  <span dir="auto" className="min-w-0 truncate">
+                    {e.title}
+                  </span>
+                )}
+                <span className="shrink-0 text-muted tabular-nums">{e.year ?? "NV"}</span>
+              </span>
               <span className="shrink-0 text-xs text-muted">{dateFormat.format(new Date(e.tastedOn))}</span>
             </span>
             <span className="flex items-baseline justify-between gap-2 text-xs text-muted">
