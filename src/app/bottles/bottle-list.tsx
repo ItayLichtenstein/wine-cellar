@@ -30,6 +30,9 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
   const countries = useMemo(() => countriesOf(bottles), [bottles]);
   const shown = rows.reduce((n, r) => n + r.bottles.length, 0);
   const active = activeCount(filters);
+  // No prices (a friend who doesn't share them, or none entered): no price sort or filter.
+  const hasPrices = useMemo(() => bottles.some((b) => b.price !== null), [bottles]);
+  const sortKeys = hasPrices ? SORT_KEYS : SORT_KEYS.filter((k) => k !== "price");
 
   const set = <K extends keyof Filters>(key: K, value: Filters[K]) => setFilters((f) => ({ ...f, [key]: value }));
   const toggle = <T,>(list: T[], item: T) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
@@ -63,7 +66,7 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
           <label className="flex items-center gap-2">
             <span className="text-muted">{l.sort}</span>
             <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="rounded-lg border border-muted/40 bg-surface px-2 py-1">
-              {SORT_KEYS.map((k) => (
+              {sortKeys.map((k) => (
                 <option key={k} value={k}>
                   {l.sorts[k]}
                 </option>
@@ -90,16 +93,18 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
               </Chip>
             ))}
           </Chips>
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-muted">{l.priceFrom}</span>
-              <input inputMode="numeric" value={filters.priceMin ?? ""} onChange={(e) => set("priceMin", num(e.target.value))} className={`${inputClass} w-24`} />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-muted">{l.priceTo}</span>
-              <input inputMode="numeric" value={filters.priceMax ?? ""} onChange={(e) => set("priceMax", num(e.target.value))} className={`${inputClass} w-24`} />
-            </label>
-          </div>
+          {hasPrices && (
+            <div className="flex flex-wrap items-end gap-3">
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">{l.priceFrom}</span>
+                <input inputMode="numeric" value={filters.priceMin ?? ""} onChange={(e) => set("priceMin", num(e.target.value))} className={`${inputClass} w-24`} />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-muted">{l.priceTo}</span>
+                <input inputMode="numeric" value={filters.priceMax ?? ""} onChange={(e) => set("priceMax", num(e.target.value))} className={`${inputClass} w-24`} />
+              </label>
+            </div>
+          )}
           <div className="flex flex-wrap items-end gap-3">
             {countries.length > 0 && (
               <label className="flex flex-col gap-1">

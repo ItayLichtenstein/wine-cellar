@@ -348,7 +348,7 @@ export const en: Dictionary = {
       list: ["List", "All the bottles, with search and filters"],
       wish: ["Wishlist", "Wines you want to buy or taste"],
       stats: ["Stats", "What the cellar is worth, what's ready and what you like most"],
-      people: ["Friends & sharing", "Invite with a link: a partner runs the cellar with you, a friend only views. Open friends' fridges from \"My friends\" on the main screen"],
+      people: ["Friends & sharing", "Invite with a link: a partner runs the cellar with you, a friend only views. Open friends' fridges from \"My friends\" on the main screen, where you can also search for a bottle"],
       sparkle: ["Connect AI", "Ask \"what should we open tonight?\" or photograph the fridge, and the AI fills it in (always in \"More\")"],
       moon: ["Appearance", "Light, dark or automatic, in \"More\""],
       phone: ["Like an app", "Add it to your home screen, with instructions for iPhone and Android in \"More\" → \"Install as an app\""],
@@ -810,6 +810,9 @@ export const en: Dictionary = {
     viewOnly: "view only",
     tapToWish: "tap a bottle to add it to your Wishlist",
     noFridge: "They don't have a fridge yet",
+    viewLabel: "View",
+    viewFridge: "Fridge",
+    viewList: "List & search",
   },
   sharing: {
     title: "Friends and sharing",
