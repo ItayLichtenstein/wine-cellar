@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/provider";
 import { useState, useSyncExternalStore } from "react";
 import { AiLogo } from "@/components/ai-logos";
 import { AI_PROVIDERS, CONNECTABLE, type AiKey } from "@/lib/ai-providers";
@@ -12,6 +13,7 @@ const noop = () => () => {};
  * so it is read in the browser.
  */
 export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
+  const a = useT().ai;
   const choices = CONNECTABLE.filter((k) => !except.includes(k));
   const [ai, setAi] = useState<AiKey>(choices[0] ?? "claude");
   const origin = useSyncExternalStore(
@@ -22,6 +24,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
   const url = `${origin}/api/mcp`;
   const [copied, setCopied] = useState(false);
   const p = AI_PROVIDERS[ai];
+  const setup = a.setup[ai];
 
   async function copy() {
     try {
@@ -36,38 +39,38 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
   // anyone can follow it: one action per step, a button for every page.
   const steps = [
     {
-      text: "העתיקו את הכתובת של המרתף",
+      text: a.copyAddress,
       extra: (
         <span className="mt-2 flex items-center gap-2">
           <code dir="ltr" className="min-w-0 flex-1 truncate rounded-lg bg-background px-3 py-2 text-sm">
             {url}
           </code>
           <button type="button" onClick={copy} className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white dark:text-black">
-            {copied ? "הועתק ✓" : "העתקה"}
+            {copied ? a.copied : a.copy}
           </button>
         </span>
       ),
     },
-    ...p.steps.map((step) => ({
-      text: step.text,
-      extra: step.link && (
+    ...setup.steps.map((text, i) => ({
+      text,
+      extra: i === 0 && p.setupUrl && (
         <a
-          href={step.link.href}
+          href={p.setupUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-accent/50 px-4 py-2 text-sm font-medium text-accent"
         >
-          {step.link.label} ↗
+          {setup.linkLabel} ↗
         </a>
       ),
     })),
-    { text: "ייפתח חלון של האתר שלנו. אם צריך התחברו עם גוגל, ואז לחצו \"אישור\"", extra: null },
-    { text: `זהו! פתחו צ׳אט חדש ב־${p.name} ושאלו "מה יש לי במרתף?"`, extra: null },
+    { text: a.approveStep, extra: null },
+    { text: a.doneStep(p.name), extra: null },
   ];
 
   return (
     <div className="flex flex-col gap-4 rounded-xl bg-surface p-4 shadow-sm">
-      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="איזה AI לחבר">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={a.pickAi}>
         {choices.map((k) => (
           <button
             key={k}
@@ -86,7 +89,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
         ))}
       </div>
       <p className="text-sm text-muted">
-        <MixedText text={p.who} />
+        <MixedText text={setup.who} />
       </p>
       <ol className="flex flex-col gap-3">
         {steps.map((step, i) => (
@@ -104,8 +107,8 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
         ))}
       </ol>
       <p className="text-xs text-muted">
-        <span className="inline-block">לא מוצאים את הכפתור? שמות התפריטים משתנים מדי פעם,</span>{" "}
-        <span className="inline-block">אז חפשו בהגדרות את המילה Connectors או השתמשו בהעתקה הידנית למטה</span>
+        <span className="inline-block">{a.cantFind[0]}</span>{" "}
+        <span className="inline-block">{a.cantFind[1]}</span>
       </p>
     </div>
   );

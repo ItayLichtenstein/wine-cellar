@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
+import type { Dictionary } from "@/i18n/dictionaries";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
@@ -18,18 +20,19 @@ import { BackLink } from "@/components/back-link";
 
 export const metadata: Metadata = { title: "בינה מלאכותית · מרתף יין" };
 
-export default function AiPage() {
+export default async function AiPage() {
+  const t = await getT();
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-1">
-        <BackLink href="/" label="המקרר" />
-        <h1 className="text-2xl font-bold">בינה מלאכותית</h1>
+        <BackLink href="/" label={t.friends.toMine} />
+        <h1 className="text-2xl font-bold">{t.ai.title}</h1>
         <p className="text-sm text-muted">
-          <span className="inline-block">ה־AI רואה רק את המרתף שלכם ולא יכול לשנות או למחוק כלום,</span>{" "}
-          <span className="inline-block">ובקבוקים שהוא מציע מחכים כאן לאישור שלכם</span>
+          <span className="inline-block">{t.ai.intro[0]}</span>{" "}
+          <span className="inline-block">{t.ai.intro[1]}</span>
         </p>
       </header>
-      <Suspense fallback={<p className="text-muted">טוען…</p>}>
+      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
         <WithData />
       </Suspense>
     </main>
@@ -37,7 +40,7 @@ export default function AiPage() {
 }
 
 async function WithData() {
-  const user = await getCurrentUser();
+  const [user, t] = await Promise.all([getCurrentUser(), getT()]);
   if (!user.canEdit) redirect("/"); // drafts are for the household's editors (RLS too)
   const supabase = await createClient();
   const [bottles, fridges, loose, ais, draftsRes] = await Promise.all([
@@ -91,16 +94,16 @@ async function WithData() {
 
       {ais.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">מחובר למרתף</h2>
+          <h2 className="text-lg font-semibold">{t.ai.connected}</h2>
           <ConnectedAis ais={ais} />
-          {first && <Examples ai={first} />}
+          {first && <Examples ai={first} t={t} />}
         </section>
       ) : (
         <section className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">חיבור AI למרתף</h2>
+          <h2 className="text-lg font-semibold">{t.ai.connectTitle}</h2>
           <p className="text-sm text-muted">
-            <span className="inline-block">מחברים פעם אחת, ומאז פשוט שולחים לו צילום של תווית או קבלה</span>{" "}
-            <span className="inline-block">או שואלים מה לפתוח הערב</span>
+            <span className="inline-block">{t.ai.connectIntro[0]}</span>{" "}
+            <span className="inline-block">{t.ai.connectIntro[1]}</span>
           </p>
           <ConnectAi />
         </section>
@@ -108,7 +111,7 @@ async function WithData() {
 
       {ais.length > 0 && CONNECTABLE.some((k) => !connectedKeys.includes(k)) && (
         <details className="flex flex-col gap-2">
-          <summary className="cursor-pointer text-sm underline underline-offset-2">חיבור AI נוסף</summary>
+          <summary className="cursor-pointer text-sm underline underline-offset-2">{t.ai.connectAnother}</summary>
           <div className="mt-2">
             <ConnectAi except={connectedKeys} />
           </div>
@@ -121,17 +124,11 @@ async function WithData() {
 }
 
 /** What to say to the connected AI, so the first conversation is easy. */
-function Examples({ ai }: { ai: AiKey }) {
-  const examples = [
-    "צילמתי את המדף העליון במקרר, תכניס את כל הבקבוקים למקום שלהם",
-    "צילמתי את התווית הזו, תוסיף למרתף",
-    "מה לפתוח הערב לארוחה איטלקית עם חברים?",
-    "מה כדאי לשתות בקרוב לפני שיעבור השיא?",
-    "איזה יין שתינו בקיץ ואהבנו במיוחד?",
-  ];
+function Examples({ ai, t }: { ai: AiKey; t: Dictionary }) {
+  const examples = t.ai.examples;
   return (
     <div className="flex flex-col gap-1 rounded-xl bg-surface p-4 text-sm shadow-sm">
-      <p className="text-muted">דוגמאות למה שאפשר לבקש מ־{AI_PROVIDERS[ai].name}</p>
+      <p className="text-muted">{t.ai.examplesFor(AI_PROVIDERS[ai].name)}</p>
       <ul className="flex flex-col gap-1">
         {examples.map((e) => (
           <li key={e}>״{e}״</li>

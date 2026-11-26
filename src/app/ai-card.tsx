@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AI_PROVIDERS, AI_REQUESTS, type AiKey } from "@/lib/ai-providers";
+import { AI_PROVIDERS, type AiKey } from "@/lib/ai-providers";
 import { AiLogo, AiLogoStack } from "@/components/ai-logos";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { getT } from "@/i18n/server";
@@ -82,8 +82,8 @@ function Connected({ ai, nearlyEmpty, t }: { ai: AiKey; nearlyEmpty: boolean; t:
       </div>
       {nearlyEmpty && (
         <OpenChat
-          url={p.chatUrl(AI_REQUESTS.fill)}
-          request={AI_REQUESTS.fill}
+          url={p.chatUrl(t.ai.requests.fill)}
+          request={t.ai.requests.fill}
           copy={!p.prefills}
           title={t.aiCard.fill[0]}
           text={t.aiCard.fill[1]}
@@ -91,15 +91,15 @@ function Connected({ ai, nearlyEmpty, t }: { ai: AiKey; nearlyEmpty: boolean; t:
       )}
       <div className="grid grid-cols-2 gap-2">
         <OpenChat
-          url={p.chatUrl(AI_REQUESTS.scan)}
-          request={AI_REQUESTS.scan}
+          url={p.chatUrl(t.ai.requests.scan)}
+          request={t.ai.requests.scan}
           copy={!p.prefills}
           title={t.aiCard.scan[0]}
           text={t.aiCard.scan[1]}
         />
         <OpenChat
-          url={p.chatUrl(AI_REQUESTS.drink)}
-          request={AI_REQUESTS.drink}
+          url={p.chatUrl(t.ai.requests.drink)}
+          request={t.ai.requests.drink}
           copy={!p.prefills}
           title={t.aiCard.drink[0]}
           text={t.aiCard.drink[1]}
