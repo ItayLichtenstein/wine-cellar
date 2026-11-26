@@ -22,10 +22,10 @@ IMPORT_ACCESS_TOKEN=<צעד 2>
 
 1. נכנסים לאתר החי ומתחברים עם גוגל.
 2. פותחים את כלי המפתח של הדפדפן (`Cmd+Option+J` ב־Chrome), בלשונית Console.
-3. מדביקים את השורה הזאת ולוחצים Enter. היא מעתיקה את הטוקן ללוח:
+3. מדביקים את השורה הזאת ולוחצים Enter. היא מעתיקה את הטוקן ללוח (רק את עוגיות `-auth-token` ו־`.0`, `.1`..., ולא את `code-verifier`):
 
 ```js
-(()=>{const c=Object.fromEntries(document.cookie.split("; ").map(x=>[x.slice(0,x.indexOf("=")),x.slice(x.indexOf("=")+1)]));let v=Object.keys(c).filter(n=>n.includes("-auth-token")).sort().map(n=>c[n]).join("");v=decodeURIComponent(v);if(v.startsWith("base64-"))v=atob(v.slice(7).replace(/-/g,"+").replace(/_/g,"/"));copy(JSON.parse(v).access_token);return "הטוקן הועתק"})()
+(()=>{const c=Object.fromEntries(document.cookie.split("; ").map(x=>[x.slice(0,x.indexOf("=")),x.slice(x.indexOf("=")+1)]));const k=Object.keys(c).filter(n=>/-auth-token(\.\d+)?$/.test(n)).sort((a,b)=>(+a.split(".").pop()||0)-(+b.split(".").pop()||0));let v=decodeURIComponent(k.map(n=>c[n]).join(""));if(v.startsWith("base64-"))v=atob(v.slice(7).replace(/-/g,"+").replace(/_/g,"/"));copy(JSON.parse(v).access_token);return "done"})()
 ```
 
 4. מדביקים את הטוקן אחרי `IMPORT_ACCESS_TOKEN=` בקובץ, ושומרים.
