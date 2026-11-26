@@ -99,7 +99,9 @@ function lyingShelf(n: number): Shelf {
 }
 
 // ---------------------------------------------------------------------
-// Data. Collected on 2026-11-25 from the manufacturers' sites.
+// Data. Landers and Vinopo collected on 2026-11-25 from the manufacturers'
+// sites; Haier, Caso and WineBar on 2026-11-26 from the importer (Newpan),
+// the maker (caso-design.de) and the retailer (Bug).
 // "same body as X": identical outer dimensions to a model whose shelf
 // count IS published, so that count is used.
 // ---------------------------------------------------------------------
@@ -107,6 +109,10 @@ function lyingShelf(n: number): Shelf {
 const L = "https://www.landers.co.il/product/";
 const V = "https://www.vinopo.co.il/product/";
 const BY_HEIGHT = "מספר המדפים הוערך לפי הגובה הפנימי";
+const NP = "https://www.newpan.co.il/product/index/";
+const B = "https://www.bug.co.il/";
+const CASO = "https://caso-design.de/de/p/";
+const BOTTOM_GUESS = "האזור התחתון הוערך: הקיבולת גדולה ממה שנכנס במדפים";
 
 export const CATALOG: Brand[] = [
   {
@@ -187,6 +193,44 @@ export const CATALOG: Brand[] = [
       { model: "SU-192B", capacity: 161, shelves: 13, source: `${V}%d7%9e%d7%a7%d7%a8%d7%a8-%d7%99%d7%99%d7%9f-%d7%9e%d7%aa%d7%a7%d7%93%d7%9d-%d7%a2%d7%9d-%d7%9e%d7%93%d7%a4%d7%99-%d7%a2%d7%a5-%d7%a0%d7%a9%d7%9c%d7%a4%d7%99%d7%9d-%d7%a2%d7%93-161-%d7%91%d7%a7%d7%91-3/` },
       { model: "SU-180B", capacity: 166, shelves: 11, bottom: true, source: `${V}%d7%9e%d7%a7%d7%a8%d7%a8-%d7%99%d7%99%d7%9f-%d7%a9%d7%a0%d7%99-%d7%90%d7%96%d7%95%d7%a8%d7%99-%d7%a7%d7%99%d7%a8%d7%95%d7%a8-su-180b/`, note: "שני אזורי טמפרטורה" },
       { model: "SU-300B", capacity: 300, shelves: 10, bottom: true, source: `${V}%d7%9e%d7%a7%d7%a8%d7%a8-%d7%99%d7%99%d7%9f-%d7%9e%d7%aa%d7%a7%d7%93%d7%9d-%d7%a2%d7%9d-%d7%9e%d7%93%d7%a4%d7%99-%d7%a2%d7%a5-%d7%a0%d7%a9%d7%9c%d7%a4%d7%99%d7%9d-%d7%a2%d7%93-300-%d7%91%d7%a7%d7%91/` },
+    ],
+  },
+  {
+    brand: "האייר",
+    models: [
+      { model: "HWS34GGH1", capacity: 34, shelves: 5, source: `${B}מקרר-יין-34-בקבוקים-haier-31002203hws34ggh1` },
+      { model: "HUC44GDEH1", capacity: 44, shelves: 4, source: `${B}מקרר-יין-אינטגרלי-44-בקבוקים-haier-31002203huc44gdeh1`, note: "אינטגרלי" },
+      { model: "HWS49GA", capacity: 49, shelves: 4, bottom: true, source: `${NP}5423`, note: "פורסם \"4+1 מדפים\": ארבעה נשלפים ותחתית" },
+      { model: "JC-162S", capacity: 49, shelves: 9, source: `${NP}53` },
+      { model: "HWS58GGH1", capacity: 58, shelves: 5, source: `${NP}5597`, note: "לפי היבואן 5 מדפים (בבאג כתוב 10)" },
+      { model: "HWS79GDG", capacity: 79, shelves: 5, bottom: true, source: `${B}מקרר-יין-79-בקבוקים-haier-31005100hws79gdg`, note: `שני אזורי טמפרטורה. ${BOTTOM_GUESS}` },
+      { model: "HWS188GAE", capacity: 188, shelves: 7, bottom: true, source: `${B}מקרר-יין-188-בקבוקים-haier-31005100hws188gae`, note: `שני אזורי טמפרטורה. ${BOTTOM_GUESS}` },
+    ],
+  },
+  {
+    brand: "קאסו",
+    models: [
+      { model: "WineSafe 12", capacity: 12, shelves: 3, source: `${CASO}caso-winecomfort-380-smart/`, note: "לפי טבלת ההשוואה של היצרן" },
+      { model: "WineComfort 24", capacity: 24, shelves: 5, source: `${CASO}caso-winecomfort-24-black/`, note: "שני אזורי טמפרטורה" },
+      { model: "WineComfort 38", capacity: 38, shelves: 7, source: `${CASO}caso-winecomfort-380-smart/`, note: "שני אזורי טמפרטורה" },
+      { model: "WineChef Pro 40", capacity: 40, shelves: 5, source: `${CASO}caso-winecomfort-380-smart/`, note: "לפי טבלת ההשוואה של היצרן" },
+      { model: "WineComfort 66", capacity: 66, shelves: 7, source: `${CASO}caso-winecomfort-660-smart/`, note: "שני אזורי טמפרטורה" },
+      { model: "WineExclusive 66 Smart", capacity: 66, shelves: 7, source: `${CASO}caso-wineexclusive-66-smart/`, note: "שני אזורי טמפרטורה" },
+    ],
+  },
+  {
+    brand: "ויין בר",
+    models: [
+      { model: "BCW-36A", capacity: 12, shelves: 5, source: `${B}מקרר-יין-12-בקבוקים-winebar-92510015588` },
+      { model: "JC-82", capacity: 28, shelves: 6, bottom: true, source: `${B}מקרר-יין-מדחס-28-בקבוקים-winebar-9258228452`, note: "6 מדפים ומדף תחתון" },
+      { model: "VI35S", capacity: 34, shelves: 6, source: `${B}מקרר-יין-אינטגרלי-כולל-מדפי-עץ-34-בקבוקים-winebar-925986552` },
+      { model: "VI46D-SS", capacity: 39, shelves: 4, source: `${B}מקרר-יין-אינטגרלי-כולל-2-אזורי-קירור-ומדפי-עץ-39-בקבוקים-winebar-925986554`, note: "שני אזורי טמפרטורה" },
+      { model: "JC-150WD", capacity: 40, shelves: 6, source: `${B}מקרר-יין-אינטגרלי-40-בקבוקים-winebar-925150541008` },
+      { model: "JC-150WS", capacity: 46, shelves: 6, source: `${B}מקרר-יין-אינטגרלי-46-בקבוקים-winebar-92515046005` },
+      { model: "VI46S", capacity: 46, shelves: 5, source: `${B}מקרר-יין-אינטגרלי-כולל-מדפי-עץ-46-בקבוקים-winebar-925986553` },
+      { model: "JC-208WS", capacity: 80, shelves: 11, source: `${B}מקרר-יין-מדחס-80-בקבוקים-winebar-925208100980` },
+      { model: "WBS-270", capacity: 100, shelves: 6, bottom: true, source: `${B}מקרר-יין-100-בקבוקים-winebar-925986547`, note: BOTTOM_GUESS },
+      { model: "JC-430WD", capacity: 163, shelves: 14, source: `${B}מקרר-יין-אינטגרלי-163-בקבוקים-winebar-9254301631010`, note: "שני אזורי טמפרטורה" },
     ],
   },
 ];
