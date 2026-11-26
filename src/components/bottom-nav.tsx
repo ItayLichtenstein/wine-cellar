@@ -21,7 +21,7 @@ const ITEMS = [
 ] as const;
 
 /** Pages reached through "More": while on one, "More" is the active tab. */
-const UNDER_MORE = ["/more", "/history", "/ai", "/guide", "/sharing", "/settings"];
+const UNDER_MORE = ["/more", "/history", "/ai", "/guide", "/sharing", "/settings", "/install"];
 
 /** Setting up or editing a fridge belongs to the fridge tab, wherever it was opened from. */
 const isFridgePage = (pathname: string) => pathname === "/" || pathname.startsWith("/fridges");

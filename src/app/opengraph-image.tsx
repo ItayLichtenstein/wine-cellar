@@ -17,7 +17,7 @@ const SHELVES: DrinkState[][] = [
 export default function Image() {
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#3a0f17" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#6d1a2a" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 22, padding: 34, borderRadius: 40, background: "#1c1716" }}>
           {SHELVES.map((shelf, i) => (
             <div key={i} style={{ display: "flex", gap: 18, padding: 18, borderRadius: 22, background: "#2b2321" }}>

@@ -33,6 +33,7 @@ const GROUPS = [
     links: [
       { href: "/settings", text: "settings", icon: "sliders" },
       { href: "/guide", text: "guide", icon: "book" },
+      { href: "/install", text: "install", icon: "phone" },
     ],
   },
 ] as const;
