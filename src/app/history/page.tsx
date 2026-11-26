@@ -5,6 +5,7 @@ import { BackLink } from "@/components/back-link";
 import { getCurrentUser } from "@/lib/auth";
 import { getHistory } from "@/lib/fridges";
 import { bottles as countBottles } from "@/lib/plural";
+import { formatScore } from "@/lib/wine-extra";
 
 export const metadata: Metadata = { title: "היסטוריה ודירוגים · מרתף יין" };
 
@@ -80,8 +81,8 @@ async function History() {
 /** The household's score for the wine, out of 5. */
 function Score({ value }: { value: number }) {
   return (
-    <span aria-label={`ציון ${value} מתוך 5`}>
-      <span className="text-accent" aria-hidden="true">★</span> <span className="tabular-nums" aria-hidden="true">{value}</span>
+    <span aria-label={`ציון ${formatScore(value)} מתוך 5`}>
+      <span className="text-accent" aria-hidden="true">★</span> <span className="tabular-nums" aria-hidden="true">{formatScore(value)}</span>
     </span>
   );
 }

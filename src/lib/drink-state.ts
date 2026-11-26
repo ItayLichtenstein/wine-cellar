@@ -34,7 +34,7 @@ export const DRINK_STATES: Record<DrinkState, { label: string; color: string }> 
   now:   { label: "בשיא",                       color: "#2e9e4a" }, // dark green
   soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#7bd877" }, // light green
   hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#4fc3d4" }, // turquoise
-  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#cfd6de" }, // light grey
+  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#9db4cc" }, // blue-grey: visible on the light bottle
   young: { label: "עוד לא בשיא",              color: "#8f8885" }, // dark grey
   none:  { label: "בלי חלון שתייה",            color: "#e8e1da" }, // neutral
 };
