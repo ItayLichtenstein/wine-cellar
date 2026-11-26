@@ -11,6 +11,10 @@ import { supabaseUrl } from "@/lib/supabase/env";
  *                         always looks like a brand-new sign-up
  *   /dev-login?as=new&keep → the same user, without the reset (to test it
  *                         as a member or viewer of a shared cellar)
+ *   /dev-login?as=friend → friend@example.com, a small cellar of its own,
+ *                         already a friend of dev@example.com (never reset).
+ *                         Sign in as dev on localhost:3000 and as friend on
+ *                         127.0.0.1:3000 – each host keeps its own cookies.
  *
  * Two independent guards keep it out of production:
  * 1. It answers 404 unless Next.js runs in development mode.
@@ -22,14 +26,19 @@ const isLocalSupabase = /^http:\/\/(127\.0\.0\.1|localhost):/.test(supabaseUrl);
 const USERS = {
   dev: "dev@example.com",
   new: "new@example.com",
+  friend: "friend@example.com",
 } as const;
+
+function pickUser(as: string | null): keyof typeof USERS {
+  return as === "new" || as === "friend" ? as : "dev";
+}
 
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV !== "development" || !isLocalSupabase) {
     return new NextResponse(null, { status: 404 });
   }
 
-  const as = request.nextUrl.searchParams.get("as") === "new" ? "new" : "dev";
+  const as = pickUser(request.nextUrl.searchParams.get("as"));
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email: USERS[as],
@@ -56,5 +65,8 @@ export async function GET(request: NextRequest) {
   }
 
   const target = error ? "/login?error=auth" : "/";
-  return NextResponse.redirect(new URL(target, request.nextUrl.origin));
+  // The Host header, not nextUrl.origin: Next.js reports 127.0.0.1 as
+  // localhost, which would land on the other host (and its other user).
+  const origin = `${request.nextUrl.protocol}//${request.headers.get("host") ?? request.nextUrl.host}`;
+  return NextResponse.redirect(new URL(target, origin));
 }
