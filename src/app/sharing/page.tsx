@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BackLink } from "@/components/back-link";
+import { getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { CellarName } from "./cellar-name";
@@ -8,19 +9,24 @@ import { Friends } from "./friends";
 import { Household, type Member } from "./household";
 import { ShareLink } from "./share-link";
 
-export const metadata: Metadata = { title: "שיתוף · מרתף יין" };
+export const metadata: Metadata = { title: "חברים ושיתוף · מרתף יין" };
 
-/** Everyone who sees the cellar, from closest out: partners, friends, a view link. */
-export default function SharingPage() {
+/**
+ * Everyone who sees the cellar. Friends first, since that's what people come
+ * here for most; then partners who run the cellar with us; then a view link
+ * for people without an account.
+ */
+export default async function SharingPage() {
+  const t = await getT();
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-8 px-4 py-8">
       <header className="flex flex-col gap-1">
-        <BackLink href="/" label="המקרר" />
-        <h1 className="text-2xl font-bold">שיתוף</h1>
+        <BackLink href="/" label={t.friends.toMine} />
+        <h1 className="text-2xl font-bold">{t.sharing.title}</h1>
       </header>
-      <Suspense fallback={<p className="text-muted">טוען…</p>}>
-        <OurCellar />
+      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
         <FriendsSection />
+        <OurCellar />
         <ShareSection />
       </Suspense>
     </main>
@@ -28,7 +34,7 @@ export default function SharingPage() {
 }
 
 async function OurCellar() {
-  const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
+  const [user, supabase, t] = await Promise.all([getCurrentUser(), createClient(), getT()]);
   const [{ data }, { data: cellar }] = await Promise.all([
     supabase.from("cellar_members").select("user_id, role, profiles(display_name)").eq("cellar_id", user.cellarId).order("joined_at"),
     supabase.from("cellars").select("custom_name").eq("id", user.cellarId).maybeSingle(),
@@ -39,8 +45,11 @@ async function OurCellar() {
     role: m.role,
   }));
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">המרתף שלנו</h2>
+    <section className="flex flex-col gap-2">
+      <h2 className="text-lg font-semibold">{t.sharing.partnersTitle}</h2>
+      <p className="text-sm text-muted">
+        <span className="inline-block">{t.sharing.partnersIntro[0]}</span> <span className="inline-block">{t.sharing.partnersIntro[1]}</span>
+      </p>
       <CellarName
         cellarId={user.cellarId}
         names={members.filter((m) => m.role === "member").map((m) => m.name)}

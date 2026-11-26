@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLocale, useT } from "@/i18n/provider";
 import { cellarTitle } from "@/lib/cellar-title";
 import { createClient } from "@/lib/supabase/client";
 
@@ -12,9 +13,11 @@ import { createClient } from "@/lib/supabase/client";
  */
 export function CellarName({ cellarId, names, customName, canEdit }: { cellarId: string; names: string[]; customName: string | null; canEdit: boolean }) {
   const router = useRouter();
+  const t = useT();
+  const locale = useLocale();
   const [value, setValue] = useState(customName ?? "");
   const [state, setState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
-  const auto = cellarTitle(names);
+  const auto = cellarTitle(names, null, locale);
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -31,7 +34,7 @@ export function CellarName({ cellarId, names, customName, canEdit }: { cellarId:
   return (
     <form onSubmit={save} className="flex flex-col gap-2">
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted">שם המרתף</span>
+        <span className="text-muted">{t.sharing.cellarName}</span>
         <span className="flex gap-2">
           <input
             value={value}
@@ -42,14 +45,14 @@ export function CellarName({ cellarId, names, customName, canEdit }: { cellarId:
             className="min-w-0 flex-1 rounded-lg border border-muted/40 bg-surface px-3 py-2 text-base"
           />
           <button type="submit" disabled={state === "saving"} className="shrink-0 rounded-full border border-muted/40 px-4 py-2">
-            {state === "saved" ? "נשמר ✓" : "שמירה"}
+            {state === "saved" ? t.sharing.saved : t.common.save}
           </button>
         </span>
       </label>
-      <p className="text-xs text-muted">אם משאירים ריק, השם נבנה מהשמות של השותפים</p>
+      <p className="text-xs text-muted">{t.sharing.cellarNameHelp}</p>
       {state === "failed" && (
         <p role="alert" className="text-sm text-red-700 dark:text-red-400">
-          השמירה לא הצליחה, נסו שוב
+          {t.common.saveFailed}
         </p>
       )}
     </form>

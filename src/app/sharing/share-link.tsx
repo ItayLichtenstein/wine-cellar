@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
+import { LinkBox } from "./link-box";
 
 /**
  * A view link for people without an account. Only its hash is stored, so
@@ -10,16 +12,15 @@ import { createClient } from "@/lib/supabase/client";
  */
 export function ShareLink({ active }: { active: { hidePrices: boolean } | null }) {
   const router = useRouter();
+  const s = useT().sharing;
   const [hidePrices, setHidePrices] = useState(active?.hidePrices ?? true);
   const [link, setLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function create() {
     setError(null);
-    setCopied(false);
     const { data, error: e } = await createClient().rpc("create_share_link", { p_hide_prices: hidePrices });
-    if (e || !data) return setError("לא הצלחנו ליצור קישור, נסו שוב");
+    if (e || !data) return setError(s.linkFailed);
     setLink(`${window.location.origin}/shared#${data}`);
     router.refresh();
   }
@@ -27,61 +28,43 @@ export function ShareLink({ active }: { active: { hidePrices: boolean } | null }
   async function revoke() {
     setError(null);
     const { error: e } = await createClient().rpc("revoke_share_link");
-    if (e) return setError("הביטול לא הצליח, נסו שוב");
+    if (e) return setError(s.revokeFailed);
     setLink(null);
     router.refresh();
   }
 
-  async function copy() {
-    if (!link) return;
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  }
-
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-lg font-semibold">קישור צפייה</h2>
+      <h2 className="text-lg font-semibold">{s.viewTitle}</h2>
       <p className="text-sm text-muted">
-        <span className="inline-block">מי שמקבל את הקישור רואה את המקרר כמו שהוא עכשיו,</span>{" "}
-        <span className="inline-block">בלי להירשם</span>
+        <span className="inline-block">{s.viewIntro[0]}</span> <span className="inline-block">{s.viewIntro[1]}</span>
       </p>
-      <div className="flex flex-col gap-2 rounded-xl bg-surface p-3 text-sm shadow-sm">
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={hidePrices} onChange={(e) => setHidePrices(e.target.checked)} className="size-4 accent-accent" />
-          להסתיר מחירים
-        </label>
+      <div className="flex flex-col gap-3 rounded-xl bg-surface p-3 text-sm shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={create} className="rounded-full bg-accent px-3 py-1 font-medium text-white dark:text-black">
-            {active ? "יצירת קישור חדש" : "יצירת קישור"}
+          <button type="button" onClick={create} className="rounded-full bg-accent px-4 py-2 font-medium text-white dark:text-black">
+            {active ? s.newView : s.createView}
           </button>
           {active && (
             <button type="button" onClick={revoke} className="text-muted underline underline-offset-2">
-              ביטול הקישור
+              {s.revokeView}
             </button>
           )}
         </div>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={hidePrices} onChange={(e) => setHidePrices(e.target.checked)} className="size-4 accent-accent" />
+          {s.hidePrices}
+        </label>
         {active && !link && (
           <p className="text-muted">
-            <span className="inline-block">יש כבר קישור פעיל,</span>{" "}
-            <span className="inline-block">וקישור חדש יחליף אותו</span>
+            <span className="inline-block">{s.activeView[0]}</span> <span className="inline-block">{s.activeView[1]}</span>
           </p>
         )}
         {link && (
           <>
             <p className="text-muted">
-              <span className="inline-block">שמרו או שלחו אותו עכשיו,</span>{" "}
-              <span className="inline-block">כי מטעמי אבטחה הוא מוצג רק פעם אחת</span>
+              <span className="inline-block">{s.shownOnce[0]}</span> <span className="inline-block">{s.shownOnce[1]}</span>
             </p>
-            <div className="flex gap-2">
-              <input readOnly value={link} dir="ltr" aria-label="קישור הצפייה" className="min-w-0 flex-1 rounded-lg border border-muted/40 bg-background px-2 py-1 text-xs" />
-              <button type="button" onClick={copy} className="rounded-full border border-muted/40 px-3 py-1">
-                {copied ? "הועתק ✓" : "העתקה"}
-              </button>
-            </div>
+            <LinkBox link={link} label={s.viewLinkLabel} />
           </>
         )}
         {error && <p className="text-red-700 dark:text-red-400">{error}</p>}
