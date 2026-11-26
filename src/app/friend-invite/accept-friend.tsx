@@ -60,13 +60,13 @@ export function AcceptFriend() {
       setState("invalid");
     } else if (e?.code === "23505") {
       forget();
-      setError("אתם כבר חברים.");
+      setError("אתם כבר חברים");
     } else if (e?.code === "23514") {
-      setError("זה הקישור של המרתף שלכם. שלחו אותו לחבר.");
+      setError("זה הקישור של המרתף שלכם, צריך לשלוח אותו לחבר");
     } else if (e?.code === "42501") {
-      setError("רק שותף במרתף יכול לאשר חברות.");
+      setError("רק שותף במרתף יכול לאשר חברות");
     } else {
-      setError("האישור לא הצליח. נסו שוב.");
+      setError("האישור לא הצליח, נסו שוב");
     }
   }
 
@@ -74,16 +74,15 @@ export function AcceptFriend() {
   if (state === "invalid") {
     return (
       <p className="text-muted">
-        <span className="inline-block">הקישור לא תקף:</span>{" "}
-        <span className="inline-block">הוא שומש, לא שלם או שעברו 7 ימים.</span>{" "}
-        <span className="inline-block">בקשו מהחבר קישור חדש.</span>
+        <span className="inline-block">הקישור לא תקף, כי כבר השתמשו בו או שעברו 7 ימים.</span>{" "}
+        <span className="inline-block">בקשו מהחבר קישור חדש</span>
       </p>
     );
   }
   if (state === "signed-out") {
     return (
       <>
-        <p className="text-muted">כדי לאשר צריך קודם להתחבר.</p>
+        <p className="text-muted">כדי לאשר צריך קודם להתחבר</p>
         <Link href="/login?next=/friend-invite" className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
           התחברות
         </Link>
@@ -95,11 +94,11 @@ export function AcceptFriend() {
     <>
       <p>
         <span className="inline-block font-semibold" dir="auto">{from}</span>{" "}
-        <span className="inline-block">מזמין אתכם להיות חברים.</span>
+        <span className="inline-block">מזמין אתכם להיות חברים</span>
       </p>
       <p className="text-sm text-muted">
         <span className="inline-block">תוכלו לראות את המרתף שלהם,</span>{" "}
-        <span className="inline-block">והם את שלכם. רק צפייה.</span>
+        <span className="inline-block">והם את שלכם, בלי אפשרות לשנות</span>
       </p>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={showPrices} onChange={(e) => setShowPrices(e.target.checked)} className="size-4 accent-accent" />

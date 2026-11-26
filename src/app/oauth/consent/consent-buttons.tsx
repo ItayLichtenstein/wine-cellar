@@ -34,7 +34,7 @@ export function ConsentButtons({ authorizationId }: { authorizationId: string })
       <button type="button" onClick={() => decide(false)} disabled={busy} className="rounded-full border border-muted/40 px-5 py-3">
         לא עכשיו
       </button>
-      {failed && <p className="text-sm text-red-700 dark:text-red-400">משהו השתבש. נסו לחבר שוב מה־AI.</p>}
+      {failed && <p className="text-sm text-red-700 dark:text-red-400">משהו השתבש, נסו לחבר שוב מה־AI</p>}
     </div>
   );
 }

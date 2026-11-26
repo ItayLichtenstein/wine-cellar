@@ -42,7 +42,7 @@ export function GoogleSignInButton() {
       </button>
       {failed && (
         <p role="alert" className="text-sm text-red-700 dark:text-red-400">
-          לא הצלחנו להתחיל את ההתחברות. נסו שוב.
+          לא הצלחנו להתחיל את ההתחברות, נסו שוב
         </p>
       )}
     </div>

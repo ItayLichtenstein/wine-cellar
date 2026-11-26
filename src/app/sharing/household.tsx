@@ -24,17 +24,17 @@ export function Household({ members, me }: { members: Member[]; me: string }) {
     if (!e) return ok();
     setError(
       e.hint === "last_member"
-        ? "במרתף חייב להישאר לפחות שותף אחד."
+        ? "במרתף חייב להישאר לפחות שותף אחד"
         : e.hint === "alone"
-          ? "את/ה היחיד/ה במרתף – אין ממה לעזוב."
-          : "הפעולה לא הצליחה. נסו שוב.",
+          ? "אין ממה לעזוב, את/ה היחיד/ה במרתף"
+          : "הפעולה לא הצליחה, נסו שוב",
     );
   }
 
   async function invite() {
     setCopied(false);
     const { data, error: e } = await createClient().rpc("create_invite", { p_role: inviteRole });
-    if (e || !data) return setError("לא הצלחנו ליצור קישור. נסו שוב.");
+    if (e || !data) return setError("לא הצלחנו ליצור קישור, נסו שוב");
     // The token goes after "#": browsers never send that part to a server.
     setLink(`${window.location.origin}/join#${data}`);
   }
@@ -105,8 +105,8 @@ export function Household({ members, me }: { members: Member[]; me: string }) {
           {link && (
             <>
               <p className="text-muted">
-                <span className="inline-block">שלחו את הקישור לבן/בת הבית.</span>{" "}
-                <span className="inline-block">הוא עובד פעם אחת ובתוקף 7 ימים.</span>
+                <span className="inline-block">שלחו את הקישור לבן/בת הבית,</span>{" "}
+                <span className="inline-block">הוא עובד פעם אחת ותקף ל־7 ימים</span>
               </p>
               <div className="flex gap-2">
                 <input readOnly value={link} dir="ltr" aria-label="קישור ההזמנה" className="min-w-0 flex-1 rounded-lg border border-muted/40 bg-background px-2 py-1 text-xs" />
@@ -122,7 +122,7 @@ export function Household({ members, me }: { members: Member[]; me: string }) {
       {members.length > 1 &&
         (confirmLeave ? (
           <p className="flex flex-wrap items-center gap-3 text-sm">
-            <span>לעזוב? הבקבוקים וההיסטוריה נשארים כאן, ואת/ה מקבל/ת מרתף ריק.</span>
+            <span>לעזוב? הבקבוקים וההיסטוריה יישארו כאן, ואת/ה תתחיל/י עם מרתף ריק</span>
             <button
               type="button"
               onClick={() => call(() => createClient().rpc("leave_cellar"), () => window.location.assign("/"))}

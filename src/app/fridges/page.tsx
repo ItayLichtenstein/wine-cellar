@@ -29,8 +29,8 @@ async function Fridges() {
   const fridges = await getFridges(user.cellarId);
   return (
     <section className="flex flex-col gap-2">
-      {fridges.length === 0 && <p className="text-muted">עוד אין כאן מקרר.</p>}
-      {fridges.length > 1 && <p className="text-sm text-muted">המקרר הראשון ברשימה הוא זה שנפתח במסך הראשי.</p>}
+      {fridges.length === 0 && <p className="text-muted">עוד אין כאן מקרר</p>}
+      {fridges.length > 1 && <p className="text-sm text-muted">המקרר הראשון ברשימה הוא זה שמופיע במסך הראשי</p>}
       {fridges.length > 0 && (
         <FridgeList
           key={fridges.map((f) => f.id).join()} // a new fridge resets the local order

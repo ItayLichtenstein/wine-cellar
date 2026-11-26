@@ -46,10 +46,10 @@ export function CellarName({ cellarId, names, customName, canEdit }: { cellarId:
           </button>
         </span>
       </label>
-      <p className="text-xs text-muted">ריק = השם האוטומטי, לפי השמות של השותפים.</p>
+      <p className="text-xs text-muted">אם משאירים ריק, השם נבנה מהשמות של השותפים</p>
       {state === "failed" && (
         <p role="alert" className="text-sm text-red-700 dark:text-red-400">
-          השמירה לא הצליחה. נסו שוב.
+          השמירה לא הצליחה, נסו שוב
         </p>
       )}
     </form>

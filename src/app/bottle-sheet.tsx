@@ -49,7 +49,7 @@ export function BottleSheet({ bottleId, onClose, onMove, onChanged }: Props) {
         className="flex max-h-[85vh] w-full max-w-xl flex-col gap-4 overflow-y-auto rounded-t-3xl bg-background p-5 pb-8 shadow-2xl"
       >
         <div className="mx-auto h-1.5 w-10 rounded-full bg-muted/40" aria-hidden="true" />
-        {loadError && <p role="alert">לא הצלחנו לטעון את הבקבוק.</p>}
+        {loadError && <p role="alert">לא הצלחנו לטעון את הבקבוק</p>}
         {!details && !loadError && <p className="text-muted">טוען…</p>}
         {details && step === "details" && (
           <DetailsView

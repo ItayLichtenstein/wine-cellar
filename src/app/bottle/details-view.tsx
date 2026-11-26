@@ -175,7 +175,7 @@ function DeleteButton({ bottleId, onDeleted }: { bottleId: string; onDeleted: ()
   return (
     // basis-full: the question and its two buttons get a line of their own.
     <span className="flex basis-full flex-wrap items-center justify-center gap-2">
-      <span>{failed ? "המחיקה לא הצליחה." : "למחוק את הבקבוק?"}</span>
+      <span>{failed ? "המחיקה לא הצליחה" : "למחוק את הבקבוק?"}</span>
       <button
         type="button"
         onClick={remove}
@@ -213,7 +213,7 @@ function AddToMyWishlist({ wineId, year }: { wineId: string; year: number | null
   }
   return (
     <button type="button" onClick={add} disabled={state === "busy"} className="font-medium underline underline-offset-2">
-      {state === "failed" ? "לא הצליח. לנסות שוב?" : "♡ גם אני רוצה (ל־Wishlist)"}
+      {state === "failed" ? "לא הצליח, לנסות שוב?" : "♡ גם אני רוצה (ל־Wishlist)"}
     </button>
   );
 }

@@ -43,12 +43,12 @@ async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["pa
           {cellarTitle(friend.names, custom?.find((c) => c.cellar_id === id)?.custom_name)}
         </h1>
         <p className="text-sm text-muted">
-          <span className="inline-block">{countBottles(stored)} במקרר · צפייה בלבד.</span>{" "}
-          <span className="inline-block">לחיצה על בקבוק – ואפשר להוסיף אותו ל־Wishlist.</span>
+          <span className="inline-block">{countBottles(stored)} במקרר · צפייה בלבד</span>{" "}
+          <span className="inline-block">(לחיצה על בקבוק מאפשרת להוסיף אותו ל־Wishlist)</span>
         </p>
       </header>
       {fridges.length === 0 ? (
-        <p className="text-muted">עוד אין להם מקרר.</p>
+        <p className="text-muted">עוד אין להם מקרר</p>
       ) : (
         <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={false} />
       )}

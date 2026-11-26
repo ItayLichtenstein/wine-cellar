@@ -66,7 +66,7 @@ export function CellarView({
       p_slot: place?.slot ?? undefined,
     });
     if (rpcError) {
-      setError(rpcError.code === "23514" ? "אין מקום שם. בחרו מקום אחר." : "ההזזה לא הצליחה. נסו שוב.");
+      setError(rpcError.code === "23514" ? "אין שם מקום, בחרו מקום אחר" : "ההזזה לא הצליחה, נסו שוב");
       return;
     }
     refresh();
@@ -79,7 +79,7 @@ export function CellarView({
     <>
       {movingId && (
         <div className="sticky top-2 z-30 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-accent px-4 py-3 text-white shadow-lg dark:text-black">
-          <span className="font-medium">בחרו מקום חדש. בקבוק במקום תפוס יתחלף.</span>
+          <span className="font-medium">בחרו מקום חדש (בקבוק במקום תפוס יתחלף איתו)</span>
           <span className="flex gap-2 text-sm">
             <button type="button" onClick={() => moveTo(null)} className="underline underline-offset-2">
               הוצאה מהמקרר

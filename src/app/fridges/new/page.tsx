@@ -10,7 +10,7 @@ export default function NewFridgePage() {
       <header className="flex flex-col gap-1">
         <BackLink href="/" label="המקרר" />
         <h1 className="text-2xl font-bold">הגדרת מקרר</h1>
-        <p className="text-muted">ספרו לנו איך המקרר שלכם בנוי. תמיד אפשר לשנות אחר כך.</p>
+        <p className="text-muted">ספרו לנו איך המקרר שלכם בנוי (תמיד אפשר לשנות אחר כך)</p>
       </header>
       <NewFridgeForm />
     </main>

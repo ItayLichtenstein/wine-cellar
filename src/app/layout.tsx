@@ -12,7 +12,7 @@ const heebo = Heebo({
 
 // The preview a link gets in WhatsApp, iMessage and the like (Open Graph).
 // Shared links land on /login first, which inherits this from the layout.
-const PREVIEW_TITLE = "מרתף יין: יודעים בדיוק מה יש במקרר";
+const PREVIEW_TITLE = "מרתף יין · יודעים בדיוק מה יש במקרר";
 const PREVIEW_TEXT = "עוזר לך להחליט איזה בקבוק פותחים הערב";
 
 export const metadata: Metadata = {

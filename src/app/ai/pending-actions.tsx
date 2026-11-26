@@ -83,7 +83,7 @@ export function PendingActions({ actions }: { actions: PendingAction[] }) {
               {a.winery} – {a.name} <span className="text-muted">{a.year ?? "NV"}</span>
             </span>
           );
-          const problem = !p.bottle ? "לא מצאנו את הבקבוק הזה במרתף." : a.kind === "move" && !p.target ? "המקום החדש לא קיים או תפוס." : null;
+          const problem = !p.bottle ? "לא מצאנו את הבקבוק הזה במרתף" : a.kind === "move" && !p.target ? "המקום החדש לא קיים או תפוס" : null;
           return (
             <li key={p.id} className="flex flex-col gap-2 px-4 py-3">
               <span>
@@ -109,7 +109,7 @@ export function PendingActions({ actions }: { actions: PendingAction[] }) {
               {problem && <span className="text-sm text-red-700 dark:text-red-400">{problem}</span>}
               {failed === p.id && (
                 <span role="alert" className="text-sm text-red-700 dark:text-red-400">
-                  לא הצליח. ייתכן שהבקבוק או המקום השתנו בינתיים.
+                  לא הצליח, אולי הבקבוק או המקום השתנו בינתיים
                 </span>
               )}
               <div className="flex flex-wrap items-center gap-4 text-sm">

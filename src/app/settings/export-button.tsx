@@ -65,7 +65,7 @@ export function ExportButton({ cellarId }: { cellarId: string }) {
       <button type="button" onClick={exportCsv} disabled={busy} className="self-start rounded-full border border-muted/40 px-4 py-2 text-sm disabled:opacity-60">
         {busy ? "מכין…" : "ייצוא המרתף לקובץ (CSV)"}
       </button>
-      {failed && <p role="alert" className="text-sm text-red-700 dark:text-red-400">הייצוא לא הצליח. נסו שוב.</p>}
+      {failed && <p role="alert" className="text-sm text-red-700 dark:text-red-400">הייצוא לא הצליח, נסו שוב</p>}
     </div>
   );
 }

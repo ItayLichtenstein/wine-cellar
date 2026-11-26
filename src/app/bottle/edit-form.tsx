@@ -30,12 +30,12 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
 
   async function save() {
     if (!winery.trim() || !name.trim()) {
-      setError("צריך יקב ושם יין.");
+      setError("צריך למלא יקב ושם יין");
       return;
     }
     const numbers = [year, drinkFrom, drinkTo, paid, regular].map(numOrNull);
     if (numbers.some((n) => n !== null && Number.isNaN(n))) {
-      setError("אחד המספרים לא תקין.");
+      setError("אחד המספרים לא תקין");
       return;
     }
     const [y, from, to, p, r] = numbers;
@@ -66,8 +66,8 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
       setSaving(false);
       setError(
         rpcError.code === "23505"
-          ? "כבר יש במרתף יין בשם הזה מאותו יקב."
-          : "לא הצלחנו לשמור. בדקו את הפרטים ונסו שוב.",
+          ? "כבר יש במרתף יין בשם הזה מאותו יקב"
+          : "לא הצלחנו לשמור, בדקו את הפרטים ונסו שוב",
       );
       return;
     }
@@ -78,7 +78,7 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
     const ok = await saveExtra(d.wineId, moved?.vintage_id ?? d.vintageId, [d.id], extra);
     if (!ok) {
       setSaving(false);
-      setError("הפרטים הבסיסיים נשמרו, אבל הפרטים הנוספים לא. נסו שוב.");
+      setError("הפרטים הבסיסיים נשמרו, אבל הפרטים הנוספים לא. נסו שוב");
       return;
     }
     onDone();
@@ -87,7 +87,7 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
   return (
     <>
       <h2 className="text-xl font-bold">עריכת בקבוק</h2>
-      <p className="text-sm text-muted">יקב, שם וסוג משתנים לכל הבקבוקים של היין הזה. שאר השדות – רק לבקבוק הזה.</p>
+      <p className="text-sm text-muted">שינוי של יקב, שם או סוג חל על כל הבקבוקים של היין הזה, ושאר השדות רק על הבקבוק הזה</p>
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="יקב">
@@ -108,7 +108,7 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
         <Field label="בציר (ריק = NV)">
           <input value={year} onChange={(e) => setYear(e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
-        <Field label="חלון שתייה: משנה">
+        <Field label="חלון שתייה, משנה">
           <input value={drinkFrom} onChange={(e) => setDrinkFrom(e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
         <Field label="עד שנה">

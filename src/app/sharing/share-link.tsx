@@ -19,7 +19,7 @@ export function ShareLink({ active }: { active: { hidePrices: boolean } | null }
     setError(null);
     setCopied(false);
     const { data, error: e } = await createClient().rpc("create_share_link", { p_hide_prices: hidePrices });
-    if (e || !data) return setError("לא הצלחנו ליצור קישור. נסו שוב.");
+    if (e || !data) return setError("לא הצלחנו ליצור קישור, נסו שוב");
     setLink(`${window.location.origin}/shared#${data}`);
     router.refresh();
   }
@@ -27,7 +27,7 @@ export function ShareLink({ active }: { active: { hidePrices: boolean } | null }
   async function revoke() {
     setError(null);
     const { error: e } = await createClient().rpc("revoke_share_link");
-    if (e) return setError("הביטול לא הצליח. נסו שוב.");
+    if (e) return setError("הביטול לא הצליח, נסו שוב");
     setLink(null);
     router.refresh();
   }
@@ -46,8 +46,8 @@ export function ShareLink({ active }: { active: { hidePrices: boolean } | null }
     <section className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">קישור צפייה</h2>
       <p className="text-sm text-muted">
-        <span className="inline-block">מי שמקבל את הקישור רואה את המקרר בלי להירשם,</span>{" "}
-        <span className="inline-block">תמיד במצב העדכני.</span>
+        <span className="inline-block">מי שמקבל את הקישור רואה את המקרר כמו שהוא עכשיו,</span>{" "}
+        <span className="inline-block">בלי להירשם</span>
       </p>
       <div className="flex flex-col gap-2 rounded-xl bg-surface p-3 text-sm shadow-sm">
         <label className="flex items-center gap-2">
@@ -66,15 +66,15 @@ export function ShareLink({ active }: { active: { hidePrices: boolean } | null }
         </div>
         {active && !link && (
           <p className="text-muted">
-            <span className="inline-block">יש קישור פעיל.</span>{" "}
-            <span className="inline-block">קישור חדש יחליף אותו.</span>
+            <span className="inline-block">יש כבר קישור פעיל,</span>{" "}
+            <span className="inline-block">וקישור חדש יחליף אותו</span>
           </p>
         )}
         {link && (
           <>
             <p className="text-muted">
-              <span className="inline-block">שמרו או שלחו אותו עכשיו:</span>{" "}
-              <span className="inline-block">מטעמי אבטחה הוא מוצג פעם אחת.</span>
+              <span className="inline-block">שמרו או שלחו אותו עכשיו,</span>{" "}
+              <span className="inline-block">כי מטעמי אבטחה הוא מוצג רק פעם אחת</span>
             </p>
             <div className="flex gap-2">
               <input readOnly value={link} dir="ltr" aria-label="קישור הצפייה" className="min-w-0 flex-1 rounded-lg border border-muted/40 bg-background px-2 py-1 text-xs" />

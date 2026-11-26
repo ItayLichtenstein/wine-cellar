@@ -31,49 +31,49 @@ export function GuideTour() {
     {
       emoji: "🍷",
       title: "ברוכים הבאים למרתף",
-      text: "מה יש בבית, איפה כל בקבוק, ומתי לפתוח אותו. סיור של דקה.",
+      text: "מה יש בבית, איפה כל בקבוק ומתי לפתוח אותו, בסיור של דקה",
       demo: <Welcome />,
     },
     {
       emoji: "🧊",
       title: "מציירים את המקרר",
-      text: "לכל מדף בוחרים סידור, כמו במקרר שלכם. נסו:",
+      text: "לכל מדף בוחרים סידור, כמו במקרר שלכם. נסו בעצמכם",
       demo: <ArrangementDemo />,
     },
     {
       emoji: "🍾",
       title: "מוסיפים בקבוק",
-      text: "לוחצים על מקום ריק, וזה המקום של הבקבוק. נסו:",
+      text: "לוחצים על מקום ריק וזה המקום של הבקבוק. נסו בעצמכם",
       demo: <PickDemo />,
     },
     {
       emoji: "🎨",
       title: "הצבע אומר מתי לשתות",
-      text: "המספר הוא שנת הבציר (19 = 2019). הצבע אומר מתי לשתות. לחצו על בקבוק:",
+      text: "המספר הוא שנת הבציר (19 זה 2019) והצבע אומר מתי לשתות. לחצו על בקבוק",
       demo: <ColorsDemo />,
     },
     {
       emoji: "🥂",
       title: "פתחנו בקבוק",
-      text: "לוחצים על הבקבוק, \"שתינו\", ונותנים ציון מ־1 עד 5. נסו:",
+      text: "לוחצים על הבקבוק, על \"שתינו\", ונותנים ציון מ־1 עד 5. נסו בעצמכם",
       demo: <DrinkDemo />,
     },
     {
       emoji: "↔️",
       title: "מזיזים בקבוק",
-      text: "לוחצים על בקבוק, ואז על המקום החדש. נסו:",
+      text: "לוחצים על בקבוק ואז על המקום החדש. נסו בעצמכם",
       demo: <MoveDemo />,
     },
     {
       emoji: "✨",
       title: "ועוד כמה דברים",
-      text: "בקצרה:",
+      text: "ועוד כמה דברים",
       demo: <MoreDemo />,
     },
     {
       emoji: "🎉",
       title: "זהו, אתם מוכנים!",
-      text: "כמעט הכול אפשר לשנות אחר כך. הסיור נמצא תמיד ב\"עוד\".",
+      text: "כמעט הכול אפשר לשנות אחר כך, והסיור נמצא תמיד ב\"עוד\"",
       demo: <Finish />,
     },
   ];
@@ -159,12 +159,12 @@ function ArrangementDemo() {
   const options = {
     one: {
       name: "שורה אחת",
-      note: "שורה אחת של בקבוקים.",
+      note: "שורה אחת של בקבוקים",
       zones: [{ kind: "row" as const, capacity: 4, label: "שורה" }],
     },
     rows: {
       name: "שתי שורות",
-      note: "שורה אחורית ושורה קדמית.",
+      note: "שורה מאחור ושורה מלפנים",
       zones: [
         { kind: "row" as const, capacity: 4, label: "אחורי" },
         { kind: "row" as const, capacity: 3, label: "קדמי" },
@@ -172,7 +172,7 @@ function ArrangementDemo() {
     },
     pile: {
       name: "ערימה",
-      note: "בקבוקים זה על זה, למשל בתחתית המקרר.",
+      note: "בקבוקים זה על זה, למשל בתחתית המקרר",
       zones: [
         { kind: "stack" as const, capacity: 3, label: "שכבה עליונה" },
         { kind: "stack" as const, capacity: 4, label: "שכבה תחתונה" },
@@ -180,7 +180,7 @@ function ArrangementDemo() {
     },
     front: {
       name: "בחזית",
-      note: "בקבוקים ששוכבים לרוחב, לפני המדף.",
+      note: "בקבוקים ששוכבים לרוחב בקדמת המדף",
       zones: [
         { kind: "row" as const, capacity: 4, label: "אחורי" },
         { kind: "row" as const, capacity: 3, label: "קדמי" },
@@ -232,7 +232,7 @@ function PickDemo() {
       <p className="text-sm font-medium" aria-live="polite">
         {picked.length === 0
           ? "👆 לחצו על אחד המקומות הריקים"
-          : `יופי! ${picked.length === 1 ? "מקום אחד נבחר" : `${picked.length} מקומות נבחרו`}. לחיצה נוספת מבטלת.`}
+          : `יופי! ${picked.length === 1 ? "מקום אחד נבחר" : `${picked.length} מקומות נבחרו`} (לחיצה נוספת מבטלת)`}
       </p>
     </div>
   );
@@ -288,7 +288,7 @@ function DrinkDemo() {
       )}
       {stage === "rate" && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm">איך היה? ציון מ־1 עד 5:</span>
+          <span className="text-sm">איך היה? ציון מ־1 עד 5</span>
           <ScoreInput value={score} onChange={setScore} />
           <button
             type="button"
@@ -304,7 +304,7 @@ function DrinkDemo() {
         <p className="text-sm" aria-live="polite">
           <span className="text-lg">לחיים! {score}</span>
           <br />
-          נשמר בהיסטוריה.{" "}
+          נשמר בהיסטוריה ·{" "}
           <button type="button" onClick={() => (setStage("shelf"), setScore(""))} className="underline underline-offset-2">
             שוב
           </button>
@@ -345,13 +345,13 @@ function MoveDemo() {
 
 function MoreDemo() {
   const items = [
-    ["📋", "רשימה", "כל הבקבוקים, עם חיפוש וסינון."],
-    ["♡", "Wishlist", "יינות שרוצים לקנות או לטעום."],
-    ["📊", "סטטיסטיקות", "שווי המרתף, מה בשל, ומה אתם הכי אוהבים."],
-    ["🤝", "שיתוף", "מזמינים בקישור. שותף מנהל איתכם, חבר רק צופה."],
-    ["✨", "חיבור AI", "שואלים \"מה לפתוח הערב?\", או מצלמים את המקרר וה־AI ממלא אותו."],
-    ["🌓", "מראה", "בהיר, כהה או אוטומטי. ב\"עוד\"."],
-    ["📲", "כמו אפליקציה", "בדפדפן: שיתוף ← \"הוספה למסך הבית\"."],
+    ["📋", "רשימה", "כל הבקבוקים, עם חיפוש וסינון"],
+    ["♡", "Wishlist", "יינות שרוצים לקנות או לטעום"],
+    ["📊", "סטטיסטיקות", "שווי המרתף, מה בשל ומה אתם הכי אוהבים"],
+    ["🤝", "שיתוף", "מזמינים בקישור, שותף מנהל איתכם וחבר רק צופה"],
+    ["✨", "חיבור AI", "שואלים \"מה לפתוח הערב?\" או מצלמים את המקרר, וה־AI ממלא אותו"],
+    ["🌓", "מראה", "בהיר, כהה או אוטומטי, ב\"עוד\""],
+    ["📲", "כמו אפליקציה", "בדפדפן, שיתוף ← \"הוספה למסך הבית\""],
   ];
   return (
     <ul className="flex flex-col gap-2">
@@ -373,7 +373,7 @@ function MoreDemo() {
 function Finish() {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium">מכאן אפשר להמשיך ישר:</p>
+      <p className="text-sm font-medium">מכאן אפשר להמשיך ישר אל</p>
       <div className="flex flex-wrap gap-2">
       <Link href="/fridges/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
         🧊 הגדרת מקרר

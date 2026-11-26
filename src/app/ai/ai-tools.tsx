@@ -61,7 +61,7 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
     if (error)
       return setResult({
         added: 0,
-        errors: [error.hint === "too_many_drafts" ? "יש כבר 50 טיוטות שמחכות. אשרו או דחו קודם." : "השמירה לא הצליחה. נסו שוב."],
+        errors: [error.hint === "too_many_drafts" ? "יש כבר 50 טיוטות שמחכות, אשרו או דחו אותן קודם" : "השמירה לא הצליחה, נסו שוב"],
       });
     setAnswer("");
     setResult({ added: parsed.length, errors });
@@ -73,7 +73,7 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
       <summary className="cursor-pointer list-none rounded-xl border border-muted/30 px-4 py-3">
         <span className="flex items-center justify-between gap-2">
           <span className="flex flex-col">
-            <span className="font-medium">בלי חיבור: העתקה ידנית לכל צ׳אט</span>
+            <span className="font-medium">בלי חיבור, בהעתקה ידנית לכל צ׳אט</span>
             <span className="text-xs text-muted">לכל צ׳אט אחר, למשל Gemini או ChatGPT החינמי</span>
           </span>
           <span className="text-muted transition-transform group-open:rotate-180" aria-hidden="true">
@@ -82,10 +82,10 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
         </span>
       </summary>
       <p className="mt-3 text-sm text-muted">
-        <span className="inline-block">כאן ה־AI לא מחובר למרתף, אז האתר מכין בשבילו הודעה:</span>{" "}
-        <span className="inline-block">רשימת הבקבוקים שלכם והוראות מדויקות.</span>{" "}
+        <span className="inline-block">כאן ה־AI לא מחובר למרתף, אז האתר מכין בשבילו הודעה</span>{" "}
+        <span className="inline-block">עם רשימת הבקבוקים שלכם והוראות מדויקות.</span>{" "}
         <span className="inline-block">מדביקים אותה בצ׳אט, ואם ביקשתם להוסיף בקבוקים,</span>{" "}
-        <span className="inline-block">מעתיקים לכאן את התשובה והיא הופכת לטיוטות.</span>
+        <span className="inline-block">מעתיקים לכאן את התשובה והיא הופכת לטיוטות</span>
       </p>
       <section className="mt-3 flex flex-col gap-3 rounded-xl bg-surface p-4 shadow-sm">
         <h2 className="font-semibold">1. העתקת ההודעה לצ׳אט</h2>
@@ -119,7 +119,7 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
           }}
           dir="auto"
           maxLength={200}
-          placeholder={task === "drink" ? "האירוע (למשל: ארוחה איטלקית עם חברים)" : "פרטים נוספים (למשל: קניתי ב־120 ₪ כל אחד)"}
+          placeholder={task === "drink" ? "האירוע (למשל ארוחה איטלקית עם חברים)" : "פרטים נוספים (למשל קניתי ב־120 ₪ כל אחד)"}
           className={field}
         />
         <button type="button" onClick={copy} className="self-start rounded-full bg-accent px-4 py-2 font-medium text-white dark:text-black">
@@ -129,10 +129,10 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
           {task === "add" ? (
             <>
               <span className="inline-block">הדביקו בצ׳אט עם ה־AI שלכם, צרפו תמונה של התוויות או הקבלה,</span>{" "}
-              <span className="inline-block">והעתיקו לכאן את התשובה.</span>
+              <span className="inline-block">והעתיקו לכאן את התשובה</span>
             </>
           ) : (
-            <span className="inline-block">הדביקו בצ׳אט עם ה־AI שלכם. ההמלצה נשארת שם, אין מה להדביק בחזרה.</span>
+            <span className="inline-block">הדביקו בצ׳אט עם ה־AI שלכם, וההמלצה תחכה לכם שם</span>
           )}
         </p>
       </section>
@@ -160,7 +160,7 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
           {result && (
             <div className="text-sm" role="status">
               {result.added > 0 && (
-                <p>{result.added === 1 ? "נוספה טיוטה אחת" : `נוספו ${result.added} טיוטות`}. בדקו ואשרו ב״מחכים לאישור״ למעלה.</p>
+                <p>{result.added === 1 ? "נוספה טיוטה אחת" : `נוספו ${result.added} טיוטות`}, אפשר לבדוק ולאשר ב״מחכים לאישור״ למעלה</p>
               )}
               {result.errors.map((e) => (
                 <p key={e} className="text-red-700 dark:text-red-400" dir="auto">
@@ -202,7 +202,7 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
             <span className="inline-block">נוספו {done.bottles} בקבוקים</span>
             {done.placed > 0 && <span className="inline-block">, {done.placed} מהם במקום שלהם במקרר</span>}
             {done.bottles - done.placed > 0 && <span className="inline-block">, {done.bottles - done.placed} מחוץ למקרר (אפשר לשבץ מהמסך הראשי)</span>}
-            .{done.failed > 0 && <span className="inline-block"> {done.failed} לא נשמרו, והם עדיין כאן.</span>}
+            {done.failed > 0 && <span className="inline-block">. {done.failed} לא נשמרו ועדיין מחכים כאן</span>}
           </p>
         )}
         {drafts.length > 0 && (

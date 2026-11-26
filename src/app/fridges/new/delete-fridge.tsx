@@ -38,8 +38,8 @@ export function DeleteFridge({ id, stored }: { id: string; stored: number }) {
         <>
           <p>
             {stored > 0
-              ? `${countBottles(stored)} שבמקרר יעברו ל״מחוץ למקרר״. שום בקבוק לא נמחק.`
-              : "המקרר ריק, ואין בו בקבוקים."}
+              ? `${countBottles(stored)} שבמקרר יעברו ל״מחוץ למקרר״, אף בקבוק לא יימחק`
+              : "המקרר ריק"}
           </p>
           <div className="flex gap-2">
             <button
@@ -58,7 +58,7 @@ export function DeleteFridge({ id, stored }: { id: string; stored: number }) {
       )}
       {failed && (
         <p role="alert" className="text-red-700 dark:text-red-400">
-          המחיקה לא הצליחה. נסו שוב.
+          המחיקה לא הצליחה, נסו שוב
         </p>
       )}
     </section>

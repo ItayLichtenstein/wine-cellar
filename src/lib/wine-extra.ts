@@ -66,10 +66,10 @@ export function linkLabel(url: string): string | null {
 /** Problems a user can fix, in Hebrew; empty when everything is fine. */
 export function validateExtra(e: WineExtra): string | null {
   const year = (s: string) => s.trim() === "" || /^(19|20|21)\d\d$/.test(s.trim());
-  if (!year(e.peakFrom) || !year(e.peakTo)) return "שנות השיא צריכות להיות שנים בנות 4 ספרות.";
-  if (e.peakFrom && e.peakTo && Number(e.peakFrom) > Number(e.peakTo)) return "שנת תחילת השיא אחרי סופו.";
-  if (e.alcohol.trim() && !(Number(e.alcohol) >= 0 && Number(e.alcohol) <= 25)) return "אחוז האלכוהול צריך להיות בין 0 ל־25.";
-  if (e.critics.some((c) => !c.critic.trim() || !(c.score >= 50 && c.score <= 100))) return "ציון מבקר צריך שם וציון בין 50 ל־100.";
+  if (!year(e.peakFrom) || !year(e.peakTo)) return "שנות השיא צריכות להיות בנות 4 ספרות";
+  if (e.peakFrom && e.peakTo && Number(e.peakFrom) > Number(e.peakTo)) return "שנת תחילת השיא מאוחרת משנת הסיום";
+  if (e.alcohol.trim() && !(Number(e.alcohol) >= 0 && Number(e.alcohol) <= 25)) return "אחוז האלכוהול צריך להיות בין 0 ל־25";
+  if (e.critics.some((c) => !c.critic.trim() || !(c.score >= 50 && c.score <= 100))) return "לכל ציון מבקר צריך שם וציון בין 50 ל־100";
   if (e.link.trim() && !linkLabel(e.link.trim())) return "הקישור צריך להתחיל ב־https://";
   return null;
 }

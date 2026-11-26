@@ -32,7 +32,7 @@ async function Stats() {
 
   const open = bottles.filter((b) => b.status !== "consumed");
   if (open.length === 0 && bottles.length === 0) {
-    return <p className="text-muted">כשיהיו בקבוקים במרתף, כאן יופיעו המספרים.</p>;
+    return <p className="text-muted">המספרים יופיעו כאן כשיהיו בקבוקים במרתף</p>;
   }
 
   const value = cellarValue(bottles);
@@ -56,7 +56,7 @@ async function Stats() {
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">מתי לשתות</h2>
-        {open.length === 0 && <p className="text-sm text-muted">כשיהיו בקבוקים במרתף, כאן יופיע כמה מהם כבר בשלים לשתייה.</p>}
+        {open.length === 0 && <p className="text-sm text-muted">כשיהיו בקבוקים במרתף, נראה כאן כמה מהם בשלים לשתייה</p>}
         <div className="flex h-4 overflow-hidden rounded-full" role="img" aria-label="פילוח לפי בשלות">
           {DRINK_STATE_ORDER.map((s) => {
             const c = states.find((x) => x.state === s)?.count ?? 0;
@@ -102,7 +102,7 @@ async function Stats() {
         {loves.length === 0 ? (
           <p className="text-sm text-muted">
             <span className="inline-block">אחרי כמה ציונים</span>{" "}
-            <span className="inline-block">יופיע כאן פרופיל הטעם שלכם.</span>
+            <span className="inline-block">יופיע כאן פרופיל הטעם שלכם</span>
           </p>
         ) : (
           <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">

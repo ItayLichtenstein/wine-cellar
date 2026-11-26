@@ -54,7 +54,7 @@ export function ExtraFields({ value, onChange }: { value: WineExtra; onChange: (
             <option value="burgundy">בורגון (רחב)</option>
           </select>
         </Field>
-        <Field label="שיא: משנה">
+        <Field label="שיא, משנה">
           <input value={value.peakFrom} onChange={(e) => set("peakFrom", e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
         <Field label="עד שנה">
