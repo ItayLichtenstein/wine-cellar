@@ -1,5 +1,6 @@
 "use client";
 
+import { LineIcon, type IconName } from "@/components/line-icon";
 import Link from "next/link";
 import { useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
@@ -344,21 +345,21 @@ function MoveDemo() {
 }
 
 function MoreDemo() {
-  const items = [
-    ["📋", "רשימה", "כל הבקבוקים, עם חיפוש וסינון"],
-    ["♡", "Wishlist", "יינות שרוצים לקנות או לטעום"],
-    ["📊", "סטטיסטיקות", "שווי המרתף, מה בשל ומה אתם הכי אוהבים"],
-    ["🤝", "שיתוף", "מזמינים בקישור, שותף מנהל איתכם וחבר רק צופה"],
-    ["✨", "חיבור AI", "שואלים \"מה לפתוח הערב?\" או מצלמים את המקרר, וה־AI ממלא אותו"],
-    ["🌓", "מראה", "בהיר, כהה או אוטומטי, ב\"עוד\""],
-    ["📲", "כמו אפליקציה", "בדפדפן, שיתוף ← \"הוספה למסך הבית\""],
+  const items: [IconName, string, string][] = [
+    ["list", "רשימה", "כל הבקבוקים, עם חיפוש וסינון"],
+    ["wish", "Wishlist", "יינות שרוצים לקנות או לטעום"],
+    ["stats", "סטטיסטיקות", "שווי המרתף, מה בשל ומה אתם הכי אוהבים"],
+    ["people", "שיתוף", "מזמינים בקישור, שותף מנהל איתכם וחבר רק צופה"],
+    ["sparkle", "חיבור AI", "שואלים \"מה לפתוח הערב?\" או מצלמים את המקרר, וה־AI ממלא אותו (תמיד ב\"עוד\")"],
+    ["moon", "מראה", "בהיר, כהה או אוטומטי, ב\"עוד\""],
+    ["phone", "כמו אפליקציה", "בדפדפן, שיתוף ← \"הוספה למסך הבית\""],
   ];
   return (
     <ul className="flex flex-col gap-2">
       {items.map(([icon, name, text]) => (
         <li key={name} className="flex items-start gap-3 rounded-xl bg-background px-3 py-2.5">
-          <span className="text-lg" aria-hidden="true">
-            {icon}
+          <span className="pt-0.5 text-accent">
+            <LineIcon name={icon} className="size-5" />
           </span>
           <span className="flex flex-col">
             <span className="font-medium">{name}</span>
@@ -376,13 +377,13 @@ function Finish() {
       <p className="text-sm font-medium">מכאן אפשר להמשיך ישר אל</p>
       <div className="flex flex-wrap gap-2">
       <Link href="/fridges/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
-        🧊 הגדרת מקרר
+        הגדרת מקרר
       </Link>
       <Link href="/bottles/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
-        🍾 הוספת בקבוק
+        הוספת בקבוק
       </Link>
       <Link href="/ai" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
-        ✨ חיבור AI
+        חיבור AI
       </Link>
       </div>
     </div>

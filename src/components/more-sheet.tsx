@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useT } from "@/i18n/provider";
+import { LineIcon } from "./line-icon";
 
 /** Applies the look saved on this device. Mounted on every signed-in page (with the nav). */
 export function SavedTheme() {
@@ -21,17 +22,17 @@ const GROUPS = [
   {
     title: "cellar",
     links: [
-      { href: "/history", text: "history", icon: "🍷" },
-      { href: "/fridges", text: "fridges", icon: "🧊" },
-      { href: "/ai", text: "ai", icon: "✨" },
+      { href: "/history", text: "history", icon: "glass" },
+      { href: "/fridges", text: "fridges", icon: "fridge" },
+      { href: "/ai", text: "ai", icon: "sparkle" },
     ],
   },
-  { title: "people", links: [{ href: "/sharing", text: "sharing", icon: "🤝" }] },
+  { title: "people", links: [{ href: "/sharing", text: "sharing", icon: "people" }] },
   {
     title: "help",
     links: [
-      { href: "/settings", text: "settings", icon: "⚙️" },
-      { href: "/guide", text: "guide", icon: "📖" },
+      { href: "/settings", text: "settings", icon: "sliders" },
+      { href: "/guide", text: "guide", icon: "book" },
     ],
   },
 ] as const;
@@ -75,8 +76,8 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
               {group.links.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} onClick={onClose} className="flex items-center gap-3 px-3 py-2.5">
-                    <span className="text-xl" aria-hidden="true">
-                      {link.icon}
+                    <span className="text-accent">
+                      <LineIcon name={link.icon} />
                     </span>
                     <span className="flex flex-1 flex-col">
                       <span className="font-medium">{t.more.links[link.text][0]}</span>
