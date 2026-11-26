@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,6 +15,7 @@ export type FridgeRow = { id: string; name: string; details: string };
  */
 export function FridgeList({ fridges, canEdit }: { fridges: FridgeRow[]; canEdit: boolean }) {
   const router = useRouter();
+  const f2 = useT().fridgeSetup;
   const [order, setOrder] = useState(fridges);
   const [failed, setFailed] = useState(false);
 
@@ -38,10 +40,10 @@ export function FridgeList({ fridges, canEdit }: { fridges: FridgeRow[]; canEdit
             <div className="flex min-w-0 flex-1 flex-col">
               <span>
                 {f.name}{" "}
-                {i === 0 && order.length > 1 && <span className="text-xs text-muted">(נפתח ראשון)</span>}{" "}
+                {i === 0 && order.length > 1 && <span className="text-xs text-muted">{f2.opensFirst}</span>}{" "}
                 {canEdit && (
                   <Link href={`/fridges/${f.id}/edit`} className="text-sm underline underline-offset-2">
-                    עריכה
+                    {f2.edit}
                   </Link>
                 )}
               </span>
@@ -49,10 +51,10 @@ export function FridgeList({ fridges, canEdit }: { fridges: FridgeRow[]; canEdit
             </div>
             {canEdit && order.length > 1 && (
               <div className="flex shrink-0 gap-1">
-                <button type="button" className={arrow} disabled={i === 0} onClick={() => move(i, i - 1)} aria-label={`להזיז את ${f.name} למעלה`}>
+                <button type="button" className={arrow} disabled={i === 0} onClick={() => move(i, i - 1)} aria-label={f2.moveUp(f.name)}>
                   ↑
                 </button>
-                <button type="button" className={arrow} disabled={i === order.length - 1} onClick={() => move(i, i + 1)} aria-label={`להזיז את ${f.name} למטה`}>
+                <button type="button" className={arrow} disabled={i === order.length - 1} onClick={() => move(i, i + 1)} aria-label={f2.moveDown(f.name)}>
                   ↓
                 </button>
               </div>
@@ -60,7 +62,7 @@ export function FridgeList({ fridges, canEdit }: { fridges: FridgeRow[]; canEdit
           </li>
         ))}
       </ul>
-      {failed && <p className="text-sm text-red-700 dark:text-red-400">שינוי הסדר לא נשמר, נסו שוב</p>}
+      {failed && <p className="text-sm text-red-700 dark:text-red-400">{f2.orderFailed}</p>}
     </>
   );
 }

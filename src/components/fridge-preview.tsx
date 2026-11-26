@@ -3,7 +3,8 @@
 import { frontZone, type Zone } from "@/lib/fridge-layout";
 import { DRINK_STATES } from "@/lib/drink-state";
 import type { PlacedBottle } from "@/lib/fridges";
-import { useT } from "@/i18n/provider";
+import { useLocale, useT } from "@/i18n/provider";
+import { zoneLabel } from "@/lib/zone-label";
 
 /** A zone as drawn: from the setup form (no id/bottles) or from the database. */
 type DrawnZone = Zone & { id?: string; bottles?: PlacedBottle[] };
@@ -150,6 +151,7 @@ function ZoneLine({
   view: FridgeViewMode;
 }) {
   const t = useT();
+  const zoneName = zoneLabel(zone.label ?? "", useLocale());
   // A pile layer never wraps (that would break the picture): its bottles shrink instead.
   const shape = layer ? `${SLOT_SHAPE[view]} min-w-0` : SLOT_SHAPE[view];
   const bottles = zone.bottles ?? [];
@@ -165,15 +167,15 @@ function ZoneLine({
     return { bottle: bottles.find((b) => b.slot === slot), picked: pickedHere.some((p) => p.slot === slot), place, slot };
   });
   const where = isStack
-    ? `${zone.label || t.fridge.pile}, ${t.fridge.shelf(shelfNo)}`
-    : [t.fridge.shelf(shelfNo), zone.label, t.fridge.place].filter(Boolean).join(", ");
+    ? `${zoneName || t.fridge.pile}, ${t.fridge.shelf(shelfNo)}`
+    : [t.fridge.shelf(shelfNo), zoneName, t.fridge.place].filter(Boolean).join(", ");
   const layerClass =
     layer === "lower" ? "-mt-1" : front ? "mt-0.5 border-t border-dashed border-on-fridge/30 pt-1.5" : "";
 
   return (
     <div
       className={`flex items-center gap-1 ${layer ? "flex-nowrap" : "flex-wrap"} ${shifted ? HALF_STEP[view] : ""} ${layerClass}`}
-      title={zone.label}
+      title={zoneName}
     >
       {cells.map(({ bottle, picked: isPicked, place, slot }) => {
         if (!bottle && hideEmpty) return null;
@@ -217,7 +219,7 @@ function ZoneLine({
         );
       })}
       {/* In the labels view the slots fill the row; the back row is always drawn first. */}
-      {zone.label && view === "dots" && <span className="ms-1 text-[10px] text-on-fridge/50">{zone.label}</span>}
+      {zoneName && view === "dots" && <span className="ms-1 text-[10px] text-on-fridge/50">{zoneName}</span>}
     </div>
   );
 }

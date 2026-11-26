@@ -1,9 +1,9 @@
 "use client";
 
+import { useT } from "@/i18n/provider";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { bottles as countBottles } from "@/lib/plural";
 
 /**
  * Deleting a fridge: two taps. Its bottles are not deleted; the database
@@ -12,6 +12,7 @@ import { bottles as countBottles } from "@/lib/plural";
  */
 export function DeleteFridge({ id, stored }: { id: string; stored: number }) {
   const router = useRouter();
+  const f = useT().fridgeSetup;
   const [asked, setAsked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -32,14 +33,14 @@ export function DeleteFridge({ id, stored }: { id: string; stored: number }) {
     <section className="flex flex-col gap-2 rounded-xl border border-red-300/40 p-3 text-sm">
       {!asked ? (
         <button type="button" onClick={() => setAsked(true)} className="self-start font-medium text-red-700 dark:text-red-400">
-          מחיקת המקרר
+          {f.deleteFridge}
         </button>
       ) : (
         <>
           <p>
             {stored > 0
-              ? `${countBottles(stored)} שבמקרר יעברו ל״מחוץ למקרר״, אף בקבוק לא יימחק`
-              : "המקרר ריק"}
+              ? f.deleteMoves(f.bottles(stored))
+              : f.empty}
           </p>
           <div className="flex gap-2">
             <button
@@ -48,17 +49,17 @@ export function DeleteFridge({ id, stored }: { id: string; stored: number }) {
               disabled={busy}
               className="rounded-full bg-red-700 px-4 py-2 font-medium text-white disabled:opacity-50 dark:bg-red-500"
             >
-              {busy ? "מוחק…" : "כן, למחוק את המקרר"}
+              {busy ? f.deleting : f.yesDelete}
             </button>
             <button type="button" onClick={() => setAsked(false)} className="rounded-full border border-muted/40 px-4 py-2">
-              ביטול
+              {f.cancel}
             </button>
           </div>
         </>
       )}
       {failed && (
         <p role="alert" className="text-red-700 dark:text-red-400">
-          המחיקה לא הצליחה, נסו שוב
+          {f.deleteFailed}
         </p>
       )}
     </section>

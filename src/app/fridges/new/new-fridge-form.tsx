@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale, useT } from "@/i18n/provider";
+import { zoneLabel } from "@/lib/zone-label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview } from "@/components/fridge-preview";
@@ -53,7 +55,9 @@ const ADD_FRONT = "add-front";
 /** The new-fridge form; with `existing` it edits that fridge instead. */
 export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
   const router = useRouter();
-  const [name, setName] = useState(existing?.name ?? "מקרר יין");
+  const locale = useLocale();
+  const f = useT().fridgeSetup;
+  const [name, setName] = useState(existing?.name ?? f.defaultName);
   const [brand, setBrand] = useState(existing?.brand ?? "");
   const [model, setModel] = useState(existing?.model ?? "");
   const knownBrand = CATALOG.some((b) => b.brand === existing?.brand);
@@ -153,7 +157,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!name.trim()) {
-      setError("צריך לתת למקרר שם");
+      setError(f.needName);
       return;
     }
     // Moving bottles out of the fridge needs a second, explicit tap.
@@ -183,7 +187,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
     if (rpcError) {
       setSaving(false);
       // Never show database details to the user.
-      setError("לא הצלחנו לשמור את המקרר, בדקו את הפרטים ונסו שוב");
+      setError(f.saveFailed);
       return;
     }
     router.push("/");
@@ -193,29 +197,29 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
   return (
     <form onSubmit={save} className="flex flex-col gap-6">
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-2 text-lg font-semibold">פרטי המקרר</legend>
-        <TextField label="שם" value={name} onChange={setName} required />
+        <legend className="mb-2 text-lg font-semibold">{f.details}</legend>
+        <TextField label={f.name} value={name} onChange={setName} required />
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">יצרן</span>
+            <span className="text-muted">{f.brand}</span>
             <select value={brandChoice} onChange={(e) => chooseBrand(e.target.value)} className={selectClass}>
-              <option value="">בחרו (לא חובה)</option>
+              <option value="">{f.pickOptional}</option>
               {CATALOG.map((b) => (
                 <option key={b.brand} value={b.brand}>
                   {b.brand}
                 </option>
               ))}
-              <option value={OTHER}>יצרן אחר</option>
+              <option value={OTHER}>{f.otherBrand}</option>
             </select>
           </label>
           {groups.length > 0 && (
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-muted">כמה בקבוקים?</span>
+              <span className="text-muted">{f.howMany}</span>
               <select value={capacity ?? ""} onChange={(e) => chooseCapacity(e.target.value)} className={selectClass}>
-                <option value="">בחרו</option>
+                <option value="">{f.pick}</option>
                 {groups.map((g) => (
                   <option key={g.capacity} value={g.capacity}>
-                    {g.capacity}{g.models.length > 1 ? ` (${g.models.length} דגמים)` : ""}
+                    {g.capacity}{g.models.length > 1 ? f.models(g.models.length) : ""}
                   </option>
                 ))}
               </select>
@@ -224,13 +228,13 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
         </div>
         {sameCapacity.length > 1 && (
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">דגם</span>
+            <span className="text-muted">{f.model}</span>
             <select
               value={model}
               onChange={(e) => chooseModel(sameCapacity.find((m) => m.model === e.target.value) ?? null)}
               className={selectClass}
             >
-              <option value="">בחרו דגם</option>
+              <option value="">{f.pickModel}</option>
               {sameCapacity.map((m) => (
                 <option key={m.model} value={m.model}>
                   {m.model}
@@ -239,46 +243,45 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
             </select>
           </label>
         )}
-        {sameCapacity.length === 1 && <p className="text-sm text-muted">דגם {model}</p>}
+        {sameCapacity.length === 1 && <p className="text-sm text-muted">{f.modelIs(model)}</p>}
         {brandChoice === OTHER && (
           <div className="grid grid-cols-2 gap-3">
-            <TextField label="שם היצרן" value={brand} onChange={setBrand} />
-            <TextField label="דגם (לא חובה)" value={model} onChange={setModel} />
+            <TextField label={f.brandName} value={brand} onChange={setBrand} />
+            <TextField label={f.modelOptional} value={model} onChange={setModel} />
           </div>
         )}
         {spec && (
           <p className="rounded-lg bg-surface px-3 py-2 text-sm text-muted">
             <span className="inline-block">
-              לפי היצרן יש {spec.capacity} בקבוקים ו־{spec.shelves} מדפים{spec.bottom ? ", ועוד אזור תחתון" : ""}
+              {f.perMaker(spec.capacity, spec.shelves, !!spec.bottom)}
             </span>{" "}
-            <span className="inline-block">את החלוקה למדפים אנחנו רק מעריכים,</span>{" "}
-            <span className="inline-block">אז כדאי לבדוק מול המקרר ולתקן</span>{" "}
+            <span className="inline-block">{f.estimate[0]}</span>{" "}
+            <span className="inline-block">{f.estimate[1]}</span>{" "}
             {spec.note && <span className="inline-block">({spec.note})</span>}{" "}
             <a href={spec.source} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
-              עמוד הדגם
+              {f.modelPage}
             </a>
           </p>
         )}
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-2 text-lg font-semibold">מדפים</legend>
+        <legend className="mb-2 text-lg font-semibold">{f.shelves}</legend>
         <div className="flex items-center gap-3">
-          <span>כמה מדפים?</span>
+          <span>{f.howManyShelves}</span>
           <Stepper value={shelves.length} onChange={setShelfCount} min={LIMITS.shelves.min} max={LIMITS.shelves.max} />
         </div>
         <p className="text-sm text-muted">
-          מדף 1 הוא העליון. בוחרים לכל מדף סידור ומתקנים כמה בקבוקים נכנסים בכל חלק, כדי שהמקרר באתר
-          ייראה בדיוק כמו המקרר שבבית
+          {f.shelvesHelp}
         </p>
 
         <ol className="flex flex-col gap-3">
           {shelves.map((shelf, i) => (
             <li key={i} className="flex flex-col gap-2 rounded-xl bg-surface p-3 shadow-sm">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-medium">מדף {i + 1}</span>
+                <span className="font-medium">{f.shelf(i + 1)}</span>
                 <select
-                  aria-label={`סידור מדף ${i + 1}`}
+                  aria-label={f.shelfLayout(i + 1)}
                   value={shelf.preset}
                   onChange={(e) => changeArrangement(i, e.target.value)}
                   className="max-w-[60%] rounded-lg border border-muted/40 bg-background px-2 py-1 text-sm"
@@ -286,24 +289,24 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
                   {/* An existing stack shelf keeps its own entry, so the select shows the truth. */}
                   {[...new Set([...CHOOSABLE_PRESETS, shelf.preset])].map((key) => (
                     <option key={key} value={key}>
-                      {SHELF_PRESETS[key].title}
+                      {f.presets[key]}
                     </option>
                   ))}
                   {!frontZone(shelf.zones) && shelf.zones.length < LIMITS.zonesPerShelf.max && (
-                    <option value={ADD_FRONT}>+ בקבוקים בחזית</option>
+                    <option value={ADD_FRONT}>{f.addFront}</option>
                   )}
                 </select>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
                 {shelf.zones.map((zone, j) => (
                   <div key={j} className="flex items-center gap-2 text-sm">
-                    <span className="text-muted">{zone.label}</span>
+                    <span className="text-muted">{zoneLabel(zone.label, locale)}</span>
                     <Stepper
                       value={zone.capacity}
                       onChange={(v) => changeCapacity(i, j, v)}
                       min={zone === frontZone(shelf.zones) ? 0 : LIMITS.capacity.min}
                       max={LIMITS.capacity.max}
-                      label={`${zone.label}, מדף ${i + 1}`}
+                      label={f.zoneOnShelf(zoneLabel(zone.label, locale), i + 1)}
                     />
                   </div>
                 ))}
@@ -314,10 +317,10 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
       </fieldset>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold">כך זה ייראה</h2>
+        <h2 className="text-lg font-semibold">{f.preview}</h2>
         <p className="text-sm text-muted">
-          סך הכול מקום ל־{fridgeCapacity(shelves)} בקבוקים
-          {spec && fridgeCapacity(shelves) !== spec.capacity ? ` (לפי היצרן ${spec.capacity})` : ""}
+          {f.total(fridgeCapacity(shelves))}
+          {spec && fridgeCapacity(shelves) !== spec.capacity ? f.perMakerShort(spec.capacity) : ""}
         </p>
         <FridgePreview shelves={shelves} />
       </section>
@@ -331,9 +334,9 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
       {leaving > 0 && (
         <p role="alert" className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
           <span className="inline-block">
-            {leaving === 1 ? "בקבוק אחד יעבור" : `${leaving} בקבוקים יעברו`} ל״מחוץ למקרר״,
+            {f.leaving(leaving)}
           </span>{" "}
-          <span className="inline-block">שום בקבוק לא נמחק ואפשר לשבץ אותם מחדש אחר כך</span>
+          <span className="inline-block">{f.noneDeleted}</span>
         </p>
       )}
 
@@ -344,7 +347,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
         disabled={saving}
         className="w-full rounded-full bg-accent px-5 py-3 font-medium text-white shadow-md disabled:opacity-60 dark:text-black"
       >
-        {saving ? "שומר…" : leaving > 0 && confirmed ? "כן, לשמור ולהוציא אותם" : "שמירת המקרר"}
+        {saving ? f.saving : leaving > 0 && confirmed ? f.yesSave : f.save}
       </button>
       </div>
 
@@ -396,15 +399,16 @@ function Stepper({
   label?: string;
 }) {
   const button = "size-9 rounded-full border border-muted/40 text-lg leading-none disabled:opacity-40";
+  const f = useT().fridgeSetup;
   return (
     <span className="inline-flex items-center gap-2 select-none" role="group" aria-label={label}>
-      <button type="button" className={button} onClick={() => onChange(value - 1)} disabled={value <= min} aria-label="פחות">
+      <button type="button" className={button} onClick={() => onChange(value - 1)} disabled={value <= min} aria-label={f.less}>
         −
       </button>
       <span className="w-6 text-center tabular-nums" aria-live="polite">
         {value}
       </span>
-      <button type="button" className={button} onClick={() => onChange(value + 1)} disabled={value >= max} aria-label="יותר">
+      <button type="button" className={button} onClick={() => onChange(value + 1)} disabled={value >= max} aria-label={f.more}>
         +
       </button>
     </span>

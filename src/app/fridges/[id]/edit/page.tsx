@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
 import { BackLink } from "@/components/back-link";
 import { getCurrentUser } from "@/lib/auth";
 import { notFound } from "next/navigation";
@@ -8,18 +9,19 @@ import { NewFridgeForm } from "../../new/new-fridge-form";
 
 export const metadata: Metadata = { title: "עריכת מקרר · מרתף יין" };
 
-export default function EditFridgePage({ params }: PageProps<"/fridges/[id]/edit">) {
+export default async function EditFridgePage({ params }: PageProps<"/fridges/[id]/edit">) {
+  const t = await getT();
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-1">
-        <BackLink href="/fridges" label="המקררים" />
-        <h1 className="text-2xl font-bold">עריכת מקרר</h1>
+        <BackLink href="/fridges" label={t.fridgeSetup.listTitle} />
+        <h1 className="text-2xl font-bold">{t.fridgeSetup.editTitle}</h1>
         <p className="text-muted">
-          <span className="inline-block">בקבוקים במקומות שנשארים לא זזים,</span>{" "}
-          <span className="inline-block">ובקבוק ממקום שנמחק עובר ל״מחוץ למקרר״</span>
+          <span className="inline-block">{t.fridgeSetup.editIntro[0]}</span>{" "}
+          <span className="inline-block">{t.fridgeSetup.editIntro[1]}</span>
         </p>
       </header>
-      <Suspense fallback={<p className="text-muted">טוען…</p>}>
+      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
         <FormWithData params={params} />
       </Suspense>
     </main>
