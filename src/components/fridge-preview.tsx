@@ -75,7 +75,7 @@ type Props = {
 export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottleClick, activeBottleId, view = "labels" }: Props) {
   return (
     // w-fit: the fridge is as wide as its widest shelf, not the whole page.
-    <ol className="mx-auto flex w-fit min-w-72 max-w-full flex-col gap-2 rounded-2xl bg-fridge p-3" aria-label="שרטוט המקרר">
+    <ol className="mx-auto flex w-fit min-w-72 max-w-full touch-manipulation flex-col gap-2 rounded-2xl bg-fridge p-3 select-none [-webkit-touch-callout:none]" aria-label="שרטוט המקרר">
       {shelves.map((shelf, i) => (
         <li key={i} className="wood flex items-start gap-2 rounded-lg p-2">
           <span className="w-5 shrink-0 pt-1 text-center text-xs text-on-fridge/60" aria-hidden="true">

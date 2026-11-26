@@ -68,6 +68,18 @@ body {
   font-family: var(--font-heebo), system-ui, sans-serif;
 }
 
+/* On a phone, a long press while scrolling starts a text selection; until it
+   is dismissed, taps only move it, so buttons seem dead (seen on iPhone in
+   the fridge setup). Controls are never text to copy. */
+button,
+select,
+[role="radio"],
+[role="tab"] {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
 /* A <fieldset> defaults to min-width: min-content, so a wide child (the
    fridge drawing) made the whole form wider than a phone screen. */
 fieldset {
