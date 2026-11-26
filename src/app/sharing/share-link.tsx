@@ -8,10 +8,9 @@ import { createClient } from "@/lib/supabase/client";
  * A view link for people without an account. Only its hash is stored, so
  * the link is shown once; "new link" replaces it (the old one stops working).
  */
-export function ShareLink({ active }: { active: { hidePrices: boolean; hideHistory: boolean } | null }) {
+export function ShareLink({ active }: { active: { hidePrices: boolean } | null }) {
   const router = useRouter();
   const [hidePrices, setHidePrices] = useState(active?.hidePrices ?? true);
-  const [hideHistory, setHideHistory] = useState(active?.hideHistory ?? false);
   const [link, setLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +18,7 @@ export function ShareLink({ active }: { active: { hidePrices: boolean; hideHisto
   async function create() {
     setError(null);
     setCopied(false);
-    const { data, error: e } = await createClient().rpc("create_share_link", { p_hide_prices: hidePrices, p_hide_history: hideHistory });
+    const { data, error: e } = await createClient().rpc("create_share_link", { p_hide_prices: hidePrices });
     if (e || !data) return setError("לא הצלחנו ליצור קישור. נסו שוב.");
     setLink(`${window.location.origin}/shared#${data}`);
     router.refresh();
@@ -54,10 +53,6 @@ export function ShareLink({ active }: { active: { hidePrices: boolean; hideHisto
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={hidePrices} onChange={(e) => setHidePrices(e.target.checked)} className="size-4 accent-accent" />
           להסתיר מחירים
-        </label>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={hideHistory} onChange={(e) => setHideHistory(e.target.checked)} className="size-4 accent-accent" />
-          להסתיר את היסטוריית השתייה
         </label>
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={create} className="rounded-full bg-accent px-3 py-1 font-medium text-white dark:text-black">

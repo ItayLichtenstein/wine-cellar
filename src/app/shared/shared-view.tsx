@@ -10,7 +10,6 @@ import { createClient } from "@/lib/supabase/client";
 import { bottles as countBottles } from "@/lib/plural";
 
 const TOKEN = /^[0-9a-f]{64}$/;
-const dateFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "long", year: "numeric" });
 
 /**
  * The guest page. The token is after "#" (never sent to a server, never in
@@ -96,26 +95,6 @@ export function SharedView() {
         />
       )}
 
-      {!cellar.hideHistory && cellar.history.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">מה ששתו</h2>
-          <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
-            {cellar.history.slice(0, 20).map((t) => (
-              <li key={t.id} className="flex flex-col px-4 py-3">
-                <span dir="auto">
-                  {t.title} <span className="text-muted">{t.year ?? "NV"}</span>
-                </span>
-                <span className="text-xs text-muted">{dateFormat.format(new Date(t.tastedOn))}</span>
-                {t.notes && (
-                  <span className="text-sm" dir="auto">
-                    {t.notes}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </>
   );
 }

@@ -327,14 +327,14 @@ isOneToOne: false
                   ]
                 },"share_links": {
                   Row: {
-                    "cellar_id": string,"created_at": string,"created_by": string | null,"hide_history": boolean,"hide_prices": boolean,"id": string,"revoked_at": string | null,"token_hash": string
+                    "cellar_id": string,"created_at": string,"created_by": string | null,"hide_prices": boolean,"id": string,"revoked_at": string | null,"token_hash": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"hide_history"?: boolean,"hide_prices"?: boolean,"id"?: string,"revoked_at"?: string | null,"token_hash": string
+                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"hide_prices"?: boolean,"id"?: string,"revoked_at"?: string | null,"token_hash": string
                   }
                   Update: {
-                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"hide_history"?: boolean,"hide_prices"?: boolean,"id"?: string,"revoked_at"?: string | null,"token_hash"?: string
+                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"hide_prices"?: boolean,"id"?: string,"revoked_at"?: string | null,"token_hash"?: string
                   }
                   Relationships: [
                     {
@@ -526,7 +526,7 @@ isOneToOne: false
 { Args: { "p_role"?: Database["public"]['Enums']["member_role"] }; Returns: string
                            },
 "create_share_link":
-{ Args: { "p_hide_history"?: boolean,"p_hide_prices"?: boolean }; Returns: string
+{ Args: { "p_hide_prices"?: boolean }; Returns: string
                            },
 "delete_my_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
