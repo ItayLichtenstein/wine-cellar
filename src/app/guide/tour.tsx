@@ -66,7 +66,7 @@ export function GuideTour() {
     {
       emoji: "✨",
       title: "ועוד כמה דברים",
-      text: "לחצו לפרטים:",
+      text: "בקצרה:",
       demo: <MoreDemo />,
     },
     {
@@ -351,26 +351,17 @@ function MoreDemo() {
     ["✨", "חיבור AI", "שואלים את Claude או ChatGPT \"מה לפתוח הערב?\"."],
     ["🌓", "מראה", "בהיר, כהה או אוטומטי. ב\"עוד\"."],
   ];
-  const [open, setOpen] = useState<string | null>(null);
   return (
     <ul className="flex flex-col gap-2">
       {items.map(([icon, name, text]) => (
-        <li key={name}>
-          <button
-            type="button"
-            aria-expanded={open === name}
-            onClick={() => setOpen(open === name ? null : name)}
-            className="flex w-full flex-col gap-1 rounded-xl bg-background px-3 py-2.5 text-start"
-          >
-            <span className="flex items-center gap-2 font-medium">
-              <span aria-hidden="true">{icon}</span>
-              {name}
-              <span className="ms-auto text-muted" aria-hidden="true">
-                {open === name ? "−" : "+"}
-              </span>
-            </span>
-            {open === name && <span className="text-sm text-muted">{text}</span>}
-          </button>
+        <li key={name} className="flex items-start gap-3 rounded-xl bg-background px-3 py-2.5">
+          <span className="text-lg" aria-hidden="true">
+            {icon}
+          </span>
+          <span className="flex flex-col">
+            <span className="font-medium">{name}</span>
+            <span className="text-sm text-muted">{text}</span>
+          </span>
         </li>
       ))}
     </ul>
@@ -379,7 +370,9 @@ function MoreDemo() {
 
 function Finish() {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-medium">מכאן אפשר להמשיך ישר:</p>
+      <div className="flex flex-wrap gap-2">
       <Link href="/fridges/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
         🧊 הגדרת מקרר
       </Link>
@@ -389,6 +382,7 @@ function Finish() {
       <Link href="/ai" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
         ✨ חיבור AI
       </Link>
+      </div>
     </div>
   );
 }
