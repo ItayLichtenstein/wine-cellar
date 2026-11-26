@@ -51,8 +51,8 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
       <h2 className="text-lg font-semibold">חברים</h2>
       {friends.length === 0 ? (
         <p className="text-sm text-muted">
-          <span className="inline-block">חברים רואים את המרתף שלכם,</span>{" "}
-          <span className="inline-block">ואתם את שלהם, בלי אפשרות לשנות</span>
+          <span className="inline-block">חברים רואים את המרתף שלכם</span>{" "}
+          <span className="inline-block">ואתם את שלהם (רק צפייה)</span>
         </p>
       ) : (
         <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
