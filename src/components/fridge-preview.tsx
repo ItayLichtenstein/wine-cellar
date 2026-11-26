@@ -48,7 +48,7 @@ function isPile(zones: { kind: string }[]): boolean {
 // Slot size per view. On a phone labels are 3rem wide so 5 slots still fit
 // a row; from the sm breakpoint (640px) there is room for bigger slots.
 const SLOT_SHAPE: Record<FridgeViewMode, string> = {
-  labels: "h-11 w-12 sm:h-14 sm:w-16 rounded-lg",
+  labels: "h-14 w-12 sm:h-20 sm:w-16 rounded-lg", // portrait, like a label
   dots: "size-9 sm:size-11 rounded-full",
 };
 
@@ -204,25 +204,37 @@ function ZoneLine({
 }
 
 /**
- * An occupied row slot: a neutral bottle with the colored year badge.
- * In the labels view the wine's name sits above the badge.
+ * An occupied row slot with the colored year badge. In the labels view it
+ * shows the label photo; without one, the winery (one rule for every bottle).
  */
 function BottleSlot({ bottle, view, shape = SLOT_SHAPE[view] }: { bottle: PlacedBottle; view: FridgeViewMode; shape?: string }) {
   return (
     <span
-      className={`flex flex-col items-center justify-center gap-0.5 bg-[#d9d2cb] ${shape}`}
+      className={`relative flex flex-col items-center justify-center gap-0.5 overflow-hidden bg-[#d9d2cb] ${shape}`}
       title={`${bottle.title} · ${bottle.year ?? "NV"} · ${DRINK_STATES[bottle.state].label}`}
     >
-      {view === "labels" && <WineLabel text={bottle.label} className="w-full px-0.5" />}
-      <YearBadge bottle={bottle} />
+      {view === "labels" && bottle.thumb ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element -- a 4KB data: URL; next/image adds nothing here */}
+          <img src={bottle.thumb} alt="" className="absolute inset-0 size-full object-cover" />
+          <span className="absolute bottom-0.5 end-0.5 shadow-sm">
+            <YearBadge bottle={bottle} />
+          </span>
+        </>
+      ) : (
+        <>
+          {view === "labels" && <WineLabel text={bottle.label} className="w-full px-0.5" />}
+          <YearBadge bottle={bottle} />
+        </>
+      )}
     </span>
   );
 }
 
-/** One line of wine name, cut with "…" when too long. dir=auto: Hebrew or Latin. */
+/** Up to two lines of text, cut with "…" when too long. dir=auto: Hebrew or Latin. */
 function WineLabel({ text, className = "" }: { text: string; className?: string }) {
   return (
-    <span dir="auto" className={`truncate text-center text-[9px] font-medium leading-tight text-black ${className}`}>
+    <span dir="auto" className={`line-clamp-2 break-words text-center text-[9px] font-medium leading-tight text-black ${className}`}>
       {text}
     </span>
   );

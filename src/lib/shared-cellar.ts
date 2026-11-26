@@ -60,7 +60,7 @@ export function fromSharedCellar(json: SharedCellarJson, year: number): SharedCe
     const title = `${b.winery} – ${b.name}`;
     if (b.status === "stored" && b.zone_id) {
       const list = placed.get(b.zone_id) ?? [];
-      list.push({ id: b.id, slot: b.slot, year: b.year, state, title, label: b.name });
+      list.push({ id: b.id, slot: b.slot, year: b.year, state, title, label: b.winery, thumb: null }); // guests get no photos
       placed.set(b.zone_id, list);
     } else if (b.status !== "stored") {
       loose.push({ id: b.id, status: b.status, year: b.year, state, title });

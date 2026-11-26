@@ -445,14 +445,14 @@ isOneToOne: false
                   ]
                 },"wines": {
                   Row: {
-                    "cellar_id": string,"country": string | null,"created_at": string,"grape": string | null,"id": string,"kosher": Database["public"]['Enums']["kosher_status"],"label_image_path": string | null,"name": string,"region": string | null,"shape": Database["public"]['Enums']["bottle_shape"],"type": Database["public"]['Enums']["wine_type"],"updated_at": string,"winery": string
+                    "cellar_id": string,"country": string | null,"created_at": string,"grape": string | null,"id": string,"kosher": Database["public"]['Enums']["kosher_status"],"label_image_path": string | null,"label_thumb": string | null,"name": string,"region": string | null,"shape": Database["public"]['Enums']["bottle_shape"],"type": Database["public"]['Enums']["wine_type"],"updated_at": string,"winery": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cellar_id": string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"name": string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery": string
+                    "cellar_id": string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name": string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery": string
                   }
                   Update: {
-                    "cellar_id"?: string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"name"?: string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery"?: string
+                    "cellar_id"?: string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name"?: string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery"?: string
                   }
                   Relationships: [
                     {

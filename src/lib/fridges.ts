@@ -15,7 +15,8 @@ export type PlacedBottle = {
   year: number | null;
   state: DrinkState;
   title: string; // "יקב – שם"
-  label: string; // short text for the labels view: the wine's name
+  label: string; // short text for the labels view when there is no photo: always the winery
+  thumb: string | null; // the label photo, ~4KB data: URL (wines.label_thumb)
 };
 
 export type ZoneView = {
@@ -50,7 +51,7 @@ export async function getFridges(cellarId: string, db?: Db): Promise<FridgeView[
       .order("created_at"), // ties (equal positions) keep a stable order
     supabase
       .from("bottles")
-      .select("id, zone_id, slot, wine_vintages(year, drink_from, drink_to, peak_from, peak_to, wines(winery, name))")
+      .select("id, zone_id, slot, wine_vintages(year, drink_from, drink_to, peak_from, peak_to, wines(winery, name, label_thumb))")
       .eq("cellar_id", cellarId)
       .eq("status", "stored"),
   ]);
@@ -73,7 +74,8 @@ export async function getFridges(cellarId: string, db?: Db): Promise<FridgeView[
         year,
       ),
       title: v.wines ? `${v.wines.winery} – ${v.wines.name}` : "",
-      label: v.wines?.name ?? "",
+      label: v.wines?.winery ?? "",
+      thumb: v.wines?.label_thumb ?? null,
     });
     byZone.set(b.zone_id, list);
   }
