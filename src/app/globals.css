@@ -68,6 +68,12 @@ body {
   font-family: var(--font-heebo), system-ui, sans-serif;
 }
 
+/* A <fieldset> defaults to min-width: min-content, so a wide child (the
+   fridge drawing) made the whole form wider than a phone screen. */
+fieldset {
+  min-width: 0;
+}
+
 /* Readable line breaks: headings get lines of even length, paragraphs
    avoid a lone word on the last line. */
 h1, h2, h3 {
