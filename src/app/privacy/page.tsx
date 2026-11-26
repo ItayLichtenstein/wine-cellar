@@ -4,7 +4,11 @@ import { getT } from "@/i18n/server";
 
 export const generateMetadata = pageTitle((t) => t.titles.privacy);
 
-// Plain language on purpose: what we keep, who sees it, what we never do.
+// Plain language on purpose: what we keep, why, who sees it, what we never do.
+// It also carries the notice the Israeli Privacy Protection Law asks for when
+// collecting data (section 11, as amended in 2025): purpose, that giving it is
+// voluntary and what happens if not, who receives it, the right to see and
+// correct it, and who runs the site (by project name, no private names).
 // Keep this page in sync with docs/product-spec.md ("עמוד פרטיות").
 export default async function PrivacyPage() {
   const p = (await getT()).privacy;
@@ -19,6 +23,9 @@ export default async function PrivacyPage() {
         <List items={p.kept} />
       </Section>
 
+      <Section title={p.purposeTitle}>
+        <List items={p.purpose} />
+      </Section>
       <Section title={p.whoTitle}>
         <ul className="list-disc ps-5">
           {p.who.map(([who, what]) => (
@@ -38,10 +45,16 @@ export default async function PrivacyPage() {
         <p>{p.where}</p>
       </Section>
 
+      <Section title={p.cookiesTitle}>
+        <List items={p.cookies} />
+      </Section>
       <Section title={p.controlTitle}>
         <List items={p.control} />
       </Section>
 
+      <Section title={p.operatorTitle}>
+        <p>{p.operator}</p>
+      </Section>
       <Section title={p.contactTitle}>
         <p>
           <span className="inline-block">{p.contact}</span>{" "}
