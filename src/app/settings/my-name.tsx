@@ -45,7 +45,7 @@ export function MyName({ userId, initial }: { userId: string; initial: string })
         </button>
       </div>
       <p className="text-xs text-muted" role="status">
-        {state === "saved" ? "נשמר ✓" : state === "failed" ? "השמירה לא הצליחה. נסו שוב." : "כך רואים אותך השותפים והחברים. המייל לא מוצג."}
+        {state === "saved" ? "נשמר ✓" : state === "failed" ? "השמירה לא הצליחה, נסו שוב" : "כך רואים אותך השותפים והחברים (המייל לא מוצג)"}
       </p>
     </form>
   );

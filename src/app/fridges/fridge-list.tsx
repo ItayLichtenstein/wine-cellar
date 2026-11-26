@@ -60,7 +60,7 @@ export function FridgeList({ fridges, canEdit }: { fridges: FridgeRow[]; canEdit
           </li>
         ))}
       </ul>
-      {failed && <p className="text-sm text-red-700 dark:text-red-400">שינוי הסדר לא נשמר. נסו שוב.</p>}
+      {failed && <p className="text-sm text-red-700 dark:text-red-400">שינוי הסדר לא נשמר, נסו שוב</p>}
     </>
   );
 }

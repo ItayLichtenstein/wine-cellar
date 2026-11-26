@@ -43,7 +43,7 @@ export function ConnectedAis({ ais }: { ais: ConnectedAi[] }) {
           </li>
         ))}
       </ul>
-      {failed && <p className="text-sm text-red-700 dark:text-red-400">הניתוק לא הצליח. נסו שוב.</p>}
+      {failed && <p className="text-sm text-red-700 dark:text-red-400">הניתוק לא הצליח, נסו שוב</p>}
     </>
   );
 }

@@ -38,8 +38,8 @@ export function NamePrompt({ userId, initial }: { userId: string; initial: strin
         איך לקרוא לך?
       </label>
       <p className="text-sm text-muted">
-        <span className="inline-block">כך יראו אותך השותפים במרתף והחברים.</span>{" "}
-        <span className="inline-block">המייל שלך לא מוצג לאף אחד.</span>
+        <span className="inline-block">כך יראו אותך השותפים במרתף והחברים,</span>{" "}
+        <span className="inline-block">והמייל שלך לא מוצג לאף אחד</span>
       </p>
       <div className="flex gap-2">
         <input
@@ -55,7 +55,7 @@ export function NamePrompt({ userId, initial }: { userId: string; initial: strin
           שמירה
         </button>
       </div>
-      {failed && <p role="alert" className="text-sm text-red-700 dark:text-red-400">השמירה לא הצליחה. נסו שוב.</p>}
+      {failed && <p role="alert" className="text-sm text-red-700 dark:text-red-400">השמירה לא הצליחה, נסו שוב</p>}
     </form>
   );
 }

@@ -21,8 +21,8 @@ export default function HistoryPage() {
           </Suspense>
         </div>
         <p className="text-sm text-muted">
-          <span className="inline-block">כל בקבוק ששתיתם, עם הציון שנתתם ליין.</span>{" "}
-          <span className="inline-block">לחיצה על יין פותחת את כל הדירוגים שלו.</span>
+          <span className="inline-block">כל בקבוק ששתיתם עם הציון שנתתם לו,</span>{" "}
+          <span className="inline-block">ולחיצה על יין פותחת את כל הדירוגים שלו</span>
         </p>
       </header>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
@@ -46,7 +46,7 @@ const dateFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "lo
 async function History() {
   const { cellarId } = await getCurrentUser();
   const entries = await getHistory(cellarId);
-  if (entries.length === 0) return <p className="text-muted">עוד לא שתיתם בקבוק מהמרתף.</p>;
+  if (entries.length === 0) return <p className="text-muted">עוד לא שתיתם בקבוק מהמרתף</p>;
 
   return (
     <>

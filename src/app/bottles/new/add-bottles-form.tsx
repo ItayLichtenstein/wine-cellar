@@ -115,7 +115,7 @@ export function AddBottlesForm({
     event.preventDefault();
     setError(null);
     if (!winery.trim() || !name.trim()) {
-      setError("צריך למלא יקב ושם יין.");
+      setError("צריך למלא יקב ושם יין");
       return;
     }
     // An empty year means a non-vintage wine (NV); only a typed, wrong year is an error.
@@ -153,8 +153,8 @@ export function AddBottlesForm({
       setSaving(false);
       setError(
         rpcError.code === "23505"
-          ? "אחד המקומות שבחרתם נתפס הרגע. בחרו מקום אחר."
-          : "לא הצלחנו לשמור. בדקו את הפרטים ונסו שוב.",
+          ? "אחד המקומות שבחרתם נתפס הרגע, בחרו מקום אחר"
+          : "לא הצלחנו לשמור, בדקו את הפרטים ונסו שוב",
       );
       return;
     }
@@ -164,7 +164,7 @@ export function AddBottlesForm({
       const ok = v?.wine_vintages && (await saveExtra(v.wine_vintages.wine_id, v.vintage_id, ids, extra));
       if (!ok) {
         setSaving(false);
-        setError("הבקבוקים נשמרו, אבל הפרטים הנוספים לא. אפשר להשלים אותם בעריכה.");
+        setError("הבקבוקים נשמרו, אבל הפרטים הנוספים לא. אפשר להשלים אותם בעריכה");
         return;
       }
     }
@@ -201,7 +201,7 @@ export function AddBottlesForm({
           </datalist>
         </Field>
         {isExistingWine ? (
-          <p className="text-sm text-muted">היין הזה כבר במרתף – הבקבוקים יתווספו אליו.</p>
+          <p className="text-sm text-muted">היין הזה כבר במרתף, והבקבוקים יתווספו אליו</p>
         ) : (
           <Field label="סוג">
             <select value={type} onChange={(e) => setType(e.target.value as WineType)} className={inputClass}>
@@ -260,7 +260,7 @@ export function AddBottlesForm({
           </div>
         )}
         <div className="flex items-end gap-3">
-          <Field label="חלון שתייה (לא חובה): משנה">
+          <Field label="חלון שתייה (לא חובה), משנה">
             <input value={drinkFrom} onChange={(e) => setDrinkFrom(e.target.value)} inputMode="numeric" maxLength={4} className={`${inputClass} w-24`} />
           </Field>
           <Field label="עד שנה">
@@ -282,13 +282,13 @@ export function AddBottlesForm({
           <>
             <p className="text-sm text-muted">
               <span className="inline-block">
-                לחצו על מקומות פנויים (נבחרו {picked.length} מתוך {quantity}).
+                לחצו על מקומות פנויים (נבחרו {picked.length} מתוך {quantity})
               </span>{" "}
-              <span className="inline-block">לחיצה נוספת מבטלת.</span>
+              <span className="inline-block">ולחיצה נוספת מבטלת</span>
               {leftOver > 0 && (
                 <>
                   {" "}
-                  <span className="inline-block">{`${leftOver} שלא ישובצו יישמרו כ"מחוץ למקרר".`}</span>
+                  <span className="inline-block">{`${leftOver} שלא ישובצו יישמרו כ"מחוץ למקרר"`}</span>
                 </>
               )}
             </p>

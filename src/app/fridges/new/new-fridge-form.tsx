@@ -153,7 +153,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!name.trim()) {
-      setError("צריך לתת למקרר שם.");
+      setError("צריך לתת למקרר שם");
       return;
     }
     // Moving bottles out of the fridge needs a second, explicit tap.
@@ -183,7 +183,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
     if (rpcError) {
       setSaving(false);
       // Never show database details to the user.
-      setError("לא הצלחנו לשמור את המקרר. בדקו את הפרטים ונסו שוב.");
+      setError("לא הצלחנו לשמור את המקרר, בדקו את הפרטים ונסו שוב");
       return;
     }
     router.push("/");
@@ -239,7 +239,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
             </select>
           </label>
         )}
-        {sameCapacity.length === 1 && <p className="text-sm text-muted">הדגם: {model}</p>}
+        {sameCapacity.length === 1 && <p className="text-sm text-muted">דגם {model}</p>}
         {brandChoice === OTHER && (
           <div className="grid grid-cols-2 gap-3">
             <TextField label="שם היצרן" value={brand} onChange={setBrand} />
@@ -249,10 +249,10 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
         {spec && (
           <p className="rounded-lg bg-surface px-3 py-2 text-sm text-muted">
             <span className="inline-block">
-              לפי היצרן: {spec.capacity} בקבוקים, {spec.shelves} מדפים{spec.bottom ? " ואזור תחתון" : ""}.
+              לפי היצרן יש {spec.capacity} בקבוקים ו־{spec.shelves} מדפים{spec.bottom ? ", ועוד אזור תחתון" : ""}
             </span>{" "}
-            <span className="inline-block">כמה בקבוקים בכל מדף – זו הערכה שלנו.</span>{" "}
-            <span className="inline-block">בדקו מול המקרר ושנו מה שצריך.</span>{" "}
+            <span className="inline-block">את החלוקה למדפים אנחנו רק מעריכים,</span>{" "}
+            <span className="inline-block">אז כדאי לבדוק מול המקרר ולתקן</span>{" "}
             {spec.note && <span className="inline-block">({spec.note})</span>}{" "}
             <a href={spec.source} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
               עמוד הדגם
@@ -268,8 +268,8 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
           <Stepper value={shelves.length} onChange={setShelfCount} min={LIMITS.shelves.min} max={LIMITS.shelves.max} />
         </div>
         <p className="text-sm text-muted">
-          מדף 1 הוא העליון. לכל מדף בוחרים סידור, ואפשר לשנות כמה בקבוקים נכנסים בכל חלק. כך המקרר באתר
-          ייראה בדיוק כמו המקרר האמיתי.
+          מדף 1 הוא העליון. בוחרים לכל מדף סידור ומתקנים כמה בקבוקים נכנסים בכל חלק, כדי שהמקרר באתר
+          ייראה בדיוק כמו המקרר שבבית
         </p>
 
         <ol className="flex flex-col gap-3">
@@ -317,7 +317,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
         <h2 className="text-lg font-semibold">כך זה ייראה</h2>
         <p className="text-sm text-muted">
           סך הכול מקום ל־{fridgeCapacity(shelves)} בקבוקים
-          {spec && fridgeCapacity(shelves) !== spec.capacity ? ` (היצרן: ${spec.capacity})` : ""}.
+          {spec && fridgeCapacity(shelves) !== spec.capacity ? ` (לפי היצרן ${spec.capacity})` : ""}
         </p>
         <FridgePreview shelves={shelves} />
       </section>
@@ -331,9 +331,9 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
       {leaving > 0 && (
         <p role="alert" className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
           <span className="inline-block">
-            {leaving === 1 ? "בקבוק אחד יעבור" : `${leaving} בקבוקים יעברו`} ל״מחוץ למקרר״.
+            {leaving === 1 ? "בקבוק אחד יעבור" : `${leaving} בקבוקים יעברו`} ל״מחוץ למקרר״,
           </span>{" "}
-          <span className="inline-block">שום בקבוק לא נמחק, ואפשר לשבץ אותם מחדש אחר כך.</span>
+          <span className="inline-block">שום בקבוק לא נמחק ואפשר לשבץ אותם מחדש אחר כך</span>
         </p>
       )}
 

@@ -12,8 +12,8 @@ export default function Error({ retry }: { error: unknown; retry: () => void }) 
       <div className="text-5xl" aria-hidden="true">🍷</div>
       <h1 className="text-2xl font-bold">משהו השתבש</h1>
       <p className="text-muted">
-        <span className="inline-block">לא הצלחנו לטעון את העמוד.</span>{" "}
-        <span className="inline-block">הנתונים שלכם בסדר – נסו שוב בעוד רגע.</span>
+        <span className="inline-block">לא הצלחנו לטעון את העמוד,</span>{" "}
+        <span className="inline-block">אבל הנתונים שלכם בסדר. נסו שוב בעוד רגע</span>
       </p>
       <button type="button" onClick={retry} className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
         לנסות שוב

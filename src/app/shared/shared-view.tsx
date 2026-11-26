@@ -37,8 +37,8 @@ export function SharedView() {
   if (!cellar) {
     return (
       <p className="text-muted">
-        <span className="inline-block">הקישור לא תקף.</span>{" "}
-        <span className="inline-block">ייתכן שבעלי המרתף ביטלו אותו או יצרו קישור חדש.</span>
+        <span className="inline-block">הקישור לא תקף,</span>{" "}
+        <span className="inline-block">אולי בעלי המרתף ביטלו אותו או יצרו קישור חדש</span>
       </p>
     );
   }
@@ -56,7 +56,7 @@ export function SharedView() {
       </header>
 
       {cellar.fridges.length === 0 ? (
-        <p className="text-muted">עוד אין כאן מקרר.</p>
+        <p className="text-muted">עוד אין כאן מקרר</p>
       ) : (
         <CellarView
           fridges={cellar.fridges}

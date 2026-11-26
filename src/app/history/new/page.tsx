@@ -15,7 +15,7 @@ export default function NewTastingPage() {
         <h1 className="text-2xl font-bold">הוספת דירוג</h1>
         <p className="text-sm text-muted">
           <span className="inline-block">ליין ששתיתם מחוץ למרתף,</span>{" "}
-          <span className="inline-block">במסעדה או אצל חברים.</span>
+          <span className="inline-block">במסעדה או אצל חברים</span>
         </p>
       </header>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>

@@ -20,7 +20,7 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
 
   async function open() {
     const { data, error: e } = await createClient().rpc("account_deletion_plan");
-    if (e || !data) setError("לא הצלחנו לבדוק. נסו שוב.");
+    if (e || !data) setError("לא הצלחנו לבדוק, נסו שוב");
     else setPlan(data as Plan);
   }
 
@@ -37,7 +37,7 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
     const { error: e } = await supabase.rpc("delete_my_account");
     if (e) {
       setBusy(false);
-      setError(e.hint === "last_member" ? "אתם השותפים היחידים, ויש צופים במרתף. הפכו מישהו לשותף או הסירו את הצופים, ונסו שוב." : "המחיקה לא הצליחה. נסו שוב.");
+      setError(e.hint === "last_member" ? "אתם השותפים היחידים ויש צופים במרתף. הפכו מישהו לשותף או הסירו את הצופים, ונסו שוב" : "המחיקה לא הצליחה, נסו שוב");
       return;
     }
     await supabase.auth.signOut();
@@ -52,22 +52,21 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
       <div className="mt-3 flex flex-col gap-3">
         {plan === "delete_cellar" && (
           <p>
-            <span className="inline-block">אתם היחידים במרתף, ולכן הוא יימחק יחד עם החשבון:</span>{" "}
-            <span className="inline-block">המקררים, הבקבוקים, ההיסטוריה, ה־Wishlist, החברים והתמונות.</span>{" "}
-            <span className="inline-block font-medium">אי אפשר לשחזר. כדאי לייצא קודם לקובץ.</span>
+            <span className="inline-block">אתם היחידים במרתף, ולכן הוא יימחק יחד עם החשבון,</span>{" "}
+            <span className="inline-block">כולל המקררים, הבקבוקים, ההיסטוריה, ה־Wishlist, החברים והתמונות.</span>{" "}
+            <span className="inline-block font-medium">אי אפשר לשחזר, אז כדאי לייצא קודם לקובץ</span>
           </p>
         )}
         {plan === "leave" && (
           <p>
             <span className="inline-block">המרתף נשאר אצל שאר השותפים, עם כל הבקבוקים וההיסטוריה.</span>{" "}
-            <span className="inline-block">יימחקו השם שלכם, החברות שלכם במרתף והציונים האישיים שלכם.</span>{" "}
-            <span className="inline-block font-medium">אי אפשר לשחזר.</span>
+            <span className="inline-block">יימחקו השם שלכם, החברות שלכם במרתף והציונים האישיים שלכם, ואי אפשר לשחזר אותם</span>
           </p>
         )}
         {plan === "last_member" && (
           <p>
             <span className="inline-block">אתם השותפים היחידים, ויש צופים במרתף.</span>{" "}
-            <span className="inline-block">קודם הפכו מישהו לשותף או הסירו את הצופים (ב״שיתוף״).</span>
+            <span className="inline-block">קודם הפכו מישהו לשותף או הסירו את הצופים (ב״שיתוף״)</span>
           </p>
         )}
         {(plan === "delete_cellar" || plan === "leave") && (

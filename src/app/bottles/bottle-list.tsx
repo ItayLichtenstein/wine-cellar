@@ -39,7 +39,7 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
   const num = (v: string) => (v.trim() === "" || Number.isNaN(Number(v)) ? null : Number(v));
 
   if (bottles.length === 0) {
-    return <p className="text-muted">עוד אין בקבוקים במרתף.</p>;
+    return <p className="text-muted">עוד אין בקבוקים במרתף</p>;
   }
 
   return (
@@ -64,7 +64,7 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
             סינון{active ? ` (${active})` : ""}
           </button>
           <label className="flex items-center gap-2">
-            <span className="text-muted">מיון:</span>
+            <span className="text-muted">מיון</span>
             <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="rounded-lg border border-muted/40 bg-surface px-2 py-1">
               {SORTS.map(([k, l]) => (
                 <option key={k} value={k}>
@@ -171,7 +171,7 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
           </li>
         ))}
       </ul>
-      {rows.length === 0 && <p className="text-muted">אין בקבוקים שמתאימים לסינון.</p>}
+      {rows.length === 0 && <p className="text-muted">אין בקבוקים שמתאימים לסינון</p>}
 
       {openId && (
         <BottleSheet

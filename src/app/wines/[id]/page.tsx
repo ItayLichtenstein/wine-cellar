@@ -83,7 +83,7 @@ async function Wine({ params }: { params: PageProps<"/wines/[id]">["params"] }) 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">היסטוריית שתייה</h2>
         {wine.tastings.length === 0 ? (
-          <p className="text-sm text-muted">עוד לא שתינו מהיין הזה.</p>
+          <p className="text-sm text-muted">עוד לא שתינו מהיין הזה</p>
         ) : (
           <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
             {wine.tastings.map((t) => (

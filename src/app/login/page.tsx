@@ -17,7 +17,7 @@ export default function LoginPage() {
           <p className="text-muted">
             <span className="inline-block">כל הבקבוקים שלכם במקום אחד</span>{" "}
             <span className="inline-block">מה יש במקרר, מה בשל לשתייה,</span>{" "}
-            <span className="inline-block">ומה כדאי לפתוח הערב.</span>
+            <span className="inline-block">ומה כדאי לפתוח הערב</span>
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export default function LoginPage() {
         <p className="text-sm text-muted">
           <span className="inline-block">אנחנו שומרים רק את השם והמייל מחשבון הגוגל,</span>{" "}
           <span className="inline-block">
-            והמייל לא מוצג לאף אחד.{" "}
+            והמייל לא מוצג לאף אחד ·{" "}
             <Link href="/privacy" className="underline underline-offset-2">
               מדיניות הפרטיות
             </Link>

@@ -35,12 +35,12 @@ function NotConnected({ nearlyEmpty }: { nearlyEmpty: boolean }) {
         {nearlyEmpty ? (
           <>
             <span className="inline-block">יש לכם כבר הרבה בקבוקים?</span>{" "}
-            <span className="inline-block">צלמו את המקרר מדף אחרי מדף, וה־AI יכניס כל בקבוק למקום שלו.</span>
+            <span className="inline-block">צלמו את המקרר מדף אחרי מדף, וה־AI יכניס כל בקבוק למקום שלו</span>
           </>
         ) : (
           <>
-            <span className="inline-block">צלמו תווית, והבקבוקים מחכים כאן לאישור.</span>{" "}
-            <span className="inline-block">שאלו מה לפתוח הערב, והתשובה לפי מה שבמקרר.</span>
+            <span className="inline-block">צלמו תווית והבקבוקים יחכו כאן לאישור,</span>{" "}
+            <span className="inline-block">או שאלו מה לפתוח הערב לפי מה שיש במקרר</span>
           </>
         )}
       </span>
@@ -57,7 +57,7 @@ function Connected({ ai, nearlyEmpty }: { ai: AiKey; nearlyEmpty: boolean }) {
         <span className="flex items-center gap-2">
           <AiLogo ai={ai} className="size-7" />
           <span>
-            <span className="text-muted">ה־AI שלכם:</span> {p.name}
+            <span className="text-muted">ה־AI שלכם</span> {p.name}
           </span>
         </span>
         <Link href="/ai" className="text-muted underline underline-offset-2">
@@ -89,7 +89,7 @@ function Connected({ ai, nearlyEmpty }: { ai: AiKey; nearlyEmpty: boolean }) {
           text="פותח את הצ׳אט, ואתם מוסיפים את האירוע"
         />
       </div>
-      {!p.prefills && <p className="text-xs text-muted">הקישור ל־{p.name} לא יכול להכיל בקשה מוכנה, אז היא מועתקת. הדביקו אותה בצ׳אט.</p>}
+      {!p.prefills && <p className="text-xs text-muted">הקישור ל־{p.name} לא יכול להכיל בקשה מוכנה, אז היא הועתקה ורק צריך להדביק אותה בצ׳אט</p>}
     </div>
   );
 }

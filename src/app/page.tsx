@@ -66,7 +66,7 @@ async function Fridges() {
         <h2 className="text-xl font-semibold">עוד אין כאן מקרר</h2>
         <p className="text-muted">
           <span className="inline-block">נתחיל מהבסיס</span>{" "}
-          <span className="inline-block">כמה מדפים יש, ואיך כל מדף מסודר.</span>
+          <span className="inline-block">כמה מדפים יש ואיך כל מדף מסודר</span>
         </p>
         <Link href="/fridges/new" className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
           הגדרת המקרר הראשון

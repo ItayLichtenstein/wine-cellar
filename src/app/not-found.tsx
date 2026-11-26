@@ -8,7 +8,7 @@ export default function NotFound() {
       <h1 className="text-2xl font-bold">העמוד לא נמצא</h1>
       <p className="text-muted">
         <span className="inline-block">אולי הקישור ישן,</span>{" "}
-        <span className="inline-block">או שהיין כבר לא במרתף.</span>
+        <span className="inline-block">או שהיין כבר לא במרתף</span>
       </p>
       <Link href="/" className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
         חזרה למרתף

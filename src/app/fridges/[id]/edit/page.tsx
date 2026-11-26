@@ -15,8 +15,8 @@ export default function EditFridgePage({ params }: PageProps<"/fridges/[id]/edit
         <BackLink href="/fridges" label="המקררים" />
         <h1 className="text-2xl font-bold">עריכת מקרר</h1>
         <p className="text-muted">
-          <span className="inline-block">מקומות שנשארים – הבקבוקים שבהם נשארים.</span>{" "}
-          <span className="inline-block">מקום שנמחק – הבקבוק עובר ל״מחוץ למקרר״.</span>
+          <span className="inline-block">בקבוקים במקומות שנשארים לא זזים,</span>{" "}
+          <span className="inline-block">ובקבוק ממקום שנמחק עובר ל״מחוץ למקרר״</span>
         </p>
       </header>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>

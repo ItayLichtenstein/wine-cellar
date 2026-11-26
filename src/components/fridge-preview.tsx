@@ -80,7 +80,7 @@ export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottle
   const shown = shelves
     .map((shelf, i) => ({ shelf, no: i + 1 }))
     .filter(({ shelf }) => !hideEmpty || shelf.zones.some((z) => (z.bottles ?? []).length > 0));
-  if (shown.length === 0) return <p className="text-center text-sm text-muted">המקרר ריק כרגע.</p>;
+  if (shown.length === 0) return <p className="text-center text-sm text-muted">המקרר ריק כרגע</p>;
   return (
     // w-fit: the fridge is as wide as its widest shelf, not the whole page.
     <ol className="mx-auto flex w-fit min-w-72 max-w-full touch-manipulation flex-col gap-2 rounded-2xl bg-fridge p-3 select-none [-webkit-touch-callout:none]" aria-label="שרטוט המקרר">

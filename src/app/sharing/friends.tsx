@@ -24,14 +24,14 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
   async function run(call: PromiseLike<{ error: unknown }>) {
     setError(null);
     const { error: e } = await call;
-    if (e) return setError("הפעולה לא הצליחה. נסו שוב.");
+    if (e) return setError("הפעולה לא הצליחה, נסו שוב");
     router.refresh();
   }
 
   async function invite() {
     setCopied(false);
     const { data, error: e } = await createClient().rpc("create_friend_invite", { p_shows_prices: showPrices });
-    if (e || !data) return setError("לא הצלחנו ליצור קישור. נסו שוב.");
+    if (e || !data) return setError("לא הצלחנו ליצור קישור, נסו שוב");
     // After "#": browsers never send that part to a server.
     setLink(`${window.location.origin}/friend-invite#${data}`);
   }
@@ -52,7 +52,7 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
       {friends.length === 0 ? (
         <p className="text-sm text-muted">
           <span className="inline-block">חברים רואים את המרתף שלכם,</span>{" "}
-          <span className="inline-block">ואתם את שלהם. רק צפייה, בלי שינויים.</span>
+          <span className="inline-block">ואתם את שלהם, בלי אפשרות לשנות</span>
         </p>
       ) : (
         <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
@@ -79,7 +79,7 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
                   </label>
                   {removing === f.cellarId ? (
                     <span className="flex basis-full flex-wrap items-center gap-3">
-                      <span>להפסיק את החברות? שני הצדדים יפסיקו לראות זה את זה.</span>
+                      <span>להפסיק את החברות? אף צד לא יראה יותר את המרתף של השני</span>
                       <button
                         type="button"
                         onClick={() => run(createClient().rpc("remove_friend", { p_friend_cellar: f.cellarId }))}
@@ -127,9 +127,9 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
           {link && (
             <>
               <p className="text-muted">
-                <span className="inline-block">שלחו את הקישור לחבר.</span>{" "}
-                <span className="inline-block">הוא עובד פעם אחת ובתוקף 7 ימים.</span>{" "}
-                <span className="inline-block">את המחירים אפשר לשנות גם אחר כך, ליד שם החבר.</span>
+                <span className="inline-block">שלחו את הקישור לחבר,</span>{" "}
+                <span className="inline-block">הוא עובד פעם אחת ותקף ל־7 ימים</span>{" "}
+                <span className="inline-block">(המחירים ניתנים לשינוי גם אחר כך, ליד שם החבר)</span>
               </p>
               <div className="flex gap-2">
                 <input readOnly value={link} dir="ltr" aria-label="קישור ההזמנה לחבר" className="min-w-0 flex-1 rounded-lg border border-muted/40 bg-background px-2 py-1 text-xs" />

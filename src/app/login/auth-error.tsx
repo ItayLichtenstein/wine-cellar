@@ -9,7 +9,7 @@ export function AuthError() {
 
   return (
     <p role="alert" className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
-      ההתחברות לא הושלמה. נסו שוב.
+      ההתחברות לא הושלמה, נסו שוב
     </p>
   );
 }

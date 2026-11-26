@@ -28,26 +28,26 @@ export type AiProvider = {
 export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
   claude: {
     name: "Claude",
-    who: "עובד בכל חשבון Claude, גם בחינמי.",
+    who: "עובד בכל חשבון Claude, גם בחינמי",
     connectable: true,
     steps: [
-      { text: "פתחו את דף החיבורים של Claude. אם צריך, התחברו לחשבון.", link: { href: "https://claude.ai/customize/connectors", label: "פתיחת דף החיבורים" } },
-      { text: "לחצו על הכפתור + ואז על Add custom connector." },
-      { text: "בשדה Name כתבו: מרתף יין. בשדה URL הדביקו את הכתובת שהעתקתם. לחצו Add." },
-      { text: "ליד \"מרתף יין\" לחצו Connect." },
+      { text: "פתחו את דף החיבורים של Claude (ואם צריך, התחברו לחשבון)", link: { href: "https://claude.ai/customize/connectors", label: "פתיחת דף החיבורים" } },
+      { text: "לחצו על הכפתור + ואז על Add custom connector" },
+      { text: "בשדה Name כתבו \"מרתף יין\", בשדה URL הדביקו את הכתובת שהעתקתם, ולחצו Add" },
+      { text: "ליד \"מרתף יין\" לחצו Connect" },
     ],
     chatUrl: (q) => `https://claude.ai/new?q=${encodeURIComponent(q)}`,
     prefills: true,
   },
   chatgpt: {
     name: "ChatGPT",
-    who: "עובד רק בחשבון ChatGPT של עבודה (Business או Enterprise). בחשבון חינמי או Plus אי אפשר.",
+    who: "עובד רק בחשבון ChatGPT של עבודה (Business או Enterprise), לא בחינמי או ב־Plus",
     connectable: true,
     steps: [
-      { text: "פתחו את דף ה־Plugins של ChatGPT, במחשב.", link: { href: "https://chatgpt.com/plugins", label: "פתיחת Plugins" } },
-      { text: "לחצו על + ואז על Add custom MCP server." },
-      { text: "בשדה Name כתבו: מרתף יין. בשדה URL הדביקו את הכתובת שהעתקתם." },
-      { text: "לחצו I understand and want to continue, ואחר כך Create as a plugin ו־Install." },
+      { text: "פתחו במחשב את דף ה־Plugins של ChatGPT", link: { href: "https://chatgpt.com/plugins", label: "פתיחת Plugins" } },
+      { text: "לחצו על + ואז על Add custom MCP server" },
+      { text: "בשדה Name כתבו \"מרתף יין\", ובשדה URL הדביקו את הכתובת שהעתקתם" },
+      { text: "לחצו I understand and want to continue, ואחר כך Create as a plugin ו־Install" },
     ],
     chatUrl: (q) => `https://chatgpt.com/?q=${encodeURIComponent(q)}`,
     prefills: true,
@@ -56,7 +56,7 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
   // it is not offered; kept so a connection made elsewhere is recognised.
   gemini: {
     name: "Gemini",
-    who: "בינתיים רק בארה\"ב.",
+    who: "בינתיים רק בארה\"ב",
     connectable: false,
     steps: [],
     chatUrl: () => "https://gemini.google.com/app",

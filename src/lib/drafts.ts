@@ -121,15 +121,15 @@ export function parsePlace(input: unknown): DraftPlace[] {
 export function parseAiAnswer(answer: string, thisYear: number): { drafts: BottleDraft[]; errors: string[] } {
   const start = answer.search(/[[{]/);
   const end = Math.max(answer.lastIndexOf("]"), answer.lastIndexOf("}"));
-  if (start === -1 || end < start) return { drafts: [], errors: ["לא מצאנו בתשובה רשימה של בקבוקים (JSON)."] };
+  if (start === -1 || end < start) return { drafts: [], errors: ["לא מצאנו בתשובה רשימה של בקבוקים (JSON)"] };
   let data: unknown;
   try {
     data = JSON.parse(answer.slice(start, end + 1));
   } catch {
-    return { drafts: [], errors: ["התשובה לא בפורמט JSON תקין. בקשו מה־AI להחזיר רק את הרשימה."] };
+    return { drafts: [], errors: ["התשובה לא בפורמט JSON תקין, בקשו מה־AI להחזיר רק את הרשימה"] };
   }
   const items = Array.isArray(data) ? data : typeof data === "object" && data && "bottles" in data ? (data as { bottles: unknown }).bottles : [data];
-  if (!Array.isArray(items) || items.length === 0) return { drafts: [], errors: ["הרשימה ריקה."] };
+  if (!Array.isArray(items) || items.length === 0) return { drafts: [], errors: ["הרשימה ריקה"] };
 
   const drafts: BottleDraft[] = [];
   const errors: string[] = [];
@@ -138,9 +138,9 @@ export function parseAiAnswer(answer: string, thisYear: number): { drafts: Bottl
     if (r.ok) drafts.push(r.draft);
     // The reason stays in English on purpose: it is written for the AI, and
     // the user can paste it back so the AI fixes its answer.
-    else errors.push(`בקבוק ${i + 1} לא נקלט. אפשר להעביר ל־AI: ${r.error}`);
+    else errors.push(`בקבוק ${i + 1} לא נקלט, אפשר להעביר ל־AI את השגיאה ${r.error}`);
   });
-  if (items.length > 30) errors.push("נלקחו רק 30 היינות הראשונים.");
+  if (items.length > 30) errors.push("נלקחו רק 30 היינות הראשונים");
   return { drafts, errors };
 }
 

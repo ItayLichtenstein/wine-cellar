@@ -22,7 +22,7 @@ export function Wishlist({ wishes, canEdit }: { wishes: Wish[]; canEdit: boolean
   async function add(event: React.FormEvent) {
     event.preventDefault();
     const y = year.trim() ? Number(year) : null;
-    if (y !== null && !(Number.isInteger(y) && y >= 1900 && y <= 2100)) return setError("שנת בציר לא תקינה.");
+    if (y !== null && !(Number.isInteger(y) && y >= 1900 && y <= 2100)) return setError("שנת בציר לא תקינה");
     if (link.trim() && !linkLabel(link.trim())) return setError("הקישור צריך להתחיל ב־https://");
     setBusy(true);
     setError(null);
@@ -34,7 +34,7 @@ export function Wishlist({ wishes, canEdit }: { wishes: Wish[]; canEdit: boolean
       p_link: link,
     });
     setBusy(false);
-    if (e) return setError("לא הצלחנו להוסיף. נסו שוב.");
+    if (e) return setError("לא הצלחנו להוסיף, נסו שוב");
     setWinery("");
     setName("");
     setYear("");
@@ -45,7 +45,7 @@ export function Wishlist({ wishes, canEdit }: { wishes: Wish[]; canEdit: boolean
 
   async function remove(id: string) {
     const { error: e } = await createClient().from("wishlist_items").delete().eq("id", id);
-    if (e) return setError("המחיקה לא הצליחה.");
+    if (e) return setError("המחיקה לא הצליחה");
     router.refresh();
   }
 
@@ -54,7 +54,7 @@ export function Wishlist({ wishes, canEdit }: { wishes: Wish[]; canEdit: boolean
       {wishes.length === 0 ? (
         <p className="text-muted">
           <span className="inline-block">יינות שרוצים לקנות או לטעום.</span>{" "}
-          <span className="inline-block">אפשר להוסיף כאן, או לסמן ״לקנות שוב״ כשמסמנים ששתיתם בקבוק.</span>
+          <span className="inline-block">מוסיפים כאן, או מסמנים ״לקנות שוב״ כששותים בקבוק</span>
         </p>
       ) : (
         <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">

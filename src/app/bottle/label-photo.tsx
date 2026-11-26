@@ -58,7 +58,7 @@ export function LabelPhoto({
       setUrl(null);
       setCurrent(newPath);
     } catch (e) {
-      setError(e instanceof Error && e.message === "type" ? "אפשר להעלות רק JPEG, PNG או WebP." : "ההעלאה לא הצליחה. נסו שוב.");
+      setError(e instanceof Error && e.message === "type" ? "אפשר להעלות רק JPEG, PNG או WebP" : "ההעלאה לא הצליחה, נסו שוב");
     } finally {
       setBusy(false);
     }

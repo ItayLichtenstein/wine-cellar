@@ -31,11 +31,11 @@ export function OutsideTastingForm({ wines }: { wines: { winery: string; name: s
     const y = year.trim() ? Number(year) : null;
     const s = score.trim() ? Number(score) : null;
     if (y !== null && !(Number.isInteger(y) && y >= 1900 && y <= new Date().getFullYear() + 1)) {
-      setError("שנת הבציר לא תקינה.");
+      setError("שנת הבציר לא תקינה");
       return;
     }
     if (s !== null && !(s >= 1 && s <= 5)) {
-      setError("הציון צריך להיות בין 1 ל־5.");
+      setError("הציון צריך להיות בין 1 ל־5");
       return;
     }
     setSaving(true);
@@ -51,7 +51,7 @@ export function OutsideTastingForm({ wines }: { wines: { winery: string; name: s
     });
     if (rpcError) {
       setSaving(false);
-      setError("לא הצלחנו לשמור. בדקו את הפרטים ונסו שוב.");
+      setError("לא הצלחנו לשמור, בדקו את הפרטים ונסו שוב");
       return;
     }
     router.push("/history");

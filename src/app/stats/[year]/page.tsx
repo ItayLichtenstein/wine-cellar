@@ -54,7 +54,7 @@ async function Summary({ params }: { params: PageProps<"/stats/[year]">["params"
             {nis(Math.abs(diff))})
           </span>
         </p>
-        <p className="text-xs text-muted">לפי המחירים שרשומים היום.</p>
+        <p className="text-xs text-muted">לפי המחירים שרשומים היום</p>
       </section>
 
       <section className="flex flex-col gap-1 rounded-xl bg-surface p-4 shadow-sm">
@@ -64,14 +64,14 @@ async function Summary({ params }: { params: PageProps<"/stats/[year]">["params"
             <span dir="auto">{s.best.title}</span> <span className="text-muted">{s.best.year ?? "NV"}</span> · {s.best.score.toFixed(1)} מתוך 5
           </p>
         ) : (
-          <p className="text-sm text-muted">עוד לא דירגנו יין ששתינו השנה.</p>
+          <p className="text-sm text-muted">עוד לא דירגנו יין ששתינו השנה</p>
         )}
       </section>
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">נכנסים לחלון השתייה ב־{year + 1}</h2>
         {s.openingNextYear.length === 0 ? (
-          <p className="text-sm text-muted">אין יינות שהחלון שלהם נפתח בשנה הבאה.</p>
+          <p className="text-sm text-muted">אין יינות שמתחילים להיות בשלים בשנה הבאה</p>
         ) : (
           <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
             {s.openingNextYear.map((o) => (

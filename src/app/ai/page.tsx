@@ -25,8 +25,8 @@ export default function AiPage() {
         <BackLink href="/" label="המקרר" />
         <h1 className="text-2xl font-bold">בינה מלאכותית</h1>
         <p className="text-sm text-muted">
-          <span className="inline-block">ה־AI רואה רק את המרתף שלכם, ולא יכול לשנות או למחוק כלום.</span>{" "}
-          <span className="inline-block">בקבוקים שהוא מציע מחכים כאן לאישור שלכם.</span>
+          <span className="inline-block">ה־AI רואה רק את המרתף שלכם ולא יכול לשנות או למחוק כלום,</span>{" "}
+          <span className="inline-block">ובקבוקים שהוא מציע מחכים כאן לאישור שלכם</span>
         </p>
       </header>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
@@ -99,8 +99,8 @@ async function WithData() {
         <section className="flex flex-col gap-2">
           <h2 className="text-lg font-semibold">חיבור AI למרתף</h2>
           <p className="text-sm text-muted">
-            <span className="inline-block">פעם אחת מחברים, ומאז פשוט מדברים איתו:</span>{" "}
-            <span className="inline-block">שולחים צילום של תווית או קבלה, ושואלים מה לפתוח הערב.</span>
+            <span className="inline-block">מחברים פעם אחת, ומאז פשוט שולחים לו צילום של תווית או קבלה</span>{" "}
+            <span className="inline-block">או שואלים מה לפתוח הערב</span>
           </p>
           <ConnectAi />
         </section>
@@ -131,7 +131,7 @@ function Examples({ ai }: { ai: AiKey }) {
   ];
   return (
     <div className="flex flex-col gap-1 rounded-xl bg-surface p-4 text-sm shadow-sm">
-      <p className="text-muted">אפשר לבקש מ־{AI_PROVIDERS[ai].name}, למשל:</p>
+      <p className="text-muted">דוגמאות למה שאפשר לבקש מ־{AI_PROVIDERS[ai].name}</p>
       <ul className="flex flex-col gap-1">
         {examples.map((e) => (
           <li key={e}>״{e}״</li>

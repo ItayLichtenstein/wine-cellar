@@ -36,7 +36,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
   // anyone can follow it: one action per step, a button for every page.
   const steps = [
     {
-      text: "העתיקו את הכתובת של המרתף:",
+      text: "העתיקו את הכתובת של המרתף",
       extra: (
         <span className="mt-2 flex items-center gap-2">
           <code dir="ltr" className="min-w-0 flex-1 truncate rounded-lg bg-background px-3 py-2 text-sm">
@@ -61,8 +61,8 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
         </a>
       ),
     })),
-    { text: "ייפתח חלון של האתר שלנו. אם צריך, התחברו עם גוגל, ולחצו \"אישור\".", extra: null },
-    { text: `זהו! פתחו צ׳אט חדש ב־${p.name} ושאלו: "מה יש לי במרתף?"`, extra: null },
+    { text: "ייפתח חלון של האתר שלנו. אם צריך התחברו עם גוגל, ואז לחצו \"אישור\"", extra: null },
+    { text: `זהו! פתחו צ׳אט חדש ב־${p.name} ושאלו "מה יש לי במרתף?"`, extra: null },
   ];
 
   return (
@@ -104,8 +104,8 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
         ))}
       </ol>
       <p className="text-xs text-muted">
-        <span className="inline-block">לא מוצאים את הכפתור? החברות משנות את שמות התפריטים מדי פעם.</span>{" "}
-        <span className="inline-block">חפשו בהגדרות את המילה Connectors, או השתמשו בהעתקה הידנית למטה.</span>
+        <span className="inline-block">לא מוצאים את הכפתור? שמות התפריטים משתנים מדי פעם,</span>{" "}
+        <span className="inline-block">אז חפשו בהגדרות את המילה Connectors או השתמשו בהעתקה הידנית למטה</span>
       </p>
     </div>
   );

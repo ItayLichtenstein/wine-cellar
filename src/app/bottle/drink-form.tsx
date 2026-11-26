@@ -36,7 +36,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
     const valid = (n: number | null) => n === null || (!Number.isNaN(n) && n >= 1 && n <= 5);
     const personal = d.members.map((m) => ({ id: m.id, n: scores[m.id] ? Number(scores[m.id]) : null }));
     if (separate ? !personal.every((p) => valid(p.n)) : !valid(scoreNum)) {
-      setError("ציון בין 1 ל־5.");
+      setError("הציון צריך להיות בין 1 ל־5");
       return;
     }
     setSaving(true);
@@ -50,7 +50,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
     });
     if (drinkError) {
       setSaving(false);
-      setError("לא הצלחנו לשמור. נסו שוב.");
+      setError("לא הצלחנו לשמור, נסו שוב");
       return;
     }
 
@@ -80,7 +80,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
       const rateError = results.find((r) => r.error)?.error;
       if (rateError) {
         setSaving(false);
-        setError("הבקבוק סומן כשתוי, אבל הציון לא נשמר.");
+        setError("הבקבוק סומן כשתוי, אבל הציון לא נשמר");
         onDone();
         return;
       }
@@ -106,7 +106,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
 
       <fieldset className="flex flex-col gap-2 text-sm">
         <legend className="mb-1 text-muted">
-          ציון {current ? `(עכשיו: ${Number(current).toFixed(1)})` : ""} – לא חובה
+          ציון {current ? `(עכשיו ${Number(current).toFixed(1)})` : ""} – לא חובה
         </legend>
         {separate ? (
           d.members.map((m) => (
