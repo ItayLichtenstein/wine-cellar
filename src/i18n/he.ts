@@ -6,7 +6,7 @@
 export const he = {
   nav: {
     main: "ניווט ראשי",
-    fridge: "מקרר",
+    fridge: "המקרר שלי",
     list: "רשימה",
     wishlist: "Wishlist",
     stats: "סטטיסטיקות",
@@ -311,6 +311,15 @@ export const he = {
     aiTitle: "את הייעוץ על היין נותן ה־AI שלכם",
     aiText: "האפליקציה שומרת מה יש לכם ואיפה. כדי לדעת מתי לפתוח כל בקבוק ולקבל המלצות, מחברים את ה־AI שאתם כבר משתמשים בו, כמו Claude או ChatGPT",
     aiWhere: "הסבר מפורט וחיבור ב\"עוד\" ← \"ה־AI שלכם\"",
+  },
+  friends: {
+    mine: "החברים שלי",
+    invite: "+ הזמנת חבר",
+    none: "עוד אין חברים",
+    toMine: "חזרה למקרר שלי",
+    viewOnly: "צפייה בלבד",
+    tapToWish: "לחיצה על בקבוק מאפשרת להוסיף אותו ל־Wishlist",
+    noFridge: "עוד אין להם מקרר",
   },
   friendInvite: {
     title: "הזמנה לחברות",

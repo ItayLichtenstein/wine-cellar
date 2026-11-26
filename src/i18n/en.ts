@@ -4,7 +4,7 @@ import type { Dictionary } from "./he";
 export const en: Dictionary = {
   nav: {
     main: "Main navigation",
-    fridge: "Fridge",
+    fridge: "My fridge",
     list: "List",
     wishlist: "Wishlist",
     stats: "Stats",
@@ -306,6 +306,15 @@ export const en: Dictionary = {
     aiTitle: "Wine advice comes from your own AI",
     aiText: "The app keeps track of what you have and where. To know when to open each bottle and get recommendations, connect the AI you already use, like Claude or ChatGPT",
     aiWhere: "Details and setup in \"More\" → \"Your AI\"",
+  },
+  friends: {
+    mine: "My friends",
+    invite: "+ Invite a friend",
+    none: "No friends yet",
+    toMine: "Back to my fridge",
+    viewOnly: "view only",
+    tapToWish: "tap a bottle to add it to your Wishlist",
+    noFridge: "They don't have a fridge yet",
   },
   friendInvite: {
     title: "Friend invite",
