@@ -335,14 +335,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"display_name": string,"id": string,"locale": string,"onboarded_at": string | null,"theme": string,"updated_at": string
+                    "created_at": string,"display_name": string,"first_steps": string | null,"id": string,"locale": string,"onboarded_at": string | null,"theme": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"display_name": string,"id": string,"locale"?: string,"onboarded_at"?: string | null,"theme"?: string,"updated_at"?: string
+                    "created_at"?: string,"display_name": string,"first_steps"?: string | null,"id": string,"locale"?: string,"onboarded_at"?: string | null,"theme"?: string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"display_name"?: string,"id"?: string,"locale"?: string,"onboarded_at"?: string | null,"theme"?: string,"updated_at"?: string
+                    "created_at"?: string,"display_name"?: string,"first_steps"?: string | null,"id"?: string,"locale"?: string,"onboarded_at"?: string | null,"theme"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     

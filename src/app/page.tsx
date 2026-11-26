@@ -13,7 +13,7 @@ import { LineIcon } from "@/components/line-icon";
 import { AiCard } from "./ai-card";
 import { CellarView } from "./cellar-view";
 import { LabelThumbBackfill } from "./label-thumb-backfill";
-import { GuideCard } from "./guide-card";
+import { FirstSteps } from "./first-steps";
 import { NamePrompt } from "./name-prompt";
 
 export default async function Home() {
@@ -112,7 +112,9 @@ async function Fridges() {
         )}
       </div>
 
-      <GuideCard />
+      {user.canEdit && user.firstSteps !== "closed" && (
+        <FirstSteps userId={user.id} initial={user.firstSteps} done={{ bottle: all.length > 0, people: await hasPeople(user.cellarId) }} />
+      )}
 
       {/* A fridge with hardly any bottles yet: offer to fill it with the AI. */}
       {user.canEdit && <AiCard connected={connected} pendingDrafts={drafts} nearlyEmpty={stored.length + loose.length < 6} />}
@@ -122,6 +124,16 @@ async function Fridges() {
 
     </section>
   );
+}
+
+/** Someone to share with yet: a household partner or a friend. */
+async function hasPeople(cellarId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const [{ count }, friends] = await Promise.all([
+    supabase.from("cellar_members").select("user_id", { count: "exact", head: true }).eq("cellar_id", cellarId),
+    getFriendList(),
+  ]);
+  return (count ?? 0) > 1 || friends.length > 0;
 }
 
 /** Drafts are for editors only (RLS too), so viewers skip the query. */

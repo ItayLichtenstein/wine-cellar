@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { FirstStepsState } from "@/lib/first-steps";
 
 export type CurrentUser = {
   id: string;
@@ -12,6 +13,8 @@ export type CurrentUser = {
   displayName: string;
   /** False until the user confirmed a name (first sign-in). */
   onboarded: boolean;
+  /** The first-steps card: never shown, shown once, in use, or closed. */
+  firstSteps: FirstStepsState;
   /** Partners all edit (no viewer level since 26 Nov 2026); false only for a legacy viewer row. RLS enforces it anyway. */
   canEdit: boolean;
 };
@@ -33,7 +36,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
   // RLS lets a user read their own profile only (and their household's).
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, onboarded_at")
+    .select("display_name, onboarded_at, first_steps")
     .eq("id", userId)
     .single();
 
@@ -46,6 +49,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
     cellarId: member.cellar_id,
     displayName: profile?.display_name ?? "",
     onboarded: Boolean(profile?.onboarded_at),
+    firstSteps: (profile?.first_steps ?? null) as FirstStepsState,
     canEdit: member.role === "member",
   };
 });
