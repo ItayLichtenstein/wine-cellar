@@ -297,6 +297,9 @@ export const en: Dictionary = {
     less: "Minus 0.1",
     more: "Plus 0.1",
   },
+  guide: {
+    sample: "A sample fridge to practice on, nothing here is saved",
+  },
   language: {
     he: "עברית",
     en: "English",

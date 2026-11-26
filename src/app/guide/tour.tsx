@@ -3,6 +3,7 @@
 import { LineIcon, type IconName } from "@/components/line-icon";
 import Link from "next/link";
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
 import { ScoreInput } from "@/components/score-input";
 import { DRINK_STATES, DRINK_STATE_ORDER, type DrinkState } from "@/lib/drink-state";
@@ -32,7 +33,7 @@ export function GuideTour() {
     {
       emoji: "🍷",
       title: "ברוכים הבאים למרתף",
-      text: "מה יש בבית, איפה כל בקבוק ומתי לפתוח אותו, בסיור של דקה",
+      text: "מה יש בבית, איפה כל בקבוק ומתי לפתוח אותו, בסיור קצר על מקרר לדוגמה",
       demo: <Welcome />,
     },
     {
@@ -79,6 +80,7 @@ export function GuideTour() {
     },
   ];
 
+  const t = useT();
   const [i, setI] = useState(0);
   const step = steps[i];
   const last = i === steps.length - 1;
@@ -111,6 +113,9 @@ export function GuideTour() {
         </div>
         <h2 className="text-xl font-bold">{step.title}</h2>
         <p className="text-muted">{step.text}</p>
+        {step.demo && i > 0 && (
+          <p className="-mb-2 text-center text-xs text-muted">{t.guide.sample}</p>
+        )}
         {step.demo}
       </article>
 
