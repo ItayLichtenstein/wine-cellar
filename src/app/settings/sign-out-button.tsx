@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 
 export function SignOutButton() {
+  const t = useT();
   const [busy, setBusy] = useState(false);
 
   async function signOut() {
@@ -22,7 +24,7 @@ export function SignOutButton() {
       disabled={busy}
       className="rounded-full border border-muted/40 px-4 py-2 text-sm disabled:opacity-60"
     >
-      {busy ? "מתנתק…" : "התנתקות"}
+      {busy ? t.account.signingOut : t.account.signOut}
     </button>
   );
 }

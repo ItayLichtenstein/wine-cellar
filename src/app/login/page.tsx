@@ -1,23 +1,28 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import Link from "next/link";
 import { Suspense } from "react";
+import { getT } from "@/i18n/server";
 import { AuthError } from "./auth-error";
 import { GoogleSignInButton } from "./google-sign-in-button";
 
-export const metadata: Metadata = { title: "התחברות · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.login);
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const t = (await getT()).login;
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
         <div className="text-5xl" aria-hidden="true">🍷</div>
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold">מרתף יין</h1>
+          <h1 className="text-3xl font-bold">{t.title}</h1>
           {/* Each span is one unit of meaning; lines break only between them. */}
           <p className="text-muted">
-            <span className="inline-block">כל הבקבוקים שלכם במקום אחד</span>{" "}
-            <span className="inline-block">מה יש במקרר, מה בשל לשתייה,</span>{" "}
-            <span className="inline-block">ומה כדאי לפתוח הערב</span>
+            {t.tagline.map((line, i) => (
+              <span key={line}>
+                {i > 0 && " "}
+                <span className="inline-block">{line}</span>
+              </span>
+            ))}
           </p>
         </div>
 
@@ -29,11 +34,11 @@ export default function LoginPage() {
         <GoogleSignInButton />
 
         <p className="text-sm text-muted">
-          <span className="inline-block">אנחנו שומרים רק את השם והמייל מחשבון הגוגל,</span>{" "}
+          <span className="inline-block">{t.keep}</span>{" "}
           <span className="inline-block">
-            והמייל לא מוצג לאף אחד ·{" "}
+            {t.notShown}{" "}
             <Link href="/privacy" className="underline underline-offset-2">
-              מדיניות הפרטיות
+              {t.privacy}
             </Link>
           </span>
         </p>

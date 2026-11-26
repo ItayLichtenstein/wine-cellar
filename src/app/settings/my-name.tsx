@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { inputClass } from "@/app/bottle/details";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 
 /** The name partners and friends see; first set on the first sign-in, changeable here. */
 export function MyName({ userId, initial }: { userId: string; initial: string }) {
+  const t = useT();
   const router = useRouter();
   const [name, setName] = useState(initial);
   const [state, setState] = useState<"idle" | "busy" | "saved" | "failed">("idle");
@@ -25,7 +27,7 @@ export function MyName({ userId, initial }: { userId: string; initial: string })
     <form onSubmit={save} className="flex flex-col gap-2">
       <div className="flex gap-2">
         <input
-          aria-label="השם שלי"
+          aria-label={t.settings.myName}
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -41,11 +43,11 @@ export function MyName({ userId, initial }: { userId: string; initial: string })
           disabled={!changed || state === "busy"}
           className="rounded-full border border-muted/40 px-4 text-sm disabled:opacity-50"
         >
-          שמירה
+          {t.common.save}
         </button>
       </div>
       <p className="text-xs text-muted" role="status">
-        {state === "saved" ? "נשמר ✓" : state === "failed" ? "השמירה לא הצליחה, נסו שוב" : "כך רואים אותך השותפים והחברים (המייל לא מוצג)"}
+        {state === "saved" ? t.account.saved : state === "failed" ? t.common.saveFailed : t.account.nameHint}
       </p>
     </form>
   );

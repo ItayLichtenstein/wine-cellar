@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { Suspense } from "react";
 import { BackLink } from "@/components/back-link";
 import { getT } from "@/i18n/server";
@@ -9,7 +9,7 @@ import { Friends } from "./friends";
 import { Household, type Member } from "./household";
 import { ShareLink } from "./share-link";
 
-export const metadata: Metadata = { title: "חברים ושיתוף · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.sharing);
 
 /**
  * Everyone who sees the cellar. Friends first, since that's what people come

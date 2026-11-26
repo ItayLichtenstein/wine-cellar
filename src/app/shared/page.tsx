@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
 import { SharedView } from "./shared-view";
 
-export const metadata: Metadata = {
-  title: "מרתף יין",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
   // A private link: keep it out of search engines.
-  robots: { index: false, follow: false },
-};
+  return { title: t.titles.app, robots: { index: false, follow: false } };
+}
 
 export default function SharedPage() {
   return (

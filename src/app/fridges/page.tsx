@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { getT } from "@/i18n/server";
+import { pageTitle } from "@/i18n/metadata";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BackLink } from "@/components/back-link";
@@ -8,7 +8,7 @@ import { fridgeCapacity } from "@/lib/fridge-layout";
 import { getFridges } from "@/lib/fridges";
 import { FridgeList } from "./fridge-list";
 
-export const metadata: Metadata = { title: "המקררים · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.fridges);
 
 /** Every fridge in the cellar: order, edit, add. Part of the fridge tab. */
 export default async function FridgesPage() {

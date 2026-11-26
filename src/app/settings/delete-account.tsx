@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 
 type Plan = "delete_cellar" | "leave" | "last_member";
-
-const WORD = "מחיקה";
 
 /**
  * Deleting the account: deep in "Account", folded, and confirmed by typing
@@ -13,6 +12,8 @@ const WORD = "מחיקה";
  * also enforces it): alone, the whole cellar goes; with others, it stays.
  */
 export function DeleteAccount({ cellarId }: { cellarId: string }) {
+  const t = useT();
+  const WORD = t.account.confirmWord;
   const [plan, setPlan] = useState<Plan | null>(null);
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
@@ -20,7 +21,7 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
 
   async function open() {
     const { data, error: e } = await createClient().rpc("account_deletion_plan");
-    if (e || !data) setError("לא הצלחנו לבדוק, נסו שוב");
+    if (e || !data) setError(t.account.checkFailed);
     else setPlan(data as Plan);
   }
 
@@ -37,7 +38,7 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
     const { error: e } = await supabase.rpc("delete_my_account");
     if (e) {
       setBusy(false);
-      setError(e.hint === "last_member" ? "אתם השותפים היחידים ויש צופים במרתף. הפכו מישהו לשותף או הסירו את הצופים, ונסו שוב" : "המחיקה לא הצליחה, נסו שוב");
+      setError(e.hint === "last_member" ? t.account.lastMemberError : t.account.deleteFailed);
       return;
     }
     await supabase.auth.signOut();
@@ -47,33 +48,44 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
   return (
     <details className="rounded-xl border border-red-300/40 p-3 text-sm">
       <summary onClick={() => !plan && open()} className="cursor-pointer font-medium text-red-700 dark:text-red-400">
-        מחיקת החשבון
+        {t.account.deleteTitle}
       </summary>
       <div className="mt-3 flex flex-col gap-3">
         {plan === "delete_cellar" && (
           <p>
-            <span className="inline-block">אתם היחידים במרתף, ולכן הוא יימחק יחד עם החשבון,</span>{" "}
-            <span className="inline-block">כולל המקררים, הבקבוקים, ההיסטוריה, ה־Wishlist, החברים והתמונות.</span>{" "}
-            <span className="inline-block font-medium">אי אפשר לשחזר, אז כדאי לייצא קודם לקובץ</span>
+{t.account.aloneLines.map((line, i) => (
+              <span key={i}>
+                {i > 0 && " "}
+                <span className="inline-block">{line}</span>
+              </span>
+            ))}
           </p>
         )}
         {plan === "leave" && (
           <p>
-            <span className="inline-block">המרתף נשאר אצל שאר השותפים, עם כל הבקבוקים וההיסטוריה.</span>{" "}
-            <span className="inline-block">יימחקו השם שלכם, החברות שלכם במרתף והציונים האישיים שלכם, ואי אפשר לשחזר אותם</span>
+{t.account.leaveLines.map((line, i) => (
+              <span key={i}>
+                {i > 0 && " "}
+                <span className="inline-block">{line}</span>
+              </span>
+            ))}
           </p>
         )}
         {plan === "last_member" && (
           <p>
-            <span className="inline-block">אתם השותפים היחידים, ויש צופים במרתף.</span>{" "}
-            <span className="inline-block">קודם הפכו מישהו לשותף או הסירו את הצופים (ב״שיתוף״)</span>
+{t.account.lastMemberLines.map((line, i) => (
+              <span key={i}>
+                {i > 0 && " "}
+                <span className="inline-block">{line}</span>
+              </span>
+            ))}
           </p>
         )}
         {(plan === "delete_cellar" || plan === "leave") && (
           <>
             <label className="flex flex-col gap-1">
               <span>
-                כדי לאשר, כתבו <b>{WORD}</b>:
+                {t.account.typeToConfirm} <b>{WORD}</b>
               </span>
               <input
                 value={typed}
@@ -85,10 +97,10 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
             <button
               type="button"
               onClick={remove}
-              disabled={typed.trim() !== WORD || busy}
+              disabled={typed.trim().toLowerCase() !== WORD || busy}
               className="self-start rounded-full bg-red-700 px-4 py-2 font-medium text-white disabled:opacity-50 dark:bg-red-500"
             >
-              {busy ? "מוחק…" : "למחוק את החשבון לצמיתות"}
+              {busy ? t.account.deleting : t.account.deleteForever}
             </button>
           </>
         )}

@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { getT } from "@/i18n/server";
+import { pageTitle } from "@/i18n/metadata";
 import { BackLink } from "@/components/back-link";
 import { getCurrentUser } from "@/lib/auth";
 import { notFound } from "next/navigation";
@@ -7,7 +7,7 @@ import { Suspense } from "react";
 import { getFridges } from "@/lib/fridges";
 import { NewFridgeForm } from "../../new/new-fridge-form";
 
-export const metadata: Metadata = { title: "עריכת מקרר · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.editFridge);
 
 export default async function EditFridgePage({ params }: PageProps<"/fridges/[id]/edit">) {
   const t = await getT();

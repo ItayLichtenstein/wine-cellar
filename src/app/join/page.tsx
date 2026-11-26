@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getT } from "@/i18n/server";
 import { JoinInvite } from "./join-invite";
 
-export const metadata: Metadata = { title: "הצטרפות למרתף · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.join);
 
 export default async function JoinPage() {
   const t = await getT();

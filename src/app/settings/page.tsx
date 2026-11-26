@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BackLink } from "@/components/back-link";
@@ -11,7 +11,7 @@ import { ExportButton } from "./export-button";
 import { MyName } from "./my-name";
 import { SignOutButton } from "./sign-out-button";
 
-export const metadata: Metadata = { title: "הגדרות · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.settings);
 
 /** Personal settings: my name, look, language, my data, account. */
 export default async function SettingsPage() {

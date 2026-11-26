@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getLocale, getT } from "@/i18n/server";
 import { intlTag } from "@/i18n/locales";
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { OTHER_LABEL, breakdown, byDrinkState, cellarValue, drinkingPace, summar
 import { getStatsData } from "@/lib/stats-data";
 import { Bars, Card, nis, today } from "./parts";
 
-export const metadata: Metadata = { title: "סטטיסטיקות · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.stats);
 
 export default async function StatsPage() {
   const t = await getT();

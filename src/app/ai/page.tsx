@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageTitle } from "@/i18n/metadata";
 import { getT } from "@/i18n/server";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { redirect } from "next/navigation";
@@ -18,7 +18,7 @@ import { PendingActions, type PendingAction } from "./pending-actions";
 import { ConnectedAis } from "./connected-ais";
 import { BackLink } from "@/components/back-link";
 
-export const metadata: Metadata = { title: "בינה מלאכותית · מרתף יין" };
+export const generateMetadata = pageTitle((t) => t.titles.ai);
 
 export default async function AiPage() {
   const t = await getT();
