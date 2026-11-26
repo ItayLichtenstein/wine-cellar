@@ -2,8 +2,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getLocale, getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
-import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
-import type { Dictionary } from "@/i18n/dictionaries";
 import { drinkNow } from "@/lib/bottle-list";
 import { cellarTitle } from "@/lib/cellar-title";
 import { getConnectedAis } from "@/lib/ai-grants";
@@ -113,7 +111,6 @@ async function Fridges() {
       <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={user.canEdit} />
       {user.canEdit && <LabelThumbBackfill cellarId={user.cellarId} />}
 
-      {(stored.length > 0 || loose.length > 0) && <Legend t={t} />}
     </section>
   );
 }
@@ -128,18 +125,4 @@ async function countPendingDrafts(cellarId: string, canEdit: boolean): Promise<n
     .eq("cellar_id", cellarId)
     .eq("status", "pending");
   return count ?? 0;
-}
-
-/** What the year-badge colors mean. */
-function Legend({ t }: { t: Dictionary }) {
-  return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-label={t.home.legend}>
-      {DRINK_STATE_ORDER.filter((s) => s !== "none").map((s) => (
-        <li key={s} className="flex items-center gap-1.5">
-          <span className="size-3 rounded-sm" style={{ backgroundColor: DRINK_STATES[s].color }} aria-hidden="true" />
-          {t.drinkState[s]}
-        </li>
-      ))}
-    </ul>
-  );
 }

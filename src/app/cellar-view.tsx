@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
 import type { ListRow } from "@/lib/bottle-list";
-import { DRINK_STATES } from "@/lib/drink-state";
+import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { fridgeCapacity } from "@/lib/fridge-layout";
 import type { FridgeView, LooseBottle } from "@/lib/fridges";
 import { useT } from "@/i18n/provider";
@@ -75,6 +75,8 @@ export function CellarView({
   }
 
   const unplaced = loose.filter((b) => b.status === "unplaced");
+  const hasBottles =
+    loose.length > 0 || fridges.some((f) => f.shelves.some((s) => s.zones.some((z) => z.bottles.length > 0)));
   const inTransit = loose.filter((b) => b.status === "in_transit");
 
   return (
@@ -174,6 +176,9 @@ export function CellarView({
       <LooseList title={t.cellar.outside} bottles={unplaced} onOpen={setOpenId} />
       <LooseList title={t.cellar.inTransit} bottles={inTransit} onOpen={setOpenId} />
 
+      {/* Wherever the fridge is drawn (home, a friend's cellar, a view link), so are the colors' meanings. */}
+      {hasBottles && <Legend />}
+
       {openId && sheet && sheet(openId, () => setOpenId(null))}
       {openId && !sheet && (
         <BottleSheet
@@ -256,5 +261,20 @@ function DrinkNow({ rows, onOpen }: { rows: ListRow[]; onOpen: (id: string) => v
         ))}
       </ul>
     </section>
+  );
+}
+
+/** What the year-badge colors mean. */
+function Legend() {
+  const t = useT();
+  return (
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-label={t.home.legend}>
+      {DRINK_STATE_ORDER.filter((s) => s !== "none").map((s) => (
+        <li key={s} className="flex items-center gap-1.5">
+          <span className="size-3 rounded-sm" style={{ backgroundColor: DRINK_STATES[s].color }} aria-hidden="true" />
+          {t.drinkState[s]}
+        </li>
+      ))}
+    </ul>
   );
 }
