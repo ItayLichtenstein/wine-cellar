@@ -539,6 +539,11 @@ isOneToOne: false
               "cellar_id": string,"custom_name": string
             }[]
                            },
+"friend_invite_status":
+{ Args: { "p_token": string }; Returns: {
+              "cellar_id": string,"names": (string)[],"status": string
+            }[]
+                           },
 "give_new_cellar":
 { Args: { "p_user_id": string }; Returns: string
                            },
@@ -579,6 +584,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "cellar_id": string,"i_show_prices": boolean,"names": (string)[],"they_show_prices": boolean
             }[]
+                           },
+"peek_cellar_names":
+{ Args: { "p_cellar": string }; Returns: (string)[]
                            },
 "peek_friend_invite":
 { Args: { "p_token": string }; Returns: (string)[]
