@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import type { Place } from "@/components/fridge-preview";
 import { getFridges, getWineNames, type FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
+import { resolvePlaces } from "@/lib/draft-places";
 import { parseBottleDraft } from "@/lib/drafts";
 import { AddBottlesForm, type Prefill } from "./add-bottles-form";
 
@@ -35,7 +36,7 @@ async function FormWithData({ searchParams }: { searchParams: SearchParams }) {
       fridges={fridges}
       wines={wines}
       initialPlace={findEmptyPlace(fridges, params)}
-      prefill={params.wish ? await loadWish(cellarId, params.wish) : params.draft ? await loadDraft(cellarId, params.draft) : undefined}
+      prefill={params.wish ? await loadWish(cellarId, params.wish) : params.draft ? await loadDraft(cellarId, params.draft, fridges) : undefined}
     />
   );
 }
@@ -52,7 +53,7 @@ async function loadWish(cellarId: string, id: string) {
  * An AI draft opens the same form, pre-filled, as its approval screen.
  * The payload is checked again here (it was stored as JSON).
  */
-async function loadDraft(cellarId: string, id: string): Promise<Prefill | undefined> {
+async function loadDraft(cellarId: string, id: string, fridges: FridgeView[]): Promise<Prefill | undefined> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("drafts")
@@ -76,6 +77,8 @@ async function loadDraft(cellarId: string, id: string): Promise<Prefill | undefi
     drinkFrom: d.drinkFrom,
     drinkTo: d.drinkTo,
     extra: { grape: d.grape, country: d.country, region: d.region },
+    // Where the AI saw the bottles: picked already, when those spots are free.
+    places: resolvePlaces(fridges, d.places),
   };
 }
 

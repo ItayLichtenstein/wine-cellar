@@ -2,7 +2,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { buildRows, drinkNow, EMPTY_FILTERS } from "../bottle-list";
 import { DRAFT_FORMAT, DRAFT_TYPES, parseBottleDraft } from "../drafts";
-import { getCellarBottles, getHistory, type Db } from "../fridges";
+import { describeFridges } from "../draft-places";
+import { getCellarBottles, getFridges, getHistory, type Db } from "../fridges";
 import { tasteProfile } from "../stats";
 import { getStatsData } from "../stats-data";
 import { formatHistory, formatRows } from "./format";
@@ -22,7 +23,9 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
         "This is the user's home wine cellar (Hebrew-first app; wine names are usually in their original language).",
         "Use search_cellar to see what they have, what_to_drink for a recommendation, history for what they drank.",
         "To add bottles (from a label photo, a receipt, or the user's words) call suggest_bottles. It only creates",
-        "drafts; the user approves each one on the site. Never claim a bottle was added – say it awaits approval.",
+        "drafts; the user approves them on the site (one by one, or all at once). Never claim a bottle was added – say it awaits approval.",
+        "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot) –",
+        "then approving puts every bottle straight into its spot. Filling a whole fridge: go shelf by shelf (the fill_fridge prompt).",
         "You cannot change, move or delete anything. Answer the user in their language.",
       ].join(" "),
     },
@@ -98,6 +101,18 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
   );
 
   server.registerTool(
+    "fridge_layout",
+    {
+      title: "Fridge layout",
+      description:
+        "The fridges as the site shows them: shelves from the top, the zones on each shelf (rows with numbered slots, or piles), and which slots are free. Use these numbers in suggest_bottles `places`.",
+      inputSchema: {},
+      annotations: read,
+    },
+    async () => text(describeFridges(await getFridges(cellarId, db))),
+  );
+
+  server.registerTool(
     "suggest_bottles",
     {
       title: "Suggest bottles to add",
@@ -119,10 +134,21 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
               drink_from: z.number().int().nullable().optional(),
               drink_to: z.number().int().nullable().optional(),
               note: z.string().optional(),
+              places: z
+                .array(
+                  z.object({
+                    fridge: z.string().optional().describe("Fridge name; omit for the first fridge"),
+                    shelf: z.number().int().min(1).describe("Shelf number from the top, as in fridge_layout"),
+                    zone: z.number().int().min(1).optional().describe("Zone on the shelf (1 = back row / upper layer / only row), default 1"),
+                    slot: z.number().int().min(1).optional().describe("Slot in a row; omit for a pile"),
+                  }),
+                )
+                .optional()
+                .describe("Where each bottle of this wine is (at most `quantity`). Omit if unknown: those bottles wait outside the fridge."),
             }),
           )
           .min(1)
-          .max(20),
+          .max(30),
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
@@ -184,6 +210,34 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
           content: {
             type: "text",
             text: `Occasion: ${occasion}. Call what_to_drink, and search_cellar if needed. Recommend up to 3 bottles from my cellar, weighing readiness, the occasion, style and price, with one short reason each.`,
+          },
+        },
+      ],
+    }),
+  );
+
+  server.registerPrompt(
+    "fill_fridge",
+    {
+      title: "Fill my fridge",
+      description: "Enter all the bottles you already have, in their places: shelf by shelf from photos, or everything at once.",
+    },
+    () => ({
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: [
+              "Help me enter every bottle I already have into my wine cellar app, each in its place.",
+              "1. Call fridge_layout to see my shelves, zones and free slots.",
+              "2. Ask me for photos one shelf at a time (from the front, labels visible as much as possible), or a list if I prefer to type.",
+              "3. For each shelf: identify every wine (winery, name, vintage, type; grape/country/region and drinking window if you know them),",
+              "   and where it sits (zone and slot, slot 1 = rightmost as I look at it). If unsure about a bottle, ask me rather than guess.",
+              "4. Call suggest_bottles once per shelf with all its bottles and their `places`. Reuse exact names from search_cellar for wines I already have.",
+              "5. Tell me how many await my approval, and that 'approve all' on the site puts them in place. Then move on to the next shelf.",
+              "Answer me in Hebrew.",
+            ].join("\n"),
           },
         },
       ],

@@ -97,7 +97,8 @@ async function Fridges() {
 
       <GuideCard />
 
-      {user.canEdit && <AiCard connected={connected} pendingDrafts={drafts} />}
+      {/* A fridge with hardly any bottles yet: offer to fill it with the AI. */}
+      {user.canEdit && <AiCard connected={connected} pendingDrafts={drafts} nearlyEmpty={stored.length + loose.length < 6} />}
 
       <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={user.canEdit} />
 

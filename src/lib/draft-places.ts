@@ -1,0 +1,71 @@
+// Turning an AI's "shelf 3, zone 1, slot 2" into a real place in a fridge,
+// and describing the fridges back to the AI in the same words. Pure, so
+// both directions are tested; used by the MCP server and the approval screen.
+
+import type { DraftPlace } from "./drafts";
+
+type Zone = { id: string; kind: "row" | "stack"; capacity: number; label: string; bottles: { slot: number | null }[] };
+type Fridge = { name: string; shelves: { zones: Zone[] }[] };
+export type ResolvedPlace = { zoneId: string; slot: number | null };
+
+/**
+ * Resolves each place to a free spot. A place that does not exist, or is
+ * taken (by a bottle already there, or by an earlier place in this batch),
+ * is skipped: that bottle goes "out of the fridge" instead of failing.
+ * `taken` is shared across a whole batch, so two drafts never get one slot.
+ */
+export function resolvePlaces(fridges: Fridge[], places: DraftPlace[], taken: Set<string> = new Set()): ResolvedPlace[] {
+  const out: ResolvedPlace[] = [];
+  for (const p of places) {
+    const fridge = (p.fridge && fridges.find((f) => f.name.trim() === p.fridge.trim())) || fridges[0];
+    const zone = fridge?.shelves[p.shelf - 1]?.zones[p.zone - 1];
+    if (!zone) continue;
+    if (zone.kind === "stack") {
+      const used = zone.bottles.length + [...taken].filter((k) => k.startsWith(`${zone.id}:stack`)).length;
+      if (used >= zone.capacity) continue;
+      taken.add(`${zone.id}:stack:${used}`);
+      out.push({ zoneId: zone.id, slot: null });
+      continue;
+    }
+    if (p.slot === null || p.slot > zone.capacity) continue;
+    const key = `${zone.id}:${p.slot}`;
+    if (taken.has(key) || zone.bottles.some((b) => b.slot === p.slot)) continue;
+    taken.add(key);
+    out.push({ zoneId: zone.id, slot: p.slot });
+  }
+  return out;
+}
+
+/** The fridges as the AI should read them: numbered like the screen, with free slots. */
+export function describeFridges(fridges: Fridge[]): string {
+  if (fridges.length === 0) return "No fridge yet. Ask the user to set one up on the site first (סידור המקרר).";
+  return fridges
+    .map((f, i) => {
+      const shelves = f.shelves.map((s, si) => {
+        const zones = s.zones.map((z, zi) => {
+          if (z.kind === "stack") return `zone ${zi + 1} "${z.label}" (pile, no slots): ${z.bottles.length}/${z.capacity} used`;
+          const free = Array.from({ length: z.capacity }, (_, k) => k + 1).filter((n) => !z.bottles.some((b) => b.slot === n));
+          return `zone ${zi + 1} "${z.label}" (row, slots 1-${z.capacity}, slot 1 = rightmost as seen on the site): free ${free.length ? free.join(",") : "none"}`;
+        });
+        return `  shelf ${si + 1} (from the top): ${zones.join("; ")}`;
+      });
+      return [`Fridge ${i + 1}: "${f.name}"`, ...shelves].join("\n");
+    })
+    .join("\n");
+}
+
+/** "מדף 1 (מקומות 1, 2) · מדף 2 (3 בקבוקים)": where a draft's bottles go, short. */
+export function placesSummary(places: DraftPlace[]): string {
+  const byShelf = new Map<string, DraftPlace[]>();
+  for (const p of places) {
+    const key = `${p.fridge ? `${p.fridge}, ` : ""}מדף ${p.shelf}`;
+    byShelf.set(key, [...(byShelf.get(key) ?? []), p]);
+  }
+  return [...byShelf]
+    .map(([shelf, ps]) => {
+      const slots = ps.map((p) => p.slot).filter((n): n is number => n !== null);
+      if (slots.length === ps.length) return `${shelf} (${slots.length === 1 ? "מקום" : "מקומות"} ${slots.join(", ")})`;
+      return ps.length === 1 ? shelf : `${shelf} (${ps.length} בקבוקים)`;
+    })
+    .join(" · ");
+}

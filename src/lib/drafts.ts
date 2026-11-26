@@ -20,7 +20,17 @@ export type BottleDraft = {
   drinkFrom: number | null;
   drinkTo: number | null;
   note: string;
+  /** Where the AI saw / suggests each bottle (at most `quantity`); the rest go "out of the fridge". */
+  places: DraftPlace[];
 };
+
+/**
+ * A place as a person (or AI) says it: "fridge X, shelf 3, the front row,
+ * slot 2". Shelves and slots count from 1, as on screen; zone 1 is the
+ * first part of the shelf (back row / upper layer / the only row), zone 2
+ * the next (front row / lower layer), and so on. No fridge = the first one.
+ */
+export type DraftPlace = { fridge: string; shelf: number; zone: number; slot: number | null };
 
 const TYPE_ALIASES: Record<string, DraftWineType> = {
   red: "red", אדום: "red", rouge: "red", tinto: "red", rosso: "red",
@@ -71,6 +81,8 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
   if (outOfRange(drinkFrom) || outOfRange(drinkTo)) return { ok: false, error: "Drinking window years must be between 1900 and 2100." };
 
   const price = int(pick(o, "price", "paid", "מחיר"));
+  const rawPlaces = pick(o, "places", "place", "location", "locations", "מיקום");
+  const places = (Array.isArray(rawPlaces) ? rawPlaces : rawPlaces ? [rawPlaces] : []).flatMap(parsePlace).slice(0, quantity);
   return {
     ok: true,
     draft: {
@@ -86,8 +98,20 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
       drinkFrom,
       drinkTo,
       note: text(pick(o, "note", "notes", "הערה"), 300),
+      places,
     },
   };
+}
+
+/** One place; anything unusable is dropped (that bottle just lands outside the fridge). */
+export function parsePlace(input: unknown): DraftPlace[] {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) return [];
+  const o = input as Record<string, unknown>;
+  const shelf = int(pick(o, "shelf", "מדף"));
+  if (shelf === null || shelf > 30) return [];
+  const zone = int(pick(o, "zone", "row", "layer", "part")) ?? 1;
+  const slot = int(pick(o, "slot", "position", "מקום"));
+  return [{ fridge: text(pick(o, "fridge", "מקרר"), 60), shelf, zone: Math.min(zone, 6), slot: slot !== null && slot <= 50 ? slot : null }];
 }
 
 /**
@@ -109,14 +133,14 @@ export function parseAiAnswer(answer: string, thisYear: number): { drafts: Bottl
 
   const drafts: BottleDraft[] = [];
   const errors: string[] = [];
-  items.slice(0, 20).forEach((item, i) => {
+  items.slice(0, 30).forEach((item, i) => {
     const r = parseBottleDraft(item, thisYear);
     if (r.ok) drafts.push(r.draft);
     // The reason stays in English on purpose: it is written for the AI, and
     // the user can paste it back so the AI fixes its answer.
     else errors.push(`בקבוק ${i + 1} לא נקלט. אפשר להעביר ל־AI: ${r.error}`);
   });
-  if (items.length > 20) errors.push("נלקחו רק 20 הבקבוקים הראשונים.");
+  if (items.length > 30) errors.push("נלקחו רק 30 היינות הראשונים.");
   return { drafts, errors };
 }
 
@@ -131,14 +155,15 @@ export const DRAFT_FORMAT = `[
     "price": 120,            // per bottle in ₪, or null
     "grape": "", "country": "", "region": "",
     "drink_from": 2024, "drink_to": 2030,   // drinking window if you know it, else null
-    "note": ""
+    "note": "",
+    "places": [{ "shelf": 3, "zone": 1, "slot": 2 }]   // optional: where each bottle is (see the fridge layout); omit if unknown
   }
 ]`;
 
 export type CellarLine = { title: string; year: number | null; count: number; state: string; where: string };
 
 /** "Copy for AI": the cellar plus clear instructions, for any AI without MCP. */
-export function buildPrompt(task: "add" | "drink", cellar: CellarLine[], extra: string): string {
+export function buildPrompt(task: "add" | "drink", cellar: CellarLine[], extra: string, layout = ""): string {
   const list = cellar.map((c) => `- ${c.title} ${c.year ?? "NV"} ×${c.count} (${c.state}; ${c.where})`).join("\n");
   if (task === "drink") {
     return [
@@ -162,6 +187,13 @@ export function buildPrompt(task: "add" | "drink", cellar: CellarLine[], extra: 
     "",
     "Wines I already have (reuse the exact winery and name when it is the same wine):",
     list || "(none yet)",
+    ...(layout
+      ? [
+          "",
+          "If I tell you or show you where bottles are in my fridge, add `places` with these numbers (otherwise leave it out):",
+          layout,
+        ]
+      : []),
   ]
     .filter((l, i, a) => l !== "" || a[i - 1] !== "")
     .join("\n");
