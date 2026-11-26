@@ -242,9 +242,9 @@ function ColorsDemo() {
   const states = DRINK_STATE_ORDER.filter((s) => s !== "none");
   const bottles = states.map((s, k) => bottle(`c${k}`, s, 2014 + k, ["Port", "Rioja", "Chianti", "Barolo", "Pinot", "Syrah"][k] ?? "Wine", null));
   const [open, setOpen] = useState<DrinkState | null>(null);
-  const shelves = [
-    { zones: [{ id: "c-row", kind: "row" as const, capacity: bottles.length, label: "", bottles: bottles.map((b, k) => ({ ...b, slot: k + 1 })) }] },
-  ];
+  const half = Math.ceil(bottles.length / 2);
+  const row = (id: string, bs: PlacedBottle[]) => ({ id, kind: "row" as const, capacity: bs.length, label: "", bottles: bs.map((b, k) => ({ ...b, slot: k + 1 })) });
+  const shelves = [{ zones: [row("c-1", bottles.slice(0, half)), row("c-2", bottles.slice(half))] }];
   return (
     <div className="flex flex-col gap-3">
       <FridgePreview shelves={shelves} view="dots" onBottleClick={(b) => setOpen(b.state)} />
