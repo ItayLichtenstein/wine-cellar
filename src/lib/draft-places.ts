@@ -4,7 +4,7 @@
 
 import type { DraftPlace } from "./drafts";
 
-type Zone = { id: string; kind: "row" | "stack"; capacity: number; label: string; bottles: { slot: number | null }[] };
+type Zone = { id: string; kind: "row" | "stack"; capacity: number; label: string; bottles: { slot: number | null; id?: string; title?: string; year?: number | null }[] };
 type Fridge = { name: string; shelves: { zones: Zone[] }[] };
 export type ResolvedPlace = { zoneId: string; slot: number | null };
 
@@ -68,4 +68,46 @@ export function placesSummary(places: DraftPlace[]): string {
       return ps.length === 1 ? shelf : `${shelf} (${ps.length} בקבוקים)`;
     })
     .join(" · ");
+}
+
+/** A bottle the AI named: where it is now (null = outside the fridge). */
+export type FoundBottle = { id: string; where: string };
+
+/**
+ * Finds the bottle an action draft means: same wine (winery – name, any
+ * case) and vintage; if the AI said where it is, the one there. Bottles in
+ * the fridge first, then the ones outside it. Null = not found.
+ */
+export function findBottle(
+  fridges: Fridge[],
+  loose: { id: string; title: string; year: number | null }[],
+  ref: { winery: string; name: string; year: number | null; at: DraftPlace | null },
+): FoundBottle | null {
+  const title = `${ref.winery} – ${ref.name}`.toLowerCase();
+  const same = (b: { title?: string; year?: number | null }) => b.title?.toLowerCase() === title && (b.year ?? null) === ref.year;
+  const multi = fridges.length > 1;
+  for (const [fi, f] of fridges.entries()) {
+    for (const [si, shelf] of f.shelves.entries()) {
+      for (const [zi, z] of shelf.zones.entries()) {
+        for (const b of z.bottles) {
+          if (!b.id || !same(b)) continue;
+          if (ref.at) {
+            const fridgeOk = !ref.at.fridge || f.name.trim() === ref.at.fridge.trim() || (!multi && fi === 0);
+            if (!fridgeOk || ref.at.shelf !== si + 1 || ref.at.zone !== zi + 1 || (ref.at.slot !== null && b.slot !== ref.at.slot)) continue;
+          }
+          return { id: b.id, where: `${multi ? `${f.name}, ` : ""}מדף ${si + 1}${b.slot ? `, מקום ${b.slot}` : ""}` };
+        }
+      }
+    }
+  }
+  if (ref.at) return null; // it was supposed to be in the fridge, at that place
+  const outside = loose.find(same);
+  return outside ? { id: outside.id, where: "מחוץ למקרר" } : null;
+}
+
+/** "מדף 1, קדמית, מקום 1": one place in words, with the zone's own name from the fridge. */
+export function placeText(fridges: Fridge[], p: DraftPlace): string {
+  const fridge = (p.fridge && fridges.find((f) => f.name.trim() === p.fridge.trim())) || fridges[0];
+  const zone = fridge?.shelves[p.shelf - 1]?.zones[p.zone - 1];
+  return [fridges.length > 1 && fridge ? fridge.name : "", `מדף ${p.shelf}`, zone?.label ?? "", p.slot ? `מקום ${p.slot}` : ""].filter(Boolean).join(", ");
 }

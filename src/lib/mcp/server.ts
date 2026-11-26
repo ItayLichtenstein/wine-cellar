@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { buildRows, drinkNow, EMPTY_FILTERS } from "../bottle-list";
-import { DRAFT_FORMAT, DRAFT_TYPES, parseBottleDraft } from "../drafts";
+import { DRAFT_FORMAT, DRAFT_TYPES, parseActionDraft, parseBottleDraft } from "../drafts";
 import { describeFridges } from "../draft-places";
 import { getCellarBottles, getFridges, getHistory, type Db } from "../fridges";
 import { tasteProfile } from "../stats";
@@ -26,7 +26,8 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
         "drafts; the user approves them on the site (one by one, or all at once). Never claim a bottle was added – say it awaits approval.",
         "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot) –",
         "then approving puts every bottle straight into its spot. Filling a whole fridge: go shelf by shelf (the fill_fridge prompt).",
-        "You cannot change, move or delete anything. Answer the user in their language.",
+        "To mark a bottle as drunk or move it, use suggest_drink / suggest_move: they too are drafts the user approves.",
+        "You cannot change, move or delete anything yourself. Answer the user in their language.",
       ].join(" "),
     },
   );
@@ -194,6 +195,60 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
           .join("\n"),
       );
     },
+  );
+
+  // Suggesting changes to bottles already in the cellar: drafts the user
+  // approves one by one on the site (never done directly).
+  const placeSchema = z.object({
+    fridge: z.string().optional(),
+    shelf: z.number().int().min(1),
+    zone: z.number().int().min(1).optional(),
+    slot: z.number().int().min(1).optional(),
+  });
+  const bottleRef = {
+    winery: z.string().describe("Exactly as in search_cellar"),
+    name: z.string().describe("Exactly as in search_cellar"),
+    year: z.number().int().nullable().optional().describe("Vintage; null for NV"),
+    at: placeSchema.optional().describe("Where the bottle is, if there are several (see fridge_layout)"),
+  };
+  const saveAction = async (kind: "drink" | "move", payload: Record<string, unknown>, done: string) => {
+    const r = parseActionDraft(kind, payload);
+    if (!r.ok) return { isError: true, content: [{ type: "text" as const, text: r.error }] };
+    const { error } = await db.from("drafts").insert({ cellar_id: cellarId, kind, payload: r.action, source: "mcp" as const });
+    if (error) {
+      return {
+        isError: true,
+        content: [{ type: "text" as const, text: error.hint === "too_many_drafts" ? "50 drafts are already waiting. Ask the user to approve or reject them first." : "Could not save the suggestion. Try again." }],
+      };
+    }
+    return text(`${done} It waits for the user's approval at ${siteUrl}/ai.`);
+  };
+
+  server.registerTool(
+    "suggest_drink",
+    {
+      title: "Suggest marking a bottle as drunk",
+      description: "When the user says they opened / drank a bottle from the cellar. Creates a draft; the user approves it on the site. Optional score 1.0-5.0 and tasting notes.",
+      inputSchema: {
+        ...bottleRef,
+        date: z.string().optional().describe("YYYY-MM-DD, default today"),
+        notes: z.string().max(1000).optional().describe("Tasting notes in the user's words"),
+        score: z.number().min(1).max(5).optional().describe("The user's score, 1.0-5.0"),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => saveAction("drink", args, "The drink suggestion is saved."),
+  );
+
+  server.registerTool(
+    "suggest_move",
+    {
+      title: "Suggest moving a bottle",
+      description: "Move a bottle to another place in the fridge (see fridge_layout for free slots). Creates a draft; the user approves it on the site.",
+      inputSchema: { ...bottleRef, to: placeSchema.describe("The new place") },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => saveAction("move", args, "The move suggestion is saved."),
   );
 
   server.registerPrompt(

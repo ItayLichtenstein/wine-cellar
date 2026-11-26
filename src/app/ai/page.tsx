@@ -3,15 +3,16 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { DRINK_STATES } from "@/lib/drink-state";
-import { parseBottleDraft } from "@/lib/drafts";
-import { getCellarBottles, getFridges } from "@/lib/fridges";
+import { parseBottleDraft, parseActionDraft } from "@/lib/drafts";
+import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
 import { buildRows, EMPTY_FILTERS } from "@/lib/bottle-list";
 import { createClient } from "@/lib/supabase/server";
 import { ManualTools, PendingDrafts, type PendingDraft } from "./ai-tools";
 import { getConnectedAis } from "@/lib/ai-grants";
 import { AI_PROVIDERS, type AiKey, CONNECTABLE } from "@/lib/ai-providers";
-import { describeFridges } from "@/lib/draft-places";
+import { describeFridges, findBottle, placeText, resolvePlaces } from "@/lib/draft-places";
 import { ConnectAi } from "./connect-ai";
+import { PendingActions, type PendingAction } from "./pending-actions";
 import { ConnectedAis } from "./connected-ais";
 import { BackLink } from "@/components/back-link";
 
@@ -39,13 +40,14 @@ async function WithData() {
   const user = await getCurrentUser();
   if (!user.canEdit) redirect("/more"); // drafts are for the household's editors (RLS too)
   const supabase = await createClient();
-  const [bottles, fridges, ais, draftsRes] = await Promise.all([
+  const [bottles, fridges, loose, ais, draftsRes] = await Promise.all([
     getCellarBottles(user.cellarId),
     getFridges(user.cellarId),
+    getLooseBottles(user.cellarId),
     getConnectedAis(),
     supabase
       .from("drafts")
-      .select("id, payload, source, created_at")
+      .select("id, kind, payload, source, created_at")
       .eq("cellar_id", user.cellarId)
       .eq("status", "pending")
       .order("created_at"),
@@ -61,9 +63,21 @@ async function WithData() {
   }));
 
   const year = new Date().getFullYear();
-  const drafts: PendingDraft[] = (draftsRes.data ?? []).flatMap((d) => {
+  const rows = draftsRes.data ?? [];
+  const drafts: PendingDraft[] = rows.flatMap((d) => {
+    if (d.kind !== "add_bottles") return [];
     const r = parseBottleDraft(d.payload, year);
     return r.ok ? [{ id: d.id, source: d.source, draft: r.draft }] : [];
+  });
+  // "Drink it" / "move it": which bottle, and (for a move) whether the new place is free.
+  const actions: PendingAction[] = rows.flatMap((d) => {
+    if (d.kind === "add_bottles") return [];
+    const r = parseActionDraft(d.kind, d.payload);
+    if (!r.ok) return [];
+    const bottle = findBottle(fridges, loose, r.action);
+    const target = r.action.kind === "move" ? (resolvePlaces(fridges, [r.action.to])[0] ?? null) : null;
+    const targetText = r.action.kind === "move" ? placeText(fridges, r.action.to) : "";
+    return [{ id: d.id, action: r.action, bottle, target, targetText }];
   });
 
   const connectedKeys = ais.flatMap((a) => (a.key ? [a.key] : []));
@@ -72,6 +86,7 @@ async function WithData() {
   return (
     <>
       {/* What waits on the user comes first. */}
+      <PendingActions actions={actions} />
       <PendingDrafts drafts={drafts} fridges={fridges} cellarId={user.cellarId} />
 
       {ais.length > 0 ? (

@@ -16,7 +16,7 @@ export function AiCard({ connected, pendingDrafts, nearlyEmpty }: { connected: A
       {connected ? <Connected ai={connected} nearlyEmpty={nearlyEmpty} /> : <NotConnected nearlyEmpty={nearlyEmpty} />}
       {pendingDrafts > 0 && (
         <Link href="/ai" className="flex items-center justify-between rounded-xl bg-accent/15 px-4 py-2 text-sm">
-          <span>{pendingDrafts === 1 ? "בקבוק אחד מה־AI מחכה לאישור שלכם" : `${pendingDrafts} בקבוקים מה־AI מחכים לאישור שלכם`}</span>
+          <span>{pendingDrafts === 1 ? "הצעה אחת מה־AI מחכה לאישור שלכם" : `${pendingDrafts} הצעות מה־AI מחכות לאישור שלכם`}</span>
           <span aria-hidden="true">←</span>
         </Link>
       )}
