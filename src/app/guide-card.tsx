@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import { useT } from "@/i18n/provider";
 
 const KEY = "guide-card-dismissed";
 const EVENT = "guide-card-change";
@@ -34,6 +35,7 @@ function dismiss() {
  * The server renders it hidden, so a closed card never flashes in.
  */
 export function GuideCard() {
+  const t = useT();
   const dismissed = useSyncExternalStore(subscribe, read, () => true);
   if (dismissed) return null;
   return (
@@ -42,10 +44,12 @@ export function GuideCard() {
         📖
       </span>
       <Link href="/guide" className="flex flex-1 flex-col">
-        <span className="font-medium">חדשים כאן? מדריך קצר</span>
-        <span className="text-sm text-muted">כל מה שצריך לדעת בחמש דקות ←</span>
+        <span className="font-medium">{t.home.guideCard.title}</span>
+        <span className="text-sm text-muted">
+          {t.home.guideCard.text} {t.common.forward}
+        </span>
       </Link>
-      <button type="button" onClick={dismiss} aria-label="סגירת ההצעה למדריך" className="size-8 shrink-0 rounded-full text-lg text-muted hover:bg-surface">
+      <button type="button" onClick={dismiss} aria-label={t.home.guideCard.dismiss} className="size-8 shrink-0 rounded-full text-lg text-muted hover:bg-surface">
         ×
       </button>
     </div>

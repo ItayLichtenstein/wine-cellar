@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { inputClass } from "@/app/bottle/details";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -12,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
  */
 export function NamePrompt({ userId, initial }: { userId: string; initial: string }) {
   const router = useRouter();
+  const t = useT();
   const [name, setName] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -35,11 +37,11 @@ export function NamePrompt({ userId, initial }: { userId: string; initial: strin
   return (
     <form onSubmit={save} className="mt-3 flex flex-col gap-2 rounded-xl bg-surface p-4 shadow-sm">
       <label htmlFor="display-name" className="font-medium">
-        איך לקרוא לך?
+        {t.home.namePrompt.label}
       </label>
       <p className="text-sm text-muted">
-        <span className="inline-block">כך יראו אותך השותפים במרתף והחברים,</span>{" "}
-        <span className="inline-block">והמייל שלך לא מוצג לאף אחד</span>
+        <span className="inline-block">{t.home.namePrompt.text[0]}</span>{" "}
+        <span className="inline-block">{t.home.namePrompt.text[1]}</span>
       </p>
       <div className="flex gap-2">
         <input
@@ -52,10 +54,10 @@ export function NamePrompt({ userId, initial }: { userId: string; initial: strin
           className={`${inputClass} min-w-0 flex-1`}
         />
         <button type="submit" disabled={busy || !name.trim()} className="rounded-full bg-accent px-4 font-medium text-white disabled:opacity-60 dark:text-black">
-          שמירה
+          {t.common.save}
         </button>
       </div>
-      {failed && <p role="alert" className="text-sm text-red-700 dark:text-red-400">השמירה לא הצליחה, נסו שוב</p>}
+      {failed && <p role="alert" className="text-sm text-red-700 dark:text-red-400">{t.common.saveFailed}</p>}
     </form>
   );
 }

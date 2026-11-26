@@ -16,27 +16,25 @@ export function SavedTheme() {
 type Theme = "system" | "light" | "dark";
 
 // What "More" holds, grouped. Each row opens its own page (spec: "More" and its pages).
-const GROUPS: { title: string; links: { href: string; label: string; hint: string; icon: string }[] }[] = [
+// Texts come from the dictionary: [label, hint] under more.links.
+const GROUPS = [
   {
-    title: "המרתף",
+    title: "cellar",
     links: [
-      { href: "/history", label: "היסטוריה ודירוגים", hint: "מה שתינו, מתי, ואיך היה", icon: "🍷" },
-      { href: "/fridges", label: "המקררים", hint: "הוספה, עריכה וסדר", icon: "🧊" },
-      { href: "/ai", label: "ה־AI שלכם", hint: "חיבור, טיוטות מחכות, העתקה ידנית", icon: "✨" },
+      { href: "/history", text: "history", icon: "🍷" },
+      { href: "/fridges", text: "fridges", icon: "🧊" },
+      { href: "/ai", text: "ai", icon: "✨" },
     ],
   },
+  { title: "people", links: [{ href: "/sharing", text: "sharing", icon: "🤝" }] },
   {
-    title: "אנשים",
-    links: [{ href: "/sharing", label: "שיתוף", hint: "שותפים במרתף, חברים וקישור צפייה", icon: "🤝" }],
-  },
-  {
-    title: "הגדרות ועזרה",
+    title: "help",
     links: [
-      { href: "/settings", label: "הגדרות", hint: "השם שלי, ייצוא, פרטיות וחשבון", icon: "⚙️" },
-      { href: "/guide", label: "מדריך למתחילים", hint: "כל מה שצריך לדעת בחמש דקות", icon: "📖" },
+      { href: "/settings", text: "settings", icon: "⚙️" },
+      { href: "/guide", text: "guide", icon: "📖" },
     ],
   },
-];
+] as const;
 
 /**
  * "More" as a sheet that slides up from the bottom, instead of a page:
@@ -45,6 +43,7 @@ const GROUPS: { title: string; links: { href: string; label: string; hint: strin
  */
 export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const t = useT();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -59,19 +58,19 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
       onClose={onClose}
       // A tap on the backdrop (the dialog element itself, outside the panel) closes it.
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      aria-label="עוד"
+      aria-label={t.more.title}
       className="m-0 mt-auto w-full max-w-none bg-transparent p-0 backdrop:bg-black/50 open:flex sm:mx-auto sm:max-w-xl"
     >
       <div className="flex max-h-[85dvh] w-full flex-col gap-4 overflow-y-auto rounded-t-2xl bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-foreground shadow-xl">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">עוד</h2>
-          <button type="button" onClick={onClose} aria-label="סגירה" className="size-9 rounded-full text-xl text-muted hover:bg-surface">
+          <h2 className="text-lg font-semibold">{t.more.title}</h2>
+          <button type="button" onClick={onClose} aria-label={t.common.close} className="size-9 rounded-full text-xl text-muted hover:bg-surface">
             ×
           </button>
         </div>
         {GROUPS.map((group) => (
           <section key={group.title} className="flex flex-col gap-1.5">
-            <h3 className="text-xs font-medium text-muted">{group.title}</h3>
+            <h3 className="text-xs font-medium text-muted">{t.more.groups[group.title]}</h3>
             <ul className="flex flex-col divide-y divide-muted/15 rounded-xl bg-surface shadow-sm">
               {group.links.map((link) => (
                 <li key={link.href}>
@@ -80,11 +79,11 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
                       {link.icon}
                     </span>
                     <span className="flex flex-1 flex-col">
-                      <span className="font-medium">{link.label}</span>
-                      <span className="text-xs text-muted">{link.hint}</span>
+                      <span className="font-medium">{t.more.links[link.text][0]}</span>
+                      <span className="text-xs text-muted">{t.more.links[link.text][1]}</span>
                     </span>
                     <span className="text-muted" aria-hidden="true">
-                      ←
+                      {t.common.forward}
                     </span>
                   </Link>
                 </li>
