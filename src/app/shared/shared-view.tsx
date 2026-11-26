@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { CellarView } from "@/app/cellar-view";
 import { drinkNow } from "@/lib/bottle-list";
 import { cellarTitle } from "@/lib/cellar-title";
-import { DRINK_STATES } from "@/lib/drink-state";
 import { fromSharedCellar, type SharedCellar, type SharedCellarJson } from "@/lib/shared-cellar";
 import { createClient } from "@/lib/supabase/client";
 import { bottles as countBottles } from "@/lib/plural";
+import { GuestBottleSheet } from "./guest-bottle-sheet";
 
 const TOKEN = /^[0-9a-f]{64}$/;
 
@@ -65,32 +65,7 @@ export function SharedView() {
           canEdit={false}
           sheet={(id, close) => {
             const b = byId.get(id);
-            return b ? (
-              <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50" onClick={close}>
-                <div
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label="פרטי בקבוק"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex w-full max-w-xl flex-col gap-3 rounded-t-3xl bg-background p-5 pb-8 shadow-2xl"
-                >
-                  <p className="text-sm text-muted">{b.winery}</p>
-                  <h2 className="text-2xl font-bold">
-                    {b.name} <span className="font-normal text-muted">{b.year ?? "NV"}</span>
-                  </h2>
-                  <p className="flex items-center gap-2">
-                    <span className="size-3 rounded-sm" style={{ backgroundColor: DRINK_STATES[b.state].color }} aria-hidden="true" />
-                    {DRINK_STATES[b.state].label}
-                  </p>
-                  <p className="text-sm text-muted">
-                    {[b.where, b.country, !cellar.hidePrices && b.price !== null ? `₪${b.price}` : ""].filter(Boolean).join(" · ")}
-                  </p>
-                  <button type="button" onClick={close} className="self-center text-sm text-muted underline underline-offset-2">
-                    סגירה
-                  </button>
-                </div>
-              </div>
-            ) : null;
+            return b ? <GuestBottleSheet bottle={b} showPrice={!cellar.hidePrices} onClose={close} /> : null;
           }}
         />
       )}
