@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { MoreSheet, SavedTheme } from "./more-sheet";
 import { RealtimeRefresh } from "./realtime-refresh";
 
@@ -19,10 +20,10 @@ const ICONS = {
 // Sections of the app (spec: fridge · list · wishlist · stats · more).
 // "More" is not a page link: it opens a sheet with everything else.
 const ITEMS = [
-  { href: "/", label: "מקרר", icon: ICONS.fridge },
-  { href: "/bottles", label: "רשימה", icon: ICONS.list },
-  { href: "/wishlist", label: "Wishlist", icon: ICONS.wish },
-  { href: "/stats", label: "סטטיסטיקות", icon: ICONS.stats },
+  { href: "/", label: "fridge", icon: ICONS.fridge },
+  { href: "/bottles", label: "list", icon: ICONS.list },
+  { href: "/wishlist", label: "wishlist", icon: ICONS.wish },
+  { href: "/stats", label: "stats", icon: ICONS.stats },
 ] as const;
 
 /** Pages reached through "More": while on one, "More" is the active tab. */
@@ -38,6 +39,7 @@ const HIDDEN_ON = ["/login", "/privacy", "/auth", "/dev-login", "/join", "/frien
 export function BottomNav() {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const t = useT();
   if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
 
   const isActive = (href: string) => (href === "/" ? isFridgePage(pathname) : pathname.startsWith(href));
@@ -48,7 +50,7 @@ export function BottomNav() {
       <RealtimeRefresh />
       <SavedTheme />
       <nav
-        aria-label="ניווט ראשי"
+        aria-label={t.nav.main}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-muted/20 bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
       >
         <ul className="mx-auto flex max-w-xl">
@@ -74,7 +76,7 @@ export function BottomNav() {
                   >
                     {item.icon}
                   </svg>
-                  {item.label}
+                  {t.nav[item.label]}
                 </Link>
               </li>
             );
@@ -92,7 +94,7 @@ export function BottomNav() {
               <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
                 {ICONS.more}
               </svg>
-              עוד
+              {t.nav.more}
             </button>
           </li>
         </ul>

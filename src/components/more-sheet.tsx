@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useT } from "@/i18n/provider";
 
 /** Applies the look saved on this device. Mounted on every signed-in page (with the nav). */
 export function SavedTheme() {
@@ -134,15 +135,16 @@ export function ThemePicker({ heading = true }: { heading?: boolean }) {
   const theme = useSyncExternalStore(subscribeTheme, readTheme, () => "system" as Theme);
   const choose = applyTheme;
 
+  const t = useT();
   const options: { value: Theme; label: string }[] = [
-    { value: "system", label: "אוטומטי" },
-    { value: "light", label: "בהיר" },
-    { value: "dark", label: "כהה" },
+    { value: "system", label: t.theme.system },
+    { value: "light", label: t.theme.light },
+    { value: "dark", label: t.theme.dark },
   ];
   return (
     <section className="flex flex-col gap-1.5">
-      {heading && <h3 className="text-xs font-medium text-muted">מראה</h3>}
-      <div role="radiogroup" aria-label="מראה" className="grid grid-cols-3 gap-1 rounded-xl bg-surface p-1 shadow-sm">
+      {heading && <h3 className="text-xs font-medium text-muted">{t.settings.look}</h3>}
+      <div role="radiogroup" aria-label={t.settings.look} className="grid grid-cols-3 gap-1 rounded-xl bg-surface p-1 shadow-sm">
         {options.map((o) => (
           <button
             key={o.value}
