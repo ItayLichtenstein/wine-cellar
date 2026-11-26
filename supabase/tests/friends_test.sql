@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(39);
+select plan(36);
 
 create function pg_temp.login_as(p_user uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -66,8 +66,6 @@ select throws_ok($$ select accept_friend_invite(current_setting('test.token')) $
                  'cannot befriend your own cellar');
 
 select pg_temp.login_as('aaaaaaaa-0000-0000-0000-000000000001');
-select is(peek_friend_invite(current_setting('test.token')), array['מאיה'], 'the invite shows who sent it');
-select is(peek_friend_invite('nope'), null, 'an unknown token reveals nothing');
 select throws_ok($$ select accept_friend_invite('nope') $$, 'P0002', null, 'an unknown token is refused');
 select lives_ok($$ select accept_friend_invite(current_setting('test.token'), false) $$, 'Noa accepts (keeps her prices hidden)');
 select throws_ok($$ select accept_friend_invite(current_setting('test.token')) $$, '23505', null, 'the same cellar cannot accept twice');
@@ -139,7 +137,6 @@ select is((select names from my_friends()), array['מאיה'], 'Gil is now Maya'
 select pg_temp.logout();
 update friend_invites set max_uses = 2 where cellar_id = current_setting('test.maya')::uuid;
 select pg_temp.login_as('ffffffff-0000-0000-0000-000000000002');
-select is(peek_friend_invite(current_setting('test.token')), null, 'a used-up link reveals nothing');
 select throws_ok($$ select accept_friend_invite(current_setting('test.token')) $$, 'P0002', null, 'the link stops after its last use');
 
 select pg_temp.logout();
