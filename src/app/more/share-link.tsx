@@ -45,7 +45,7 @@ export function ShareLink({ active }: { active: { hidePrices: boolean; hideHisto
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-lg font-semibold">קישור צפייה</h2>
+      <h3 className="font-semibold">קישור צפייה</h3>
       <p className="text-sm text-muted">
         <span className="inline-block">מי שמקבל את הקישור רואה את המקרר בלי להירשם,</span>{" "}
         <span className="inline-block">תמיד במצב העדכני.</span>

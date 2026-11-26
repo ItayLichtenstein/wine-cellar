@@ -38,7 +38,7 @@ export function NamePrompt({ userId, initial }: { userId: string; initial: strin
         איך לקרוא לך?
       </label>
       <p className="text-sm text-muted">
-        <span className="inline-block">כך יראו אותך בני הבית והחברים.</span>{" "}
+        <span className="inline-block">כך יראו אותך השותפים במרתף והחברים.</span>{" "}
         <span className="inline-block">המייל שלך לא מוצג לאף אחד.</span>
       </p>
       <div className="flex gap-2">

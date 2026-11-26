@@ -29,9 +29,12 @@ export default function MorePage() {
       </nav>
       <Suspense fallback={<p className="text-muted">טוען…</p>}>
         <Fridges />
-        <Members />
-        <FriendsSection />
-        <ShareSection />
+        <section id="sharing" className="flex scroll-mt-4 flex-col gap-4">
+          <h2 className="text-lg font-semibold">שיתוף</h2>
+          <Members />
+          <FriendsSection />
+          <ShareSection />
+        </section>
         <Account />
       </Suspense>
       <Link href="/privacy" className="self-start text-sm text-muted underline underline-offset-2">
