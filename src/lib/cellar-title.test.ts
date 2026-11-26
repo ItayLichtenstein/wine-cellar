@@ -24,3 +24,15 @@ describe("cellarTitle with a custom name", () => {
     expect(cellarTitle(["נועה"], null)).toBe("המרתף של נועה");
   });
 });
+
+describe("cellarTitle in English", () => {
+  it("one, two and three members", () => {
+    expect(cellarTitle(["Noa"], null, "en")).toBe("Noa's cellar");
+    expect(cellarTitle(["Noa", "Yonatan"], null, "en")).toBe("Noa and Yonatan's cellar");
+    expect(cellarTitle(["Noa", "Yonatan", "Maya"], null, "en")).toBe("Noa, Yonatan and Maya's cellar");
+  });
+  it("falls back to the app name, and a custom name wins", () => {
+    expect(cellarTitle([], null, "en")).toBe("Wine Cellar");
+    expect(cellarTitle(["Noa"], "The bunker", "en")).toBe("The bunker");
+  });
+});

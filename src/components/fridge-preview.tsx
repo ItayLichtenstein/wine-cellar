@@ -3,6 +3,7 @@
 import { frontZone, type Zone } from "@/lib/fridge-layout";
 import { DRINK_STATES } from "@/lib/drink-state";
 import type { PlacedBottle } from "@/lib/fridges";
+import { useT } from "@/i18n/provider";
 
 /** A zone as drawn: from the setup form (no id/bottles) or from the database. */
 type DrawnZone = Zone & { id?: string; bottles?: PlacedBottle[] };
@@ -75,15 +76,16 @@ type Props = {
  * color (never red frames – red reads as "bad wine").
  */
 export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottleClick, activeBottleId, view = "labels", hideEmpty = false }: Props) {
+  const t = useT();
   // Visitors (friends, a view link) care about the bottles, not the free
   // places: only shelves and rows that hold something, packed together.
   const shown = shelves
     .map((shelf, i) => ({ shelf, no: i + 1 }))
     .filter(({ shelf }) => !hideEmpty || shelf.zones.some((z) => (z.bottles ?? []).length > 0));
-  if (shown.length === 0) return <p className="text-center text-sm text-muted">המקרר ריק כרגע</p>;
+  if (shown.length === 0) return <p className="text-center text-sm text-muted">{t.fridge.empty}</p>;
   return (
     // w-fit: the fridge is as wide as its widest shelf, not the whole page.
-    <ol className="mx-auto flex w-fit min-w-72 max-w-full touch-manipulation flex-col gap-2 rounded-2xl bg-fridge p-3 select-none [-webkit-touch-callout:none]" aria-label="שרטוט המקרר">
+    <ol className="mx-auto flex w-fit min-w-72 max-w-full touch-manipulation flex-col gap-2 rounded-2xl bg-fridge p-3 select-none [-webkit-touch-callout:none]" aria-label={t.fridge.drawing}>
       {shown.map(({ shelf, no }) => (
         <li key={no} className="wood flex items-start gap-2 rounded-lg p-2">
           <span className="w-5 shrink-0 pt-1 text-center text-xs text-on-fridge/60" aria-hidden="true">
@@ -147,6 +149,7 @@ function ZoneLine({
   activeBottleId?: string;
   view: FridgeViewMode;
 }) {
+  const t = useT();
   // A pile layer never wraps (that would break the picture): its bottles shrink instead.
   const shape = layer ? `${SLOT_SHAPE[view]} min-w-0` : SLOT_SHAPE[view];
   const bottles = zone.bottles ?? [];
@@ -161,7 +164,9 @@ function ZoneLine({
     if (isStack) return { bottle: bottles[k], picked: k >= bottles.length && k < bottles.length + pickedHere.length, place, slot };
     return { bottle: bottles.find((b) => b.slot === slot), picked: pickedHere.some((p) => p.slot === slot), place, slot };
   });
-  const where = isStack ? `${zone.label || "ערימה"}, מדף ${shelfNo}` : [`מדף ${shelfNo}`, zone.label, "מקום"].filter(Boolean).join(", ");
+  const where = isStack
+    ? `${zone.label || t.fridge.pile}, ${t.fridge.shelf(shelfNo)}`
+    : [t.fridge.shelf(shelfNo), zone.label, t.fridge.place].filter(Boolean).join(", ");
   const layerClass =
     layer === "lower" ? "-mt-1" : front ? "mt-0.5 border-t border-dashed border-on-fridge/30 pt-1.5" : "";
 
@@ -196,7 +201,7 @@ function ZoneLine({
               type="button"
               onClick={() => action(place)}
               aria-pressed={isPicked}
-              aria-label={isStack ? `${isPicked ? "ביטול בחירה" : "מקום פנוי"}, ${where}` : `${where} ${slot}`}
+              aria-label={isStack ? `${isPicked ? t.fridge.unpick : t.fridge.freePlace}, ${where}` : `${where} ${slot}`}
               className={`${shape} border-2 ${
                 isPicked ? "border-on-fridge bg-on-fridge" : "border-on-fridge/35 bg-slot hover:border-on-fridge/80"
               }`}
@@ -222,10 +227,11 @@ function ZoneLine({
  * shows the label photo; without one, the wine's name.
  */
 function BottleSlot({ bottle, view, shape = SLOT_SHAPE[view] }: { bottle: PlacedBottle; view: FridgeViewMode; shape?: string }) {
+  const t = useT();
   return (
     <span
       className={`relative flex flex-col items-center justify-center gap-0.5 overflow-hidden bg-[#d9d2cb] ${shape}`}
-      title={`${bottle.title} · ${bottle.year ?? "NV"} · ${DRINK_STATES[bottle.state].label}`}
+      title={`${bottle.title} · ${bottle.year ?? "NV"} · ${t.drinkState[bottle.state]}`}
     >
       {view === "labels" && bottle.thumb ? (
         <>

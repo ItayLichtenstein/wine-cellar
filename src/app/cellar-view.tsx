@@ -7,6 +7,7 @@ import type { ListRow } from "@/lib/bottle-list";
 import { DRINK_STATES } from "@/lib/drink-state";
 import { fridgeCapacity } from "@/lib/fridge-layout";
 import type { FridgeView, LooseBottle } from "@/lib/fridges";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 import { BottleSheet } from "./bottle-sheet";
 import { useFridgeView } from "./use-fridge-view";
@@ -35,6 +36,7 @@ export function CellarView({
   sheet?: (bottleId: string, close: () => void) => React.ReactNode;
 }) {
   const router = useRouter();
+  const t = useT();
   const [openId, setOpenId] = useState<string | null>(null);
   // "?move=<id>" (from the list page's "move" button) starts in move mode –
   // only for a bottle that is really in this cellar.
@@ -66,7 +68,7 @@ export function CellarView({
       p_slot: place?.slot ?? undefined,
     });
     if (rpcError) {
-      setError(rpcError.code === "23514" ? "אין שם מקום, בחרו מקום אחר" : "ההזזה לא הצליחה, נסו שוב");
+      setError(rpcError.code === "23514" ? t.cellar.noRoom : t.cellar.moveFailed);
       return;
     }
     refresh();
@@ -79,13 +81,13 @@ export function CellarView({
     <>
       {movingId && (
         <div className="sticky top-2 z-30 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-accent px-4 py-3 text-white shadow-lg dark:text-black">
-          <span className="font-medium">בחרו מקום חדש (בקבוק במקום תפוס יתחלף איתו)</span>
+          <span className="font-medium">{t.cellar.moving}</span>
           <span className="flex gap-2 text-sm">
             <button type="button" onClick={() => moveTo(null)} className="underline underline-offset-2">
-              הוצאה מהמקרר
+              {t.cellar.takeOut}
             </button>
             <button type="button" onClick={() => setMovingId(null)} className="underline underline-offset-2">
-              ביטול
+              {t.cellar.cancel}
             </button>
           </span>
         </div>
@@ -108,12 +110,13 @@ export function CellarView({
             view === "labels" ? "border-accent bg-accent text-white dark:text-black" : "border-muted/40 text-muted"
           }`}
         >
-          {view === "labels" ? "✓ " : ""}הצג תוויות
+          {view === "labels" ? "✓ " : ""}
+          {t.cellar.showLabels}
         </button>
       </div>
 
       {fridges.length > 1 && (
-        <div role="tablist" aria-label="המקררים" className="flex gap-1 overflow-x-auto">
+        <div role="tablist" aria-label={t.cellar.fridges} className="flex gap-1 overflow-x-auto">
           {fridges.map((f) => {
             const on = f.id === (fridgeId ?? fridges[0].id);
             return (
@@ -140,7 +143,7 @@ export function CellarView({
               {/* Free room matters to the household, not to visitors. */}
               {[
                 [fridge.brand, fridge.model].filter(Boolean).join(" "),
-                canEdit ? `מקום ל־${fridgeCapacity(fridge.shelves)}` : "",
+                canEdit ? t.cellar.roomFor(fridgeCapacity(fridge.shelves)) : "",
               ]
                 .filter(Boolean)
                 .join(" · ")}
@@ -168,8 +171,8 @@ export function CellarView({
         </article>
       ))}
 
-      <LooseList title="מחוץ למקרר" bottles={unplaced} onOpen={setOpenId} />
-      <LooseList title="בדרך אלינו" bottles={inTransit} onOpen={setOpenId} />
+      <LooseList title={t.cellar.outside} bottles={unplaced} onOpen={setOpenId} />
+      <LooseList title={t.cellar.inTransit} bottles={inTransit} onOpen={setOpenId} />
 
       {openId && sheet && sheet(openId, () => setOpenId(null))}
       {openId && !sheet && (
@@ -216,10 +219,11 @@ function LooseList({ title, bottles, onOpen }: { title: string; bottles: LooseBo
 
 /** "What to drink now": the 3 most urgent wines, above the fridge (spec). */
 function DrinkNow({ rows, onOpen }: { rows: ListRow[]; onOpen: (id: string) => void }) {
+  const t = useT();
   return (
     <section className="flex flex-col gap-2" aria-labelledby="drink-now">
       <h2 id="drink-now" className="text-lg font-semibold">
-        מה לשתות עכשיו
+        {t.cellar.drinkNow}
       </h2>
       <ul className="grid grid-cols-3 gap-2">
         {rows.map(({ key, first: b, bottles }) => (
@@ -239,7 +243,7 @@ function DrinkNow({ rows, onOpen }: { rows: ListRow[]; onOpen: (id: string) => v
                 {b.name}
               </span>
               <span className="text-xs text-muted">
-                {DRINK_STATES[b.state].label}
+                {t.drinkState[b.state]}
                 {bottles.length > 1 && (
                   <>
                     {" · "}

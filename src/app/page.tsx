@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { getLocale, getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
+import type { Dictionary } from "@/i18n/dictionaries";
 import { drinkNow } from "@/lib/bottle-list";
 import { cellarTitle } from "@/lib/cellar-title";
 import { getConnectedAis } from "@/lib/ai-grants";
@@ -13,11 +15,12 @@ import { LabelThumbBackfill } from "./label-thumb-backfill";
 import { GuideCard } from "./guide-card";
 import { NamePrompt } from "./name-prompt";
 
-export default function Home() {
+export default async function Home() {
+  const t = await getT();
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       {/* Everything personal reads the session, so it streams in behind Suspense. */}
-      <Suspense fallback={<p className="text-muted">טוען…</p>}>
+      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
         <Header />
         <Fridges />
       </Suspense>
@@ -26,7 +29,7 @@ export default function Home() {
 }
 
 async function Header() {
-  const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
+  const [user, supabase, t, locale] = await Promise.all([getCurrentUser(), createClient(), getT(), getLocale()]);
   // Full members only, in joining order.
   const { data: members } = await supabase
     .from("cellar_members")
@@ -38,17 +41,19 @@ async function Header() {
   const { data: cellar } = await supabase.from("cellars").select("custom_name").eq("id", user.cellarId).maybeSingle();
   return (
     <header>
-      <h1 className="text-2xl font-bold" dir="auto">
-        {cellarTitle(names, cellar?.custom_name)}
+      {/* Hebrew: the title follows its own text (a custom name may be English).
+          English: "<name>'s cellar" must read left to right even with a Hebrew name. */}
+      <h1 className="text-2xl font-bold" dir={locale === "en" ? "ltr" : "auto"}>
+        {cellarTitle(names, cellar?.custom_name, locale)}
       </h1>
-      <p className="text-sm text-muted">שלום {user.displayName}</p>
+      <p className="text-sm text-muted">{t.home.hello(user.displayName)}</p>
       {!user.onboarded && <NamePrompt userId={user.id} initial={user.displayName === "משתמש חדש" ? "" : user.displayName} />}
     </header>
   );
 }
 
 async function Fridges() {
-  const user = await getCurrentUser();
+  const [user, t] = await Promise.all([getCurrentUser(), getT()]);
   const [fridges, loose, all, drafts, ais] = await Promise.all([
     getFridges(user.cellarId),
     getLooseBottles(user.cellarId),
@@ -63,16 +68,16 @@ async function Fridges() {
     return (
       <section className="flex flex-col items-center gap-4 rounded-2xl bg-surface p-8 text-center shadow-sm">
         <div className="text-4xl" aria-hidden="true">🧊</div>
-        <h2 className="text-xl font-semibold">עוד אין כאן מקרר</h2>
+        <h2 className="text-xl font-semibold">{t.home.noFridgeTitle}</h2>
         <p className="text-muted">
-          <span className="inline-block">נתחיל מהבסיס</span>{" "}
-          <span className="inline-block">כמה מדפים יש ואיך כל מדף מסודר</span>
+          <span className="inline-block">{t.home.noFridgeText[0]}</span>{" "}
+          <span className="inline-block">{t.home.noFridgeText[1]}</span>
         </p>
         <Link href="/fridges/new" className="rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
-          הגדרת המקרר הראשון
+          {t.home.setUpFirst}
         </Link>
         <Link href="/guide" className="text-sm text-muted underline underline-offset-2">
-          איך זה עובד? מדריך קצר למתחילים
+          {t.home.guideLink}
         </Link>
       </section>
     );
@@ -86,13 +91,13 @@ async function Fridges() {
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">
-          {stored.length === 0 ? "המקרר עוד ריק" : stored.length === 1 ? "בקבוק אחד במקרר" : `${stored.length} בקבוקים במקרר`}
-          {unplaced > 0 && ` · ${unplaced} מחוץ למקרר`}
-          {inTransit > 0 && ` · ${inTransit} בדרך`}
+          {stored.length === 0 ? t.home.fridgeEmpty : t.home.inFridge(stored.length)}
+          {unplaced > 0 && ` · ${t.home.outside(unplaced)}`}
+          {inTransit > 0 && ` · ${t.home.onTheWay(inTransit)}`}
         </p>
         {user.canEdit && (
           <Link href="/bottles/new" className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white dark:text-black">
-            + הוספת בקבוקים
+            {t.home.addBottles}
           </Link>
         )}
       </div>
@@ -105,7 +110,7 @@ async function Fridges() {
       <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={user.canEdit} />
       {user.canEdit && <LabelThumbBackfill cellarId={user.cellarId} />}
 
-      {(stored.length > 0 || loose.length > 0) && <Legend />}
+      {(stored.length > 0 || loose.length > 0) && <Legend t={t} />}
     </section>
   );
 }
@@ -123,13 +128,13 @@ async function countPendingDrafts(cellarId: string, canEdit: boolean): Promise<n
 }
 
 /** What the year-badge colors mean. */
-function Legend() {
+function Legend({ t }: { t: Dictionary }) {
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-label="מקרא צבעים">
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-label={t.home.legend}>
       {DRINK_STATE_ORDER.filter((s) => s !== "none").map((s) => (
         <li key={s} className="flex items-center gap-1.5">
           <span className="size-3 rounded-sm" style={{ backgroundColor: DRINK_STATES[s].color }} aria-hidden="true" />
-          {DRINK_STATES[s].label}
+          {t.drinkState[s]}
         </li>
       ))}
     </ul>

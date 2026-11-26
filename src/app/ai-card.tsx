@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AI_PROVIDERS, AI_REQUESTS, type AiKey } from "@/lib/ai-providers";
 import { AiLogo, AiLogoStack } from "@/components/ai-logos";
+import type { Dictionary } from "@/i18n/dictionaries";
+import { getT } from "@/i18n/server";
 import { OpenChat } from "./open-chat";
 
 /**
@@ -10,46 +12,49 @@ import { OpenChat } from "./open-chat";
  *   that open that AI's chat with the request already typed.
  * Pending drafts get their own line, since they wait on the user.
  */
-export function AiCard({ connected, pendingDrafts, nearlyEmpty }: { connected: AiKey | null; pendingDrafts: number; nearlyEmpty: boolean }) {
+export async function AiCard({ connected, pendingDrafts, nearlyEmpty }: { connected: AiKey | null; pendingDrafts: number; nearlyEmpty: boolean }) {
+  const t = await getT();
   return (
-    <section aria-label="בינה מלאכותית" className="flex flex-col gap-2">
-      {connected ? <Connected ai={connected} nearlyEmpty={nearlyEmpty} /> : <NotConnected nearlyEmpty={nearlyEmpty} />}
+    <section aria-label={t.aiCard.label} className="flex flex-col gap-2">
+      {connected ? <Connected ai={connected} nearlyEmpty={nearlyEmpty} t={t} /> : <NotConnected nearlyEmpty={nearlyEmpty} t={t} />}
       {pendingDrafts > 0 && (
         <Link href="/ai" className="flex items-center justify-between rounded-xl bg-accent/15 px-4 py-2 text-sm">
-          <span>{pendingDrafts === 1 ? "הצעה אחת מה־AI מחכה לאישור שלכם" : `${pendingDrafts} הצעות מה־AI מחכות לאישור שלכם`}</span>
-          <span aria-hidden="true">←</span>
+          <span>{t.aiCard.pending(pendingDrafts)}</span>
+          <span aria-hidden="true">{t.common.forward}</span>
         </Link>
       )}
     </section>
   );
 }
 
-function NotConnected({ nearlyEmpty }: { nearlyEmpty: boolean }) {
+function NotConnected({ nearlyEmpty, t }: { nearlyEmpty: boolean; t: Dictionary }) {
   return (
     <Link href="/ai" className="flex flex-col gap-1 rounded-xl border border-accent/30 bg-surface p-4 shadow-sm hover:border-accent">
       <span className="flex items-center justify-between gap-3">
-        <span className="font-medium">חברו AI למרתף</span>
+        <span className="font-medium">{t.aiCard.connect}</span>
         <AiLogoStack />
       </span>
       <span className="text-sm text-muted">
         {nearlyEmpty ? (
           <>
-            <span className="inline-block">יש לכם כבר הרבה בקבוקים?</span>{" "}
-            <span className="inline-block">צלמו את המקרר מדף אחרי מדף, וה־AI יכניס כל בקבוק למקום שלו</span>
+            <span className="inline-block">{t.aiCard.emptyText[0]}</span>{" "}
+            <span className="inline-block">{t.aiCard.emptyText[1]}</span>
           </>
         ) : (
           <>
-            <span className="inline-block">צלמו תווית והבקבוקים יחכו כאן לאישור,</span>{" "}
-            <span className="inline-block">או שאלו מה לפתוח הערב לפי מה שיש במקרר</span>
+            <span className="inline-block">{t.aiCard.fullText[0]}</span>{" "}
+            <span className="inline-block">{t.aiCard.fullText[1]}</span>
           </>
         )}
       </span>
-      <span className="text-sm text-accent">עם Claude או ChatGPT ←</span>
+      <span className="text-sm text-accent">
+        {t.aiCard.withWhich} {t.common.forward}
+      </span>
     </Link>
   );
 }
 
-function Connected({ ai, nearlyEmpty }: { ai: AiKey; nearlyEmpty: boolean }) {
+function Connected({ ai, nearlyEmpty, t }: { ai: AiKey; nearlyEmpty: boolean; t: Dictionary }) {
   const p = AI_PROVIDERS[ai];
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-accent/30 bg-surface p-3 shadow-sm">
@@ -57,11 +62,11 @@ function Connected({ ai, nearlyEmpty }: { ai: AiKey; nearlyEmpty: boolean }) {
         <span className="flex items-center gap-2">
           <AiLogo ai={ai} className="size-7" />
           <span>
-            <span className="text-muted">ה־AI שלכם</span> {p.name}
+            <span className="text-muted">{t.aiCard.yourAi}</span> {p.name}
           </span>
         </span>
         <Link href="/ai" className="text-muted underline underline-offset-2">
-          הגדרות
+          {t.common.settings}
         </Link>
       </div>
       {nearlyEmpty && (
@@ -69,8 +74,8 @@ function Connected({ ai, nearlyEmpty }: { ai: AiKey; nearlyEmpty: boolean }) {
           url={p.chatUrl(AI_REQUESTS.fill)}
           request={AI_REQUESTS.fill}
           copy={!p.prefills}
-          title="🍾 מילוי המקרר"
-          text="מצלמים מדף אחרי מדף, וכל בקבוק נכנס למקום שלו"
+          title={t.aiCard.fill[0]}
+          text={t.aiCard.fill[1]}
         />
       )}
       <div className="grid grid-cols-2 gap-2">
@@ -78,18 +83,18 @@ function Connected({ ai, nearlyEmpty }: { ai: AiKey; nearlyEmpty: boolean }) {
           url={p.chatUrl(AI_REQUESTS.scan)}
           request={AI_REQUESTS.scan}
           copy={!p.prefills}
-          title="הוספה מצילום"
-          text="פותח את הצ׳אט, ואתם מצרפים צילום"
+          title={t.aiCard.scan[0]}
+          text={t.aiCard.scan[1]}
         />
         <OpenChat
           url={p.chatUrl(AI_REQUESTS.drink)}
           request={AI_REQUESTS.drink}
           copy={!p.prefills}
-          title="מה לפתוח הערב?"
-          text="פותח את הצ׳אט, ואתם מוסיפים את האירוע"
+          title={t.aiCard.drink[0]}
+          text={t.aiCard.drink[1]}
         />
       </div>
-      {!p.prefills && <p className="text-xs text-muted">הקישור ל־{p.name} לא יכול להכיל בקשה מוכנה, אז היא הועתקה ורק צריך להדביק אותה בצ׳אט</p>}
+      {!p.prefills && <p className="text-xs text-muted">{t.aiCard.copied(p.name)}</p>}
     </div>
   );
 }
