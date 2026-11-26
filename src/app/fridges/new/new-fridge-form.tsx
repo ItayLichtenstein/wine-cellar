@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview } from "@/components/fridge-preview";
+import { DeleteFridge } from "./delete-fridge";
 import type { FridgeView } from "@/lib/fridges";
 import { CATALOG, capacityGroups, estimateShelves, type ModelSpec } from "@/lib/fridge-catalog";
 import { createClient } from "@/lib/supabase/client";
@@ -343,6 +344,10 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
       >
         {saving ? "שומר…" : leaving > 0 && confirmed ? "כן, לשמור ולהוציא אותם" : "שמירת המקרר"}
       </button>
+
+      {existing && (
+        <DeleteFridge id={existing.id} stored={existing.shelves.flatMap((s) => s.zones).reduce((n, z) => n + z.bottles.length, 0)} />
+      )}
     </form>
   );
 }
