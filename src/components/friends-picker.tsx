@@ -8,7 +8,8 @@ import type { FriendEntry } from "@/lib/friend-list";
 /**
  * "My friends": one button that opens a short list of friends' fridges.
  * A list rather than a tab per friend, so 20 friends don't crowd the home
- * screen. Native <details>: keyboard and screen readers work out of the box.
+ * screen. Always shown, even with no friends yet, so new users find out they
+ * can invite one. Native <details>: keyboard and screen readers work out of the box.
  */
 export function FriendsPicker({ friends, currentId }: { friends: FriendEntry[]; currentId?: string }) {
   const t = useT();
@@ -47,7 +48,14 @@ export function FriendsPicker({ friends, currentId }: { friends: FriendEntry[]; 
           </li>
         ))}
         <li className="mt-1 border-t border-muted/20 pt-1">
-          <Link href="/sharing" className="block rounded-xl px-3 py-2.5 text-sm text-muted hover:bg-muted/10">
+          <Link
+            href="/sharing"
+            className={
+              others.length === 0
+                ? "block rounded-full bg-accent px-3 py-2.5 text-center text-sm font-medium text-white dark:text-black"
+                : "block rounded-xl px-3 py-2.5 text-sm text-muted hover:bg-muted/10"
+            }
+          >
             {t.friends.invite}
           </Link>
         </li>
