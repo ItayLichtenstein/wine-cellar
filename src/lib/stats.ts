@@ -40,11 +40,15 @@ export function cellarValue(bottles: StatBottle[]): { value: number; priced: num
   return { value: priced.reduce((s, b) => s + (b.price ?? 0), 0), priced: priced.length, total: open.length };
 }
 
-/** Counts by a field, biggest first; the tail beyond `top` is folded into "אחר". */
+/**
+ * Counts by a field, biggest first; the tail beyond `top` is folded into "אחר".
+ * Bottles with the field empty are left out: "unknown" says nothing about the cellar.
+ */
 export function breakdown(bottles: StatBottle[], field: "type" | "country" | "grape", top = 6): Slice[] {
   const counts = new Map<string, number>();
   for (const b of bottles.filter(inCellar)) {
-    const key = b[field].trim() || "לא ידוע";
+    const key = b[field].trim();
+    if (!key) continue;
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   const sorted = [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));

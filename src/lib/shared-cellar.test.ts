@@ -5,7 +5,7 @@ import { fromSharedCellar, type SharedCellarJson } from "./shared-cellar";
 const bottle = (over: Partial<SharedCellarJson["bottles"][number]>): SharedCellarJson["bottles"][number] => ({
   id: "b1", status: "stored", zone_id: "z1", slot: 2, shelf: 1, year: 2019,
   drink_from: 2022, drink_to: 2030, peak_from: 2024, peak_to: 2027,
-  winery: "Yatir", name: "Forest", type: "red", country: "ישראל", kosher: "yes", shape: "standard", thumb: null, price: null,
+  winery: "Yatir", name: "Forest", type: "red", country: "ישראל", kosher: "yes", shape: "standard", thumb: null, grape: "Cabernet", region: null, alcohol: 14.5, critics: [{ critic: "Parker", score: 93 }], price: null,
   ...over,
 });
 
@@ -38,6 +38,13 @@ describe("fromSharedCellar", () => {
     const placed = c.fridges[0].shelves[0].zones[0].bottles[0];
     expect(placed.thumb).toBe("data:image/webp;base64,AA");
     expect(placed.label).toBe("Forest");
+  });
+
+  it("gives the guest's card the wine's public details and drink window", () => {
+    const b = c.bottles[0];
+    expect([b.grape, b.region, b.alcohol]).toEqual(["Cabernet", "", 14.5]);
+    expect(b.critics).toEqual([{ critic: "Parker", score: 93 }]);
+    expect([b.drinkFrom, b.drinkTo, b.peakFrom, b.peakTo]).toEqual([2022, 2030, 2024, 2027]);
   });
 
 });
