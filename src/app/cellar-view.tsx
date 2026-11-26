@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
@@ -99,10 +98,7 @@ export function CellarView({
 
       {drinkNow.length > 0 && !movingId && <DrinkNow rows={drinkNow} onOpen={setOpenId} />}
 
-      <div className="flex items-center justify-between">
-        <Link href="/fridges" className="text-sm text-muted underline underline-offset-2">
-          המקררים
-        </Link>
+      <div className="flex items-center justify-end">
         {/* One on/off button: labels are on unless the user turns them off. */}
         <button
           type="button"
