@@ -36,7 +36,7 @@ async function AddOutside() {
   if (!(await getCurrentUser()).canEdit) return null;
   return (
     <Link href="/history/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
-      + שתינו מחוץ לבית
+      + הוספת דירוג
     </Link>
   );
 }
