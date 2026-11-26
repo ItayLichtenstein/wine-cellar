@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ScoreInput } from "@/components/score-input";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 import { inputClass, type BottleDetails } from "./details";
 import { ErrorNote } from "./error-note";
@@ -12,6 +13,7 @@ const today = () => new Date().toLocaleDateString("en-CA");
 /** "We drank it": date, tasting notes, and an optional updated rating. */
 export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDetails; onCancel: () => void; onDone: () => void }) {
   const current = d.vintageRating ?? d.wineRating;
+  const t = useT();
   const [date, setDate] = useState(today);
   const [notes, setNotes] = useState("");
   const [score, setScore] = useState(current ? String(current) : "");
@@ -36,7 +38,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
     const valid = (n: number | null) => n === null || (!Number.isNaN(n) && n >= 1 && n <= 5);
     const personal = d.members.map((m) => ({ id: m.id, n: scores[m.id] ? Number(scores[m.id]) : null }));
     if (separate ? !personal.every((p) => valid(p.n)) : !valid(scoreNum)) {
-      setError("הציון צריך להיות בין 1 ל־5");
+      setError(t.drink.badScore);
       return;
     }
     setSaving(true);
@@ -50,7 +52,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
     });
     if (drinkError) {
       setSaving(false);
-      setError("לא הצלחנו לשמור, נסו שוב");
+      setError(t.drink.saveFailed);
       return;
     }
 
@@ -80,7 +82,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
       const rateError = results.find((r) => r.error)?.error;
       if (rateError) {
         setSaving(false);
-        setError("הבקבוק סומן כשתוי, אבל הציון לא נשמר");
+        setError(t.drink.scoreLost);
         onDone();
         return;
       }
@@ -91,22 +93,22 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
   return (
     <>
       <h2 className="text-xl font-bold">
-        שתינו את {d.name} {d.year ?? "NV"}
+        {t.drink.title(d.name, String(d.year ?? "NV"))}
       </h2>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted">מתי?</span>
+        <span className="text-muted">{t.drink.when}</span>
         <input type="date" value={date} max={today()} onChange={(e) => setDate(e.target.value)} className={inputClass} />
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted">הערות טעימה (לא חובה)</span>
+        <span className="text-muted">{t.drink.notes}</span>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={4000} className={inputClass} />
       </label>
 
       <fieldset className="flex flex-col gap-2 text-sm">
         <legend className="mb-1 text-muted">
-          ציון {current ? `(עכשיו ${Number(current).toFixed(1)})` : ""} – לא חובה
+          {t.drink.score} {current ? t.drink.now(Number(current).toFixed(1)) : ""} – {t.drink.optional}
         </legend>
         {separate ? (
           d.members.map((m) => (
@@ -114,7 +116,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
               <span dir="auto" className="font-medium">
                 {m.name}
               </span>
-              <ScoreInput value={scores[m.id] ?? ""} onChange={(v) => setScores((s) => ({ ...s, [m.id]: v }))} label={`ציון של ${m.name}`} />
+              <ScoreInput value={scores[m.id] ?? ""} onChange={(v) => setScores((s) => ({ ...s, [m.id]: v }))} label={t.drink.scoreOf(m.name)} />
             </div>
           ))
         ) : (
@@ -123,18 +125,18 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
         {canSplit && (
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={separate} onChange={(e) => setSeparate(e.target.checked)} />
-            ציונים נפרדים לכל אחד
+            {t.drink.separate}
           </label>
         )}
         {d.year !== null && (
           <div className="flex gap-4">
             <label className="flex items-center gap-2">
               <input type="radio" checked={forVintage} onChange={() => setForVintage(true)} />
-              לבציר {d.year}
+              {t.drink.forVintage(d.year)}
             </label>
             <label className="flex items-center gap-2">
               <input type="radio" checked={!forVintage} onChange={() => setForVintage(false)} />
-              ליין בכלל
+              {t.drink.forWine}
             </label>
           </div>
         )}
@@ -142,7 +144,7 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={buyAgain} onChange={(e) => setBuyAgain(e.target.checked)} />
-        לקנות שוב (מוסיף ל־Wishlist)
+        {t.drink.buyAgain}
       </label>
 
       <ErrorNote message={error} />
@@ -154,10 +156,10 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
           disabled={saving}
           className="rounded-full bg-accent px-4 py-3 font-medium text-white disabled:opacity-60 dark:text-black"
         >
-          {saving ? "שומר…" : "לחיים!"}
+          {saving ? t.bottleForm.saving : t.drink.cheers}
         </button>
         <button type="button" onClick={onCancel} className="rounded-full border border-muted/40 px-4 py-3">
-          ביטול
+          {t.cellar.cancel}
         </button>
       </div>
     </>

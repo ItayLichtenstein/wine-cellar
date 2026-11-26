@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CriticScore, Kosher, Shape, WineExtra, WindowSource } from "@/lib/wine-extra";
+import { useT } from "@/i18n/provider";
 import { inputClass } from "./details";
 
 /**
@@ -10,6 +11,7 @@ import { inputClass } from "./details";
  * add form and the edit form.
  */
 export function ExtraFields({ value, onChange }: { value: WineExtra; onChange: (v: WineExtra) => void }) {
+  const t = useT();
   const hasData = value.grape || value.country || value.critics.length > 0 || value.link || value.alcohol;
   const [open, setOpen] = useState(Boolean(hasData));
   const set = <K extends keyof WineExtra>(key: K, v: WineExtra[K]) => onChange({ ...value, [key]: v });
@@ -18,7 +20,7 @@ export function ExtraFields({ value, onChange }: { value: WineExtra; onChange: (
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} aria-expanded={false} className="self-start text-sm underline underline-offset-2">
-        + פרטים נוספים {hasData ? "(יש פרטים שמולאו)" : "(זן, ארץ, ציוני מבקרים, קישור…)"}
+        {t.extra.show} {hasData ? t.extra.filled : t.extra.examples}
       </button>
     );
   }
@@ -26,52 +28,52 @@ export function ExtraFields({ value, onChange }: { value: WineExtra; onChange: (
   return (
     <div className="flex flex-col gap-3">
       <button type="button" onClick={() => setOpen(false)} aria-expanded className="self-start text-sm underline underline-offset-2">
-        − הסתרת הפרטים הנוספים
+        {t.extra.hide}
       </button>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="זן">
+        <Field label={t.extra.grape}>
           <input value={value.grape} onChange={(e) => set("grape", e.target.value)} dir="auto" maxLength={120} className={inputClass} />
         </Field>
-        <Field label="ארץ">
+        <Field label={t.extra.country}>
           <input value={value.country} onChange={(e) => set("country", e.target.value)} dir="auto" maxLength={60} className={inputClass} />
         </Field>
-        <Field label="אזור">
+        <Field label={t.extra.region}>
           <input value={value.region} onChange={(e) => set("region", e.target.value)} dir="auto" maxLength={120} className={inputClass} />
         </Field>
-        <Field label="אלכוהול (%)">
+        <Field label={t.extra.alcohol}>
           <input value={value.alcohol} onChange={(e) => set("alcohol", e.target.value)} inputMode="decimal" maxLength={4} className={inputClass} />
         </Field>
-        <Field label="כשרות">
+        <Field label={t.extra.kosher}>
           <select value={value.kosher} onChange={(e) => set("kosher", e.target.value as Kosher)} className={inputClass}>
-            <option value="unknown">לא ידוע</option>
-            <option value="yes">כשר</option>
-            <option value="no">לא כשר</option>
+            <option value="unknown">{t.extra.unknown}</option>
+            <option value="yes">{t.extra.kosherYes}</option>
+            <option value="no">{t.extra.kosherNo}</option>
           </select>
         </Field>
-        <Field label="צורת בקבוק">
+        <Field label={t.extra.shape}>
           <select value={value.shape} onChange={(e) => set("shape", e.target.value as Shape)} className={inputClass}>
-            <option value="standard">רגיל</option>
-            <option value="burgundy">בורגון (רחב)</option>
+            <option value="standard">{t.extra.standard}</option>
+            <option value="burgundy">{t.extra.burgundy}</option>
           </select>
         </Field>
-        <Field label="שיא, משנה">
+        <Field label={t.extra.peakFrom}>
           <input value={value.peakFrom} onChange={(e) => set("peakFrom", e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
-        <Field label="עד שנה">
+        <Field label={t.extra.toYear}>
           <input value={value.peakTo} onChange={(e) => set("peakTo", e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
       </div>
-      <Field label="מקור חלון השתייה">
+      <Field label={t.extra.windowSource}>
         <select value={value.windowSource} onChange={(e) => set("windowSource", e.target.value as WindowSource | "")} className={inputClass}>
-          <option value="">לא צוין</option>
-          <option value="critic">מבקר</option>
-          <option value="estimate">הערכה שלנו</option>
+          <option value="">{t.extra.notSaid}</option>
+          <option value="critic">{t.extra.critic}</option>
+          <option value="estimate">{t.extra.estimate}</option>
         </select>
       </Field>
 
       <Critics critics={value.critics} onChange={(c) => set("critics", c)} />
 
-      <Field label="קישור לעמוד היין">
+      <Field label={t.extra.link}>
         <input value={value.link} onChange={(e) => set("link", e.target.value)} type="url" dir="ltr" placeholder="https://" maxLength={500} className={inputClass} />
       </Field>
     </div>
@@ -79,19 +81,20 @@ export function ExtraFields({ value, onChange }: { value: WineExtra; onChange: (
 }
 
 function Critics({ critics, onChange }: { critics: CriticScore[]; onChange: (c: CriticScore[]) => void }) {
+  const t = useT();
   const update = (i: number, c: Partial<CriticScore>) => onChange(critics.map((x, k) => (k === i ? { ...x, ...c } : x)));
   return (
     <div className="flex flex-col gap-2 text-sm">
-      <span className="text-muted">ציוני מבקרים</span>
+      <span className="text-muted">{t.extra.critics}</span>
       {critics.map((c, i) => (
         <div key={i} className="flex items-center gap-2">
           <input
             value={c.critic}
             onChange={(e) => update(i, { critic: e.target.value })}
-            placeholder="מבקר (למשל Suckling)"
+            placeholder={t.extra.criticPlaceholder}
             dir="auto"
             maxLength={60}
-            aria-label={`שם המבקר ${i + 1}`}
+            aria-label={t.extra.criticName(i + 1)}
             className={`${inputClass} min-w-0 flex-1`}
           />
           <input
@@ -100,17 +103,17 @@ function Critics({ critics, onChange }: { critics: CriticScore[]; onChange: (c: 
             inputMode="numeric"
             maxLength={3}
             placeholder="94"
-            aria-label={`ציון ${i + 1}`}
+            aria-label={t.extra.criticScore(i + 1)}
             className={`${inputClass} w-16`}
           />
-          <button type="button" onClick={() => onChange(critics.filter((_, k) => k !== i))} aria-label="הסרת המבקר" className="px-2 text-muted">
+          <button type="button" onClick={() => onChange(critics.filter((_, k) => k !== i))} aria-label={t.extra.removeCritic} className="px-2 text-muted">
             ✕
           </button>
         </div>
       ))}
       {critics.length < 20 && (
         <button type="button" onClick={() => onChange([...critics, { critic: "", score: 0 }])} className="self-start underline underline-offset-2">
-          + הוספת מבקר
+          {t.extra.addCritic}
         </button>
       )}
     </div>

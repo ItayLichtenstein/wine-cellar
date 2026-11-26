@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/database.types";
+import { he, type Dictionary } from "@/i18n/he";
 import { EMPTY_EXTRA, type PersonalRating, type WineExtra } from "@/lib/wine-extra";
 
 export type WineType = Database["public"]["Enums"]["wine_type"];
@@ -55,9 +56,9 @@ export const WINE_TYPES: { value: WineType; label: string; other?: true }[] = [
 export const inputClass = "rounded-lg border border-muted/40 bg-surface px-3 py-2 text-base";
 
 /** Price as in the old app: "₪110 (₪90)" for a deal, "₪250 · מתנה" for a gift. */
-export function formatPrice(d: Pick<BottleDetails, "paid" | "regular" | "isGift">): string {
+export function formatPrice(d: Pick<BottleDetails, "paid" | "regular" | "isGift">, t: Dictionary = he): string {
   const nis = (n: number) => `₪${n.toLocaleString("he-IL", { maximumFractionDigits: 1 })}`;
-  if (d.isGift) return d.regular ? `${nis(d.regular)} · מתנה` : "מתנה";
+  if (d.isGift) return d.regular ? `${nis(d.regular)} · ${t.bottle.gift}` : t.bottle.gift;
   if (d.regular && d.paid !== null && d.paid !== d.regular) return `${nis(d.regular)} (${nis(d.paid)})`;
   if (d.paid !== null) return nis(d.paid);
   if (d.regular) return nis(d.regular);

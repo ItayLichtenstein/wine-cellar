@@ -1,25 +1,29 @@
 "use client";
 
+import { useT } from "@/i18n/provider";
+
 /**
  * A score from 1.0 to 5.0, one decimal (the database stores numeric(2,1)).
  * A big number to read, a slider to set it quickly, and −/+ for 0.1 steps.
  * The value is a string ("" = no score yet), like the forms that use it.
  */
-export function ScoreInput({ value, onChange, label = "ציון" }: { value: string; onChange: (v: string) => void; label?: string }) {
+export function ScoreInput({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) {
+  const t = useT();
+  const name = label ?? t.score.label;
   const n = value === "" ? null : Number(value);
   const set = (x: number) => onChange((Math.round(Math.min(5, Math.max(1, x)) * 10) / 10).toFixed(1));
   const button = "size-10 shrink-0 rounded-full border border-muted/40 text-xl leading-none disabled:opacity-40";
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-background p-3" role="group" aria-label={label}>
+    <div className="flex flex-col gap-2 rounded-xl bg-background p-3" role="group" aria-label={name}>
       {/* Left to right like the slider: − by the 1, + by the 5. */}
       <div className="flex items-center gap-3" dir="ltr">
-        <button type="button" className={button} onClick={() => set((n ?? 3) - 0.1)} disabled={n !== null && n <= 1} aria-label="פחות 0.1">
+        <button type="button" className={button} onClick={() => set((n ?? 3) - 0.1)} disabled={n !== null && n <= 1} aria-label={t.score.less}>
           −
         </button>
         <output className="relative flex-1 text-center tabular-nums" aria-live="polite">
           {n === null ? (
-            <span className="text-muted">בלי ציון</span>
+            <span className="text-muted">{t.score.none}</span>
           ) : (
             <>
               <span className="text-3xl font-bold">{n.toFixed(1)}</span>
@@ -28,7 +32,7 @@ export function ScoreInput({ value, onChange, label = "ציון" }: { value: str
             </>
           )}
         </output>
-        <button type="button" className={button} onClick={() => set((n ?? 3) + 0.1)} disabled={n !== null && n >= 5} aria-label="יותר 0.1">
+        <button type="button" className={button} onClick={() => set((n ?? 3) + 0.1)} disabled={n !== null && n >= 5} aria-label={t.score.more}>
           +
         </button>
       </div>
@@ -41,7 +45,7 @@ export function ScoreInput({ value, onChange, label = "ציון" }: { value: str
         dir="ltr"
         value={n ?? 3}
         onChange={(e) => set(Number(e.target.value))}
-        aria-label={label}
+        aria-label={name}
         className={`w-full accent-accent ${n === null ? "opacity-50" : ""}`}
       />
       <div className="flex justify-between text-xs text-muted" dir="ltr" aria-hidden="true">
@@ -51,7 +55,7 @@ export function ScoreInput({ value, onChange, label = "ציון" }: { value: str
       </div>
       {n !== null && (
         <button type="button" onClick={() => onChange("")} className="self-start text-xs text-muted underline underline-offset-2">
-          בלי ציון
+          {t.score.none}
         </button>
       )}
     </div>
