@@ -151,3 +151,6 @@ from public.cellar_members a, public.cellar_members b
 where (a.user_id, b.user_id) in (
   ('d0d0d0d0-0000-4000-8000-000000000001'::uuid, 'd0d0d0d0-0000-4000-8000-000000000003'::uuid),
   ('d0d0d0d0-0000-4000-8000-000000000003'::uuid, 'd0d0d0d0-0000-4000-8000-000000000001'::uuid));
+
+-- The local test user is an app admin, to check /admin (ADR 0011).
+insert into public.app_admins (user_id) values ('d0d0d0d0-0000-4000-8000-000000000001');

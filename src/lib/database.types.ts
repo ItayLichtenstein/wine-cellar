@@ -23,7 +23,35 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "bottle_prices": {
+            "admin_actions": {
+                  Row: {
+                    "action": string,"admin_id": string | null,"created_at": string,"id": number,"reason": string | null,"target_name": string | null,"target_user": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"admin_id"?: string | null,"created_at"?: string,"id"?: never,"reason"?: string | null,"target_name"?: string | null,"target_user"?: string | null
+                  }
+                  Update: {
+                    "action"?: string,"admin_id"?: string | null,"created_at"?: string,"id"?: never,"reason"?: string | null,"target_name"?: string | null,"target_user"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"app_admins": {
+                  Row: {
+                    "added_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "added_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "added_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"bottle_prices": {
                   Row: {
                     "bottle_id": string,"cellar_id": string,"is_gift": boolean,"paid": number | null,"regular": number | null,"updated_at": string
                   }
@@ -545,6 +573,29 @@ isOneToOne: false
 "add_to_wishlist":
 { Args: { "p_link"?: string,"p_name": string,"p_note"?: string,"p_source"?: string,"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: string
                            },
+"admin_delete_user":
+{ Args: { "p_reason"?: string,"p_user": string }; Returns: undefined
+                           },
+"admin_log":
+{ Args: { "p_action": string,"p_reason": string,"p_user": string }; Returns: undefined
+                           },
+"admin_overview":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_set_admin":
+{ Args: { "p_on": boolean,"p_user": string }; Returns: undefined
+                           },
+"admin_set_ban":
+{ Args: { "p_ban": boolean,"p_reason"?: string,"p_user": string }; Returns: undefined
+                           },
+"admin_sign_out":
+{ Args: { "p_reason"?: string,"p_user": string }; Returns: undefined
+                           },
+"admin_users":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "banned": boolean,"bottles": number,"cellar_name": string,"created_at": string,"display_name": string,"is_admin": boolean,"is_me": boolean,"last_active": string,"members": number,"user_id": string
+            }[]
+                           },
 "can_read_cellar":
 { Args: { "p_cellar_id": string }; Returns: boolean
                            },
@@ -590,6 +641,9 @@ isOneToOne: false
                            },
 "import_cellar":
 { Args: { "p_bottles": Json,"p_file_hash": string,"p_source": string }; Returns: Json
+                           },
+"is_app_admin":
+{ Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "is_cellar_editor":
 { Args: { "p_cellar_id": string }; Returns: boolean
@@ -638,6 +692,9 @@ isOneToOne: false
 "remove_member":
 { Args: { "p_user_id": string }; Returns: undefined
                            },
+"require_app_admin":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "revoke_share_link":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -664,6 +721,9 @@ isOneToOne: false
                            },
 "update_wine_details":
 { Args: { "p_alcohol": number,"p_country": string,"p_critics"?: Json,"p_grape": string,"p_kosher": Database["public"]['Enums']["kosher_status"],"p_peak_from": number,"p_peak_to": number,"p_region": string,"p_shape": Database["public"]['Enums']["bottle_shape"],"p_vintage_id": string,"p_window_source": Database["public"]['Enums']["window_source"],"p_wine_id": string }; Returns: undefined
+                           },
+"user_last_active":
+{ Args: { "p_user": string }; Returns: string
                            }
           }
           Enums: {
