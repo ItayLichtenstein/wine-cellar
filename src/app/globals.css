@@ -98,11 +98,18 @@ p, li {
 /* In Hebrew an empty field shows its placeholder right-aligned. Fields with
    dir="auto" (names: Hebrew or Latin) or dir="ltr" (links) would otherwise
    align an empty field to the left; once typed, their own direction applies.
-   In English the page is already left to right, so nothing to fix. */
+   In English the page is left to right (see the rule below). */
 [dir="rtl"] input[dir="auto"]:placeholder-shown,
 [dir="rtl"] textarea[dir="auto"]:placeholder-shown,
 [dir="rtl"] input[dir="ltr"]:placeholder-shown {
   direction: rtl;
+}
+/* <html> is always dir="rtl" (the static shell); the English page sets
+   dir="ltr" on the wrapper inside it, which must win. */
+[dir="ltr"] input[dir="auto"]:placeholder-shown,
+[dir="ltr"] textarea[dir="auto"]:placeholder-shown,
+[dir="ltr"] input[dir="ltr"]:placeholder-shown {
+  direction: ltr;
 }
 
 /* Wooden shelf boards. The grain is a real photo of an oak floor

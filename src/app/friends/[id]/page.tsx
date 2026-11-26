@@ -2,12 +2,14 @@ import { pageTitle } from "@/i18n/metadata";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { BottleList } from "@/app/bottles/bottle-list";
 import { CellarView } from "@/app/cellar-view";
 import { FriendsPicker } from "@/components/friends-picker";
 import { getLocale, getT } from "@/i18n/server";
 import { drinkNow } from "@/lib/bottle-list";
 import { getFriendList } from "@/lib/friend-list";
 import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
+import { FriendViews } from "./friend-views";
 
 export const generateMetadata = pageTitle((t) => t.titles.friendCellar);
 
@@ -59,7 +61,10 @@ async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["pa
       {fridges.length === 0 ? (
         <p className="text-muted">{t.friends.noFridge}</p>
       ) : (
-        <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={false} />
+        <FriendViews
+          fridge={<CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={false} />}
+          list={<BottleList bottles={all} />}
+        />
       )}
     </>
   );
