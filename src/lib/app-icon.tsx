@@ -3,7 +3,8 @@ import { DRINK_STATES } from "@/lib/drink-state";
 
 /**
  * The app icon, drawn in code (no image files to keep in sync): the
- * burgundy of the theme, and three bottles seen from the front, piled,
+ * burgundy of the app (the light theme's accent, #6d1a2a: the darker #3a0f17
+ * looked dull on a home screen), and three bottles seen from the front, piled,
  * each with a year badge in one of the app's drink-window colors
  * (read from DRINK_STATES, so the icon follows a palette change).
  * `padding` leaves the safe zone Android needs for maskable icons.
@@ -30,7 +31,7 @@ export function appIcon(size: number, padding = 0.12): ImageResponse {
   // A little pile: one bottle resting on two, like a pile shelf in the app.
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#3a0f17" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#6d1a2a" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           {bottle(DRINK_STATES.now.color)}
           <div style={{ display: "flex", gap: d * 0.06, marginTop: -d * 0.12 }}>

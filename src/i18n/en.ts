@@ -4,7 +4,7 @@ import type { Dictionary } from "./he";
 export const en: Dictionary = {
   nav: {
     main: "Main navigation",
-    fridge: "Fridge",
+    fridge: "My fridge",
     list: "List",
     wishlist: "Wishlist",
     stats: "Stats",
@@ -101,6 +101,7 @@ export const en: Dictionary = {
       ai: ["Your AI", "Connect, waiting drafts, copy by hand"],
       sharing: ["Sharing", "Household, friends and a view link"],
       settings: ["Settings", "My name, language, export, privacy and account"],
+      install: ["Install as an app", "On iPhone and Android, opens from the home screen"],
       guide: ["Beginner's guide", "Everything you need in five minutes"],
     },
   },
@@ -306,6 +307,36 @@ export const en: Dictionary = {
     aiTitle: "Wine advice comes from your own AI",
     aiText: "The app keeps track of what you have and where. To know when to open each bottle and get recommendations, connect the AI you already use, like Claude or ChatGPT",
     aiWhere: "Details and setup in \"More\" → \"Your AI\"",
+  },
+  install: {
+    title: "Install as an app",
+    intro: "Add the site to your home screen and it opens like an app, without the address bar",
+    iphone: "iPhone",
+    android: "Android",
+    yourPhone: "Your phone",
+    iosSteps: [
+      "Open the site in Safari",
+      "Tap the Share button (a square with an arrow up), and if you don't see it, it's in the ⋯ menu",
+      "Tap \"View More\" and choose \"Add to Home Screen\"",
+      "Tap \"Add\" and the icon appears on your home screen",
+    ],
+    androidSteps: [
+      "Open the site in Chrome",
+      "Tap ⋮ in the top corner",
+      "Choose \"Install app\" or \"Add to Home screen\"",
+      "Confirm and the icon appears on your home screen",
+    ],
+    installNow: "Install now",
+    already: "The app is already installed and opens from your home screen",
+  },
+  friends: {
+    mine: "My friends",
+    invite: "+ Invite a friend",
+    none: "No friends yet",
+    toMine: "Back to my fridge",
+    viewOnly: "view only",
+    tapToWish: "tap a bottle to add it to your Wishlist",
+    noFridge: "They don't have a fridge yet",
   },
   friendInvite: {
     title: "Friend invite",
