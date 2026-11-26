@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
+import { ScoreInput } from "@/components/score-input";
 import { DRINK_STATES, DRINK_STATE_ORDER, type DrinkState } from "@/lib/drink-state";
 import { FRONT_LABEL } from "@/lib/fridge-layout";
 import type { PlacedBottle } from "@/lib/fridges";
@@ -53,7 +54,7 @@ export function GuideTour() {
     {
       emoji: "🥂",
       title: "פתחנו בקבוק",
-      text: "לוחצים על הבקבוק, \"שתינו\", ונותנים ציון. נסו:",
+      text: "לוחצים על הבקבוק, \"שתינו\", ונותנים ציון מ־1 עד 5. נסו:",
       demo: <DrinkDemo />,
     },
     {
@@ -264,7 +265,7 @@ function ColorsDemo() {
 /** Open the bottle card, tap "שתינו", give a score. */
 function DrinkDemo() {
   const [stage, setStage] = useState<"shelf" | "card" | "rate" | "done">("shelf");
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState("");
   const b = bottle("d1", "now", 2019, "Rioja", 2);
   if (stage === "shelf") {
     return (
@@ -286,33 +287,24 @@ function DrinkDemo() {
       )}
       {stage === "rate" && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm">איך היה?</span>
-          <div className="flex gap-1" role="radiogroup" aria-label="ציון">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button
-                key={n}
-                type="button"
-                role="radio"
-                aria-checked={score === n}
-                aria-label={`${n} מתוך 5`}
-                onClick={() => {
-                  setScore(n);
-                  setStage("done");
-                }}
-                className="text-3xl leading-none"
-              >
-                {n <= score ? "★" : "☆"}
-              </button>
-            ))}
-          </div>
+          <span className="text-sm">איך היה? ציון מ־1 עד 5:</span>
+          <ScoreInput value={score} onChange={setScore} />
+          <button
+            type="button"
+            disabled={!score}
+            onClick={() => setStage("done")}
+            className="self-start rounded-full bg-accent px-4 py-2 font-medium text-white disabled:opacity-50 dark:text-black"
+          >
+            לחיים!
+          </button>
         </div>
       )}
       {stage === "done" && (
         <p className="text-sm" aria-live="polite">
-          <span className="text-lg">לחיים! {"★".repeat(score)}</span>
+          <span className="text-lg">לחיים! {score}</span>
           <br />
           נשמר בהיסטוריה.{" "}
-          <button type="button" onClick={() => (setStage("shelf"), setScore(0))} className="underline underline-offset-2">
+          <button type="button" onClick={() => (setStage("shelf"), setScore(""))} className="underline underline-offset-2">
             שוב
           </button>
         </p>

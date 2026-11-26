@@ -5,6 +5,7 @@ import { useState } from "react";
 import { WINE_TYPES, inputClass, type WineType } from "@/app/bottle/details";
 import { ErrorNote } from "@/app/bottle/error-note";
 import { createClient } from "@/lib/supabase/client";
+import { ScoreInput } from "@/components/score-input";
 
 const today = () => new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
 
@@ -91,9 +92,11 @@ export function OutsideTastingForm({ wines }: { wines: { winery: string; name: s
         <Field label="מתי">
           <input type="date" value={date} max={today()} onChange={(e) => setDate(e.target.value)} required className={inputClass} />
         </Field>
-        <Field label="ציון (1–5, לא חובה)">
-          <input value={score} onChange={(e) => setScore(e.target.value)} inputMode="decimal" maxLength={3} className={inputClass} />
-        </Field>
+      </div>
+      {/* Not a <label>: the score control has several buttons of its own. */}
+      <div className="flex flex-col gap-1 text-sm">
+        <span className="text-muted">ציון (לא חובה)</span>
+        <ScoreInput value={score} onChange={setScore} />
       </div>
       <Field label="איפה">
         <input value={place} onChange={(e) => setPlace(e.target.value)} dir="auto" maxLength={120} placeholder="מסעדה, אצל חברים…" className={inputClass} />

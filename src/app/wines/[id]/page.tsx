@@ -7,6 +7,7 @@ import { WINE_TYPES } from "@/app/bottle/details";
 import { LabelPhoto } from "@/app/bottle/label-photo";
 import { getWine } from "@/lib/fridges";
 import { WineVintages } from "./wine-vintages";
+import { formatScore } from "@/lib/wine-extra";
 
 export const metadata: Metadata = { title: "יין · מרתף יין" };
 
@@ -72,7 +73,7 @@ async function Wine({ params }: { params: PageProps<"/wines/[id]">["params"] }) 
                   {r.year === null ? "היין בכלל" : `בציר ${r.year}`}
                   {r.rater ? ` · ${r.rater}` : ""}
                 </span>
-                <span className="tabular-nums">{r.score} מתוך 5</span>
+                <span className="tabular-nums">{formatScore(r.score)} מתוך 5</span>
               </li>
             ))}
           </ul>

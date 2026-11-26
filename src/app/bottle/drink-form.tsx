@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ScoreInput } from "@/components/score-input";
 import { createClient } from "@/lib/supabase/client";
 import { inputClass, type BottleDetails } from "./details";
 import { ErrorNote } from "./error-note";
@@ -105,30 +106,19 @@ export function DrinkForm({ details: d, onCancel, onDone }: { details: BottleDet
 
       <fieldset className="flex flex-col gap-2 text-sm">
         <legend className="mb-1 text-muted">
-          ציון {current ? `(עכשיו: ${current})` : ""} – 1 עד 5, לא חובה
+          ציון {current ? `(עכשיו: ${Number(current).toFixed(1)})` : ""} – לא חובה
         </legend>
         {separate ? (
           d.members.map((m) => (
-            <label key={m.id} className="flex items-center gap-2">
-              <input
-                value={scores[m.id] ?? ""}
-                onChange={(e) => setScores((s) => ({ ...s, [m.id]: e.target.value }))}
-                inputMode="decimal"
-                placeholder="4.5"
-                className={`${inputClass} w-24`}
-              />
-              <span dir="auto">{m.name}</span>
-            </label>
+            <div key={m.id} className="flex flex-col gap-1">
+              <span dir="auto" className="font-medium">
+                {m.name}
+              </span>
+              <ScoreInput value={scores[m.id] ?? ""} onChange={(v) => setScores((s) => ({ ...s, [m.id]: v }))} label={`ציון של ${m.name}`} />
+            </div>
           ))
         ) : (
-          <input
-            value={score}
-            onChange={(e) => setScore(e.target.value)}
-            inputMode="decimal"
-            placeholder="4.5"
-            className={`${inputClass} w-24`}
-            aria-label="ציון"
-          />
+          <ScoreInput value={score} onChange={setScore} />
         )}
         {canSplit && (
           <label className="flex items-center gap-2">

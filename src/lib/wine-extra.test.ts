@@ -41,10 +41,19 @@ describe("ratingLine", () => {
   const p = (name: string, score: number, vintageId: string | null) => ({ raterId: name, name, score, vintageId });
   it("separate ratings win over the shared one, the vintage's own first", () => {
     expect(ratingLine([p("נועה", 4.5, "v1"), p("יונתן", 3.8, "v1"), p("נועה", 3, null)], 4, "v1")).toBe("נועה 4.5 · יונתן 3.8");
-    expect(ratingLine([p("נועה", 3, null)], null, "v1")).toBe("נועה 3");
+    expect(ratingLine([p("נועה", 3, null)], null, "v1")).toBe("נועה 3.0");
   });
   it("falls back to the shared score, or nothing", () => {
     expect(ratingLine([], 4.5, "v1")).toBe("4.5 מתוך 5");
     expect(ratingLine([], null, "v1")).toBeNull();
+  });
+});
+
+describe("formatScore", () => {
+  it("always one decimal", async () => {
+    const { formatScore } = await import("./wine-extra");
+    expect(formatScore(4)).toBe("4.0");
+    expect(formatScore(4.25)).toBe("4.3");
+    expect(formatScore(3.04)).toBe("3.0");
   });
 });

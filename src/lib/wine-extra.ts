@@ -94,6 +94,11 @@ export type PersonalRating = { raterId: string; name: string; score: number; vin
 export function ratingLine(personal: PersonalRating[], shared: number | null, vintageId: string): string | null {
   const forVintage = personal.filter((r) => r.vintageId === vintageId);
   const chosen = forVintage.length ? forVintage : personal.filter((r) => r.vintageId === null);
-  if (chosen.length) return chosen.map((r) => `${r.name} ${r.score}`).join(" · ");
-  return shared ? `${shared} מתוך 5` : null;
+  if (chosen.length) return chosen.map((r) => `${r.name} ${formatScore(r.score)}`).join(" · ");
+  return shared ? `${formatScore(shared)} מתוך 5` : null;
+}
+
+/** Scores always show one decimal: 4 → "4.0", 4.25 → "4.3". */
+export function formatScore(score: number): string {
+  return (Math.round(score * 10) / 10).toFixed(1);
 }
