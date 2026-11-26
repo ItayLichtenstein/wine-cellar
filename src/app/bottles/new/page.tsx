@@ -1,3 +1,4 @@
+import { getConnectedAis } from "@/lib/ai-grants";
 import type { Metadata } from "next";
 import { BackLink } from "@/components/back-link";
 import { getT } from "@/i18n/server";
@@ -32,12 +33,18 @@ export default async function AddBottlesPage({ searchParams }: { searchParams: S
 
 async function FormWithData({ searchParams }: { searchParams: SearchParams }) {
   const { cellarId } = await getCurrentUser();
-  const [fridges, wines, params] = await Promise.all([getFridges(cellarId), getWineNames(cellarId), searchParams]);
+  const [fridges, wines, params, ais] = await Promise.all([
+    getFridges(cellarId),
+    getWineNames(cellarId),
+    searchParams,
+    getConnectedAis(),
+  ]);
   return (
     <AddBottlesForm
       fridges={fridges}
       wines={wines}
       initialPlace={findEmptyPlace(fridges, params)}
+      aiConnected={ais.length > 0}
       prefill={params.wish ? await loadWish(cellarId, params.wish) : params.draft ? await loadDraft(cellarId, params.draft, fridges) : undefined}
     />
   );

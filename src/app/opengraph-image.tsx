@@ -26,7 +26,7 @@ export default function Image() {
                   key={j}
                   style={{ width: 96, height: 96, borderRadius: 48, background: "#d9d2cb", display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
-                  <div style={{ width: 44, height: 28, borderRadius: 6, background: DRINK_STATES[state].color }} />
+                  <div style={{ width: 44, height: 28, borderRadius: 6, background: DRINK_STATES[state].color, border: "2px solid rgba(0,0,0,0.25)" }} />
                 </div>
               ))}
             </div>

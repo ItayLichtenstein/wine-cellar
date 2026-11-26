@@ -183,6 +183,11 @@ export const he = {
     },
   },
   bottleForm: {
+    // After saving, only when no AI is connected yet (tester: "so when will it tell me about my bottle?").
+    savedTitle: "נשמר",
+    savedAiHint: "רוצים לדעת מתי הכי כדאי לפתוח אותו? חברו את ה־AI שלכם, והוא ימלא את חלון השתייה וימליץ",
+    savedConnect: "לחיבור ה־AI",
+    savedToFridge: "חזרה למקרר",
     winery: "יקב",
     name: "שם",
     wineName: "שם היין",
@@ -303,6 +308,9 @@ export const he = {
   guide: {
     // Above every practice demo, so the sample bottles aren't mistaken for yours.
     sample: "מקרר לדוגמה לתרגול, שום דבר כאן לא נשמר",
+    aiTitle: "את הייעוץ על היין נותן ה־AI שלכם",
+    aiText: "האפליקציה שומרת מה יש לכם ואיפה. כדי לדעת מתי לפתוח כל בקבוק ולקבל המלצות, מחברים את ה־AI שאתם כבר משתמשים בו, כמו Claude או ChatGPT",
+    aiWhere: "הסבר מפורט וחיבור ב\"עוד\" ← \"ה־AI שלכם\"",
   },
   language: {
     he: "עברית",
