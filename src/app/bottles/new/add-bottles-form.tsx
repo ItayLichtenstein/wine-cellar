@@ -366,7 +366,7 @@ function Choice({
 }
 
 function Stepper({ value, onChange, min, max }: { value: number; onChange: (v: number) => void; min: number; max: number }) {
-  const button = "size-8 rounded-full border border-muted/40 text-lg leading-none disabled:opacity-40";
+  const button = "size-9 rounded-full border border-muted/40 text-lg leading-none disabled:opacity-40";
   return (
     <span className="inline-flex items-center gap-2">
       <button type="button" className={button} onClick={() => onChange(value - 1)} disabled={value <= min} aria-label="פחות">

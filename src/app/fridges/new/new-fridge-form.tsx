@@ -296,7 +296,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
                 {shelf.zones.map((zone, j) => (
-                  <label key={j} className="flex items-center gap-2 text-sm">
+                  <div key={j} className="flex items-center gap-2 text-sm">
                     <span className="text-muted">{zone.label}</span>
                     <Stepper
                       value={zone.capacity}
@@ -305,7 +305,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
                       max={LIMITS.capacity.max}
                       label={`${zone.label}, מדף ${i + 1}`}
                     />
-                  </label>
+                  </div>
                 ))}
               </div>
             </li>
@@ -337,13 +337,16 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
         </p>
       )}
 
+      {/* Always in view, just above the tab bar (as in adding bottles). */}
+      <div className="sticky bottom-[calc(57px+env(safe-area-inset-bottom))] z-30 -mx-4 bg-gradient-to-t from-background from-70% to-transparent px-4 pt-4 pb-3">
       <button
         type="submit"
         disabled={saving}
-        className="rounded-full bg-accent px-5 py-3 font-medium text-white disabled:opacity-60 dark:text-black"
+        className="w-full rounded-full bg-accent px-5 py-3 font-medium text-white shadow-md disabled:opacity-60 dark:text-black"
       >
         {saving ? "שומר…" : leaving > 0 && confirmed ? "כן, לשמור ולהוציא אותם" : "שמירת המקרר"}
       </button>
+      </div>
 
       {existing && (
         <DeleteFridge id={existing.id} stored={existing.shelves.flatMap((s) => s.zones).reduce((n, z) => n + z.bottles.length, 0)} />
@@ -392,9 +395,9 @@ function Stepper({
   max: number;
   label?: string;
 }) {
-  const button = "size-8 rounded-full border border-muted/40 text-lg leading-none disabled:opacity-40";
+  const button = "size-9 rounded-full border border-muted/40 text-lg leading-none disabled:opacity-40";
   return (
-    <span className="inline-flex items-center gap-2" role="group" aria-label={label}>
+    <span className="inline-flex items-center gap-2 select-none" role="group" aria-label={label}>
       <button type="button" className={button} onClick={() => onChange(value - 1)} disabled={value <= min} aria-label="פחות">
         −
       </button>
