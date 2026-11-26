@@ -26,7 +26,10 @@ const ITEMS = [
 ] as const;
 
 /** Pages reached through "More": while on one, "More" is the active tab. */
-const UNDER_MORE = ["/more", "/history", "/ai", "/guide", "/fridges", "/friends"];
+const UNDER_MORE = ["/more", "/history", "/ai", "/guide", "/friends"];
+
+/** Setting up or editing a fridge belongs to the fridge tab, wherever it was opened from. */
+const isFridgePage = (pathname: string) => pathname === "/" || pathname.startsWith("/fridges");
 
 // Pages for signed-out visitors have no navigation.
 const HIDDEN_ON = ["/login", "/privacy", "/auth", "/dev-login", "/join", "/friend-invite", "/shared", "/oauth"];
@@ -37,7 +40,7 @@ export function BottomNav() {
   const [moreOpen, setMoreOpen] = useState(false);
   if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const isActive = (href: string) => (href === "/" ? isFridgePage(pathname) : pathname.startsWith(href));
 
   return (
     <>
