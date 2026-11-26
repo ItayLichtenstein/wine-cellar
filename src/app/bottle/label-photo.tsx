@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@/i18n/provider";
 import { ACCEPTED_TYPES, LABEL_BUCKET, labelPath, makeThumb, reencode } from "@/lib/label-image";
 import { createClient } from "@/lib/supabase/client";
 
@@ -20,6 +21,7 @@ export function LabelPhoto({
   path: string | null;
   canEdit: boolean;
 }) {
+  const t = useT();
   const [current, setCurrent] = useState(path);
   const [url, setUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -58,7 +60,7 @@ export function LabelPhoto({
       setUrl(null);
       setCurrent(newPath);
     } catch (e) {
-      setError(e instanceof Error && e.message === "type" ? "אפשר להעלות רק JPEG, PNG או WebP" : "ההעלאה לא הצליחה, נסו שוב");
+      setError(e instanceof Error && e.message === "type" ? t.bottle.photo.badType : t.bottle.photo.failed);
     } finally {
       setBusy(false);
     }
@@ -69,11 +71,11 @@ export function LabelPhoto({
       {current && url && (
         // A signed, short-lived URL – next/image would try to cache it, so a plain img.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="תווית היין" className="max-h-56 rounded-lg object-contain shadow-sm" />
+        <img src={url} alt={t.bottle.photo.alt} className="max-h-56 rounded-lg object-contain shadow-sm" />
       )}
       {canEdit && (
         <label className="cursor-pointer text-sm underline underline-offset-2">
-          {busy ? "מעלה…" : current ? "החלפת תמונת התווית" : "📷 צילום התווית"}
+          {busy ? t.bottle.photo.uploading : current ? t.bottle.photo.replace : t.bottle.photo.take}
           <input
             type="file"
             accept={ACCEPTED_TYPES.join(",")}

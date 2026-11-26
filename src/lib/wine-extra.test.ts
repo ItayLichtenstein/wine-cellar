@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { en } from "@/i18n/en";
 import { EMPTY_EXTRA, criticSummary, linkLabel, ratingLine, validateExtra, vintageBreakdown } from "./wine-extra";
 
 describe("criticSummary", () => {
@@ -55,5 +56,14 @@ describe("formatScore", () => {
     expect(formatScore(4)).toBe("4.0");
     expect(formatScore(4.25)).toBe("4.3");
     expect(formatScore(3.04)).toBe("3.0");
+  });
+});
+
+describe("in English", () => {
+  it("critic summary, rating line, link names and form errors use the English texts", () => {
+    expect(criticSummary([{ critic: "A", score: 90 }, { critic: "B", score: 94 }], en)).toBe("92 · 2 critics");
+    expect(ratingLine([], 4.5, "v", en)).toBe("4.5 out of 5");
+    expect(linkLabel("https://www.wineroute.co.il/x", en)).toBe("Wine Route");
+    expect(validateExtra({ ...EMPTY_EXTRA, alcohol: "40" }, en)).toBe("Alcohol must be between 0 and 25");
   });
 });

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BackLink } from "@/components/back-link";
+import { getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import { Suspense } from "react";
 import type { Place } from "@/components/fridge-preview";
@@ -13,15 +14,16 @@ export const metadata: Metadata = { title: "הוספת בקבוקים · מרת�
 
 type SearchParams = Promise<{ zone?: string; slot?: string; wish?: string; draft?: string }>;
 
-export default function AddBottlesPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function AddBottlesPage({ searchParams }: { searchParams: SearchParams }) {
+  const t = await getT();
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-1">
-        <BackLink href="/" label="המקרר" />
-        <h1 className="text-2xl font-bold">הוספת בקבוקים</h1>
+        <BackLink href="/" label={t.settings.back} />
+        <h1 className="text-2xl font-bold">{t.bottleForm.addTitle}</h1>
       </header>
       {/* Loads the user's fridges and wines, so it streams in behind Suspense. */}
-      <Suspense fallback={<p className="text-muted">טוען…</p>}>
+      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
         <FormWithData searchParams={searchParams} />
       </Suspense>
     </main>

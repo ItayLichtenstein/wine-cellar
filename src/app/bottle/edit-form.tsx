@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 import { validateExtra } from "@/lib/wine-extra";
 import { WINE_TYPES, inputClass, saveExtra, type BottleDetails, type WineType } from "./details";
@@ -14,6 +15,7 @@ const numOrNull = (s: string) => (s.trim() === "" ? null : Number(s));
  * bottle of that wine; a new year moves this bottle to that vintage.
  */
 export function EditForm({ details: d, onCancel, onDone }: { details: BottleDetails; onCancel: () => void; onDone: () => void }) {
+  const t = useT();
   const [winery, setWinery] = useState(d.winery);
   const [name, setName] = useState(d.name);
   const [type, setType] = useState<WineType>(d.type);
@@ -30,16 +32,16 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
 
   async function save() {
     if (!winery.trim() || !name.trim()) {
-      setError("צריך למלא יקב ושם יין");
+      setError(t.bottleForm.needWineryName);
       return;
     }
     const numbers = [year, drinkFrom, drinkTo, paid, regular].map(numOrNull);
     if (numbers.some((n) => n !== null && Number.isNaN(n))) {
-      setError("אחד המספרים לא תקין");
+      setError(t.bottleForm.badNumber);
       return;
     }
     const [y, from, to, p, r] = numbers;
-    const extraProblem = validateExtra(extra);
+    const extraProblem = validateExtra(extra, t);
     if (extraProblem) {
       setError(extraProblem);
       return;
@@ -66,8 +68,8 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
       setSaving(false);
       setError(
         rpcError.code === "23505"
-          ? "כבר יש במרתף יין בשם הזה מאותו יקב"
-          : "לא הצלחנו לשמור, בדקו את הפרטים ונסו שוב",
+          ? t.bottleForm.duplicate
+          : t.bottleForm.saveFailed,
       );
       return;
     }
@@ -78,7 +80,7 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
     const ok = await saveExtra(d.wineId, moved?.vintage_id ?? d.vintageId, [d.id], extra);
     if (!ok) {
       setSaving(false);
-      setError("הפרטים הבסיסיים נשמרו, אבל הפרטים הנוספים לא. נסו שוב");
+      setError(t.bottleForm.extraFailed);
       return;
     }
     onDone();
@@ -86,46 +88,46 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
 
   return (
     <>
-      <h2 className="text-xl font-bold">עריכת בקבוק</h2>
-      <p className="text-sm text-muted">שינוי של יקב, שם או סוג חל על כל הבקבוקים של היין הזה, ושאר השדות רק על הבקבוק הזה</p>
+      <h2 className="text-xl font-bold">{t.bottleForm.editTitle}</h2>
+      <p className="text-sm text-muted">{t.bottleForm.editHint}</p>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="יקב">
+        <Field label={t.bottleForm.winery}>
           <input value={winery} onChange={(e) => setWinery(e.target.value)} dir="auto" maxLength={120} className={inputClass} />
         </Field>
-        <Field label="שם">
+        <Field label={t.bottleForm.name}>
           <input value={name} onChange={(e) => setName(e.target.value)} dir="auto" maxLength={120} className={inputClass} />
         </Field>
-        <Field label="סוג">
+        <Field label={t.bottleForm.type}>
           <select value={type} onChange={(e) => setType(e.target.value as WineType)} className={inputClass}>
-            {WINE_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {WINE_TYPES.map((w) => (
+              <option key={w.value} value={w.value}>
+                {t.wineType[w.value]}
               </option>
             ))}
           </select>
         </Field>
-        <Field label="בציר (ריק = NV)">
+        <Field label={t.bottleForm.vintageOrNv}>
           <input value={year} onChange={(e) => setYear(e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
-        <Field label="חלון שתייה, משנה">
+        <Field label={t.bottleForm.windowFrom}>
           <input value={drinkFrom} onChange={(e) => setDrinkFrom(e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
-        <Field label="עד שנה">
+        <Field label={t.bottleForm.toYear}>
           <input value={drinkTo} onChange={(e) => setDrinkTo(e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
-        <Field label="שילמנו (₪)">
+        <Field label={t.bottleForm.paid}>
           <input value={paid} onChange={(e) => setPaid(e.target.value)} inputMode="decimal" className={inputClass} />
         </Field>
-        <Field label="מחיר רגיל (₪)">
+        <Field label={t.bottleForm.regular}>
           <input value={regular} onChange={(e) => setRegular(e.target.value)} inputMode="decimal" className={inputClass} />
         </Field>
       </div>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={isGift} onChange={(e) => setIsGift(e.target.checked)} />
-        קיבלנו במתנה
+        {t.bottleForm.gotAsGift}
       </label>
-      <Field label="הערה">
+      <Field label={t.bottleForm.note}>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} dir="auto" rows={2} maxLength={1000} className={inputClass} />
       </Field>
 
@@ -140,10 +142,10 @@ export function EditForm({ details: d, onCancel, onDone }: { details: BottleDeta
           disabled={saving}
           className="rounded-full bg-accent px-4 py-3 font-medium text-white disabled:opacity-60 dark:text-black"
         >
-          {saving ? "שומר…" : "שמירה"}
+          {saving ? t.bottleForm.saving : t.common.save}
         </button>
         <button type="button" onClick={onCancel} className="rounded-full border border-muted/40 px-4 py-3">
-          ביטול
+          {t.cellar.cancel}
         </button>
       </div>
     </>

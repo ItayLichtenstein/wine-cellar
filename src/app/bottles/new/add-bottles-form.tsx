@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
 import { clamp } from "@/lib/fridge-layout";
 import type { FridgeView } from "@/lib/fridges";
+import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 import { EMPTY_EXTRA, validateExtra, type WineExtra } from "@/lib/wine-extra";
 import { saveExtra } from "@/app/bottle/details";
@@ -13,18 +14,9 @@ import { ExtraFields } from "@/app/bottle/extra-fields";
 type WineType = "red" | "white" | "rose" | "orange" | "sparkling" | "dessert" | "fortified" | "other";
 type Destination = "fridge" | "unplaced" | "in_transit";
 
-const MAIN_TYPES: [WineType, string][] = [
-  ["red", "אדום"],
-  ["white", "לבן"],
-  ["rose", "רוזה"],
-];
-const OTHER_TYPES: [WineType, string][] = [
-  ["orange", "כתום"],
-  ["sparkling", "מבעבע"],
-  ["dessert", "קינוח"],
-  ["fortified", "מחוזק (פורט, שרי)"],
-  ["other", "אחר"],
-];
+// The common three first, the rest under "other". Names come from the dictionary.
+const MAIN_TYPES: WineType[] = ["red", "white", "rose"];
+const OTHER_TYPES: WineType[] = ["orange", "sparkling", "dessert", "fortified", "other"];
 
 const THIS_YEAR = new Date().getFullYear();
 
@@ -62,6 +54,7 @@ export function AddBottlesForm({
   prefill?: Prefill;
 }) {
   const router = useRouter();
+  const t = useT();
 
   const [winery, setWinery] = useState(prefill?.winery ?? "");
   const [name, setName] = useState(prefill?.name ?? "");
@@ -115,17 +108,17 @@ export function AddBottlesForm({
     event.preventDefault();
     setError(null);
     if (!winery.trim() || !name.trim()) {
-      setError("צריך למלא יקב ושם יין");
+      setError(t.bottleForm.needWineryName);
       return;
     }
     // An empty year means a non-vintage wine (NV); only a typed, wrong year is an error.
     const yearNum = year.trim() ? Number(year) : null;
     if (yearNum !== null && !(Number.isInteger(yearNum) && yearNum >= 1900 && yearNum <= THIS_YEAR + 1)) {
-      setError(`שנת הבציר צריכה להיות בין 1900 ל־${THIS_YEAR + 1}.`);
+      setError(t.bottleForm.yearRange(THIS_YEAR + 1));
       return;
     }
 
-    const extraProblem = validateExtra(extra);
+    const extraProblem = validateExtra(extra, t);
     if (extraProblem) {
       setError(extraProblem);
       return;
@@ -153,8 +146,8 @@ export function AddBottlesForm({
       setSaving(false);
       setError(
         rpcError.code === "23505"
-          ? "אחד המקומות שבחרתם נתפס הרגע, בחרו מקום אחר"
-          : "לא הצלחנו לשמור, בדקו את הפרטים ונסו שוב",
+          ? t.bottleForm.placeTaken
+          : t.bottleForm.saveFailed,
       );
       return;
     }
@@ -164,7 +157,7 @@ export function AddBottlesForm({
       const ok = v?.wine_vintages && (await saveExtra(v.wine_vintages.wine_id, v.vintage_id, ids, extra));
       if (!ok) {
         setSaving(false);
-        setError("הבקבוקים נשמרו, אבל הפרטים הנוספים לא. אפשר להשלים אותם בעריכה");
+        setError(t.bottleForm.addExtraFailed);
         return;
       }
     }
@@ -183,8 +176,8 @@ export function AddBottlesForm({
   return (
     <form onSubmit={save} className="flex flex-col gap-6">
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-2 text-lg font-semibold">איזה יין?</legend>
-        <Field label="יקב">
+        <legend className="mb-2 text-lg font-semibold">{t.bottleForm.whichWine}</legend>
+        <Field label={t.bottleForm.winery}>
           <input value={winery} onChange={(e) => setWinery(e.target.value)} dir="auto" list="wineries" maxLength={120} required className={inputClass} />
           <datalist id="wineries">
             {wineries.map((w) => (
@@ -192,7 +185,7 @@ export function AddBottlesForm({
             ))}
           </datalist>
         </Field>
-        <Field label="שם היין">
+        <Field label={t.bottleForm.wineName}>
           <input value={name} onChange={(e) => setName(e.target.value)} dir="auto" list="wine-names" maxLength={120} required className={inputClass} />
           <datalist id="wine-names">
             {namesForWinery.map((n) => (
@@ -201,19 +194,19 @@ export function AddBottlesForm({
           </datalist>
         </Field>
         {isExistingWine ? (
-          <p className="text-sm text-muted">היין הזה כבר במרתף, והבקבוקים יתווספו אליו</p>
+          <p className="text-sm text-muted">{t.bottleForm.existingWine}</p>
         ) : (
-          <Field label="סוג">
+          <Field label={t.bottleForm.type}>
             <select value={type} onChange={(e) => setType(e.target.value as WineType)} className={inputClass}>
-              {MAIN_TYPES.map(([v, l]) => (
+              {MAIN_TYPES.map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {t.wineType[v]}
                 </option>
               ))}
-              <optgroup label="אחר">
-                {OTHER_TYPES.map(([v, l]) => (
+              <optgroup label={t.bottleForm.other}>
+                {OTHER_TYPES.map((v) => (
                   <option key={v} value={v}>
-                    {l}
+                    {t.wineType[v]}
                   </option>
                 ))}
               </optgroup>
@@ -221,7 +214,7 @@ export function AddBottlesForm({
           </Field>
         )}
         <div className="flex items-end gap-3">
-          <Field label="בציר">
+          <Field label={t.bottleForm.vintage}>
             <input
               value={year}
               onChange={(e) => setYear(e.target.value)}
@@ -230,71 +223,69 @@ export function AddBottlesForm({
               className={`${inputClass} w-24`}
             />
           </Field>
-          <span className="pb-2 text-sm text-muted">{year.trim() ? "" : "ריק = ללא בציר (NV)"}</span>
+          <span className="pb-2 text-sm text-muted">{year.trim() ? "" : t.bottleForm.noVintage}</span>
         </div>
         <ExtraFields value={extra} onChange={setExtra} />
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-2 text-lg font-semibold">כמה ובכמה?</legend>
+        <legend className="mb-2 text-lg font-semibold">{t.bottleForm.howMany}</legend>
         <div className="flex items-center gap-3">
-          <span>כמות</span>
+          <span>{t.bottleForm.quantity}</span>
           <Stepper value={quantity} onChange={changeQuantity} min={1} max={48} />
         </div>
-        <Field label="כמה עלה בקבוק (₪, לא חובה)">
+        <Field label={t.bottleForm.paidOptional}>
           <input value={paid} onChange={(e) => setPaid(e.target.value)} inputMode="decimal" className={`${inputClass} w-32`} />
         </Field>
         {!morePrice ? (
           <button type="button" onClick={() => setMorePrice(true)} className="self-start text-sm underline underline-offset-2">
-            מבצע או מתנה?
+            {t.bottleForm.dealOrGift}
           </button>
         ) : (
           <div className="flex flex-wrap items-end gap-4">
-            <Field label="מחיר רגיל (₪)">
+            <Field label={t.bottleForm.regular}>
               <input value={regular} onChange={(e) => setRegular(e.target.value)} inputMode="decimal" className={`${inputClass} w-32`} />
             </Field>
             <label className="flex items-center gap-2 pb-2 text-sm">
               <input type="checkbox" checked={isGift} onChange={(e) => setIsGift(e.target.checked)} />
-              קיבלנו במתנה
+              {t.bottleForm.gotAsGift}
             </label>
           </div>
         )}
         <div className="flex items-end gap-3">
-          <Field label="חלון שתייה (לא חובה), משנה">
+          <Field label={t.bottleForm.windowFromOptional}>
             <input value={drinkFrom} onChange={(e) => setDrinkFrom(e.target.value)} inputMode="numeric" maxLength={4} className={`${inputClass} w-24`} />
           </Field>
-          <Field label="עד שנה">
+          <Field label={t.bottleForm.toYear}>
             <input value={drinkTo} onChange={(e) => setDrinkTo(e.target.value)} inputMode="numeric" maxLength={4} className={`${inputClass} w-24`} />
           </Field>
         </div>
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-2 text-lg font-semibold">{quantity > 1 ? "איפה הבקבוקים?" : "איפה הבקבוק?"}</legend>
+        <legend className="mb-2 text-lg font-semibold">{t.bottleForm.where(quantity)}</legend>
         {/* A choice, not an action: radio options in one row. Saving is only the button at the bottom. */}
-        <div role="radiogroup" aria-label="מיקום" className="grid auto-cols-fr grid-flow-col gap-1 rounded-xl bg-surface p-1 text-sm shadow-sm">
-          {fridges.length > 0 && <Choice value="fridge" current={destination} onChange={setDestination} label="במקרר" />}
-          <Choice value="unplaced" current={destination} onChange={setDestination} label="מחוץ למקרר" />
-          <Choice value="in_transit" current={destination} onChange={setDestination} label="בדרך אלינו" />
+        <div role="radiogroup" aria-label={t.bottleForm.location} className="grid auto-cols-fr grid-flow-col gap-1 rounded-xl bg-surface p-1 text-sm shadow-sm">
+          {fridges.length > 0 && <Choice value="fridge" current={destination} onChange={setDestination} label={t.bottleForm.inFridge} />}
+          <Choice value="unplaced" current={destination} onChange={setDestination} label={t.bottleForm.outside} />
+          <Choice value="in_transit" current={destination} onChange={setDestination} label={t.bottleForm.inTransit} />
         </div>
 
         {destination === "fridge" && (
           <>
             <p className="text-sm text-muted">
-              <span className="inline-block">
-                לחצו על מקומות פנויים (נבחרו {picked.length} מתוך {quantity})
-              </span>{" "}
-              <span className="inline-block">ולחיצה נוספת מבטלת</span>
+              <span className="inline-block">{t.bottleForm.pickPlaces(picked.length, quantity)}</span>{" "}
+              <span className="inline-block">{t.bottleForm.tapAgain}</span>
               {leftOver > 0 && (
                 <>
                   {" "}
-                  <span className="inline-block">{`${leftOver} שלא ישובצו יישמרו כ"מחוץ למקרר"`}</span>
+                  <span className="inline-block">{t.bottleForm.leftOver(leftOver)}</span>
                 </>
               )}
             </p>
             {picked.length > 0 && (
               <button type="button" onClick={() => setPicked([])} className="self-start text-sm underline underline-offset-2">
-                ניקוי הבחירה
+                {t.bottleForm.clearPicks}
               </button>
             )}
             {fridges.map((f) => (
@@ -316,7 +307,7 @@ export function AddBottlesForm({
       {/* Always in view, just above the tab bar: nothing is saved until this is pressed. */}
       <div className="sticky bottom-[calc(57px+env(safe-area-inset-bottom))] z-30 -mx-4 bg-gradient-to-t from-background from-70% to-transparent px-4 pt-4 pb-3">
         <button type="submit" disabled={saving} className="w-full rounded-full bg-accent px-5 py-3 font-medium text-white shadow-md disabled:opacity-60 dark:text-black">
-          {saving ? "שומר…" : saveLabel(quantity, destination)}
+          {saving ? t.bottleForm.saving : t.bottleForm.saveLabel(quantity, destination)}
         </button>
       </div>
     </form>
@@ -334,12 +325,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-/** The button says where the bottles go, so it reads as the one step that saves. */
-function saveLabel(quantity: number, destination: Destination) {
-  const what = quantity > 1 ? `${quantity} בקבוקים` : "בקבוק";
-  const where = { fridge: "למקרר", unplaced: "מחוץ למקרר", in_transit: "כ״בדרך אלינו״" }[destination];
-  return destination === "unplaced" ? `שמירת ${what} ${where}` : `הוספת ${what} ${where}`;
-}
 
 function Choice({
   value,
@@ -366,16 +351,17 @@ function Choice({
 }
 
 function Stepper({ value, onChange, min, max }: { value: number; onChange: (v: number) => void; min: number; max: number }) {
+  const t = useT();
   const button = "size-9 rounded-full border border-muted/40 text-lg leading-none disabled:opacity-40";
   return (
     <span className="inline-flex items-center gap-2">
-      <button type="button" className={button} onClick={() => onChange(value - 1)} disabled={value <= min} aria-label="פחות">
+      <button type="button" className={button} onClick={() => onChange(value - 1)} disabled={value <= min} aria-label={t.bottleForm.less}>
         −
       </button>
       <span className="w-6 text-center tabular-nums" aria-live="polite">
         {value}
       </span>
-      <button type="button" className={button} onClick={() => onChange(value + 1)} disabled={value >= max} aria-label="יותר">
+      <button type="button" className={button} onClick={() => onChange(value + 1)} disabled={value >= max} aria-label={t.bottleForm.more}>
         +
       </button>
     </span>

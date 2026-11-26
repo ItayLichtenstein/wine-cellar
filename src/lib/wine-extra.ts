@@ -1,3 +1,4 @@
+import { he, type Dictionary } from "@/i18n/he";
 // The "more details" of a wine: types, defaults and small display helpers.
 // Pure – shared by the add form, the edit form and the bottle card.
 
@@ -35,42 +36,35 @@ export const EMPTY_EXTRA: WineExtra = {
 };
 
 /** "94 · 3 מבקרים" (rounded average, like Wine-Searcher), or "94 · Suckling" for one critic. */
-export function criticSummary(scores: CriticScore[]): string | null {
+export function criticSummary(scores: CriticScore[], t: Dictionary = he): string | null {
   if (scores.length === 0) return null;
   const avg = Math.round(scores.reduce((s, c) => s + c.score, 0) / scores.length);
-  return scores.length === 1 ? `${avg} · ${scores[0].critic}` : `${avg} · ${scores.length} מבקרים`;
+  return scores.length === 1 ? `${avg} · ${scores[0].critic}` : `${avg} · ${t.bottle.criticsCount(scores.length)}`;
 }
 
-// Sites people link to, named the way they know them.
-const SITE_NAMES: Record<string, string> = {
-  "wineroute.co.il": "דרך היין",
-  "wine-searcher.com": "Wine-Searcher",
-  "vivino.com": "Vivino",
-  "haturki.com": "הטורקי",
-  "paneco.co.il": "פנקו",
-};
 
-/** A short name for a link, from its domain: "דרך היין", else "example.com". */
-export function linkLabel(url: string): string | null {
+/** A short name for a link, from its domain: "דרך היין" (names in the dictionary), else "example.com". */
+export function linkLabel(url: string, t: Dictionary = he): string | null {
   try {
     const u = new URL(url);
     if (u.protocol !== "https:" && u.protocol !== "http:") return null;
     const host = u.hostname.replace(/^www\./, "");
-    const known = Object.keys(SITE_NAMES).find((d) => host === d || host.endsWith(`.${d}`));
-    return known ? SITE_NAMES[known] : host;
+    const known = Object.keys(t.sites).find((d) => host === d || host.endsWith(`.${d}`));
+    return known ? t.sites[known] : host;
   } catch {
     return null;
   }
 }
 
-/** Problems a user can fix, in Hebrew; empty when everything is fine. */
-export function validateExtra(e: WineExtra): string | null {
+/** Problems a user can fix, in the user's language; null when everything is fine. */
+export function validateExtra(e: WineExtra, t: Dictionary = he): string | null {
+  const err = t.extra.errors;
   const year = (s: string) => s.trim() === "" || /^(19|20|21)\d\d$/.test(s.trim());
-  if (!year(e.peakFrom) || !year(e.peakTo)) return "שנות השיא צריכות להיות בנות 4 ספרות";
-  if (e.peakFrom && e.peakTo && Number(e.peakFrom) > Number(e.peakTo)) return "שנת תחילת השיא מאוחרת משנת הסיום";
-  if (e.alcohol.trim() && !(Number(e.alcohol) >= 0 && Number(e.alcohol) <= 25)) return "אחוז האלכוהול צריך להיות בין 0 ל־25";
-  if (e.critics.some((c) => !c.critic.trim() || !(c.score >= 50 && c.score <= 100))) return "לכל ציון מבקר צריך שם וציון בין 50 ל־100";
-  if (e.link.trim() && !linkLabel(e.link.trim())) return "הקישור צריך להתחיל ב־https://";
+  if (!year(e.peakFrom) || !year(e.peakTo)) return err.peakYears;
+  if (e.peakFrom && e.peakTo && Number(e.peakFrom) > Number(e.peakTo)) return err.peakOrder;
+  if (e.alcohol.trim() && !(Number(e.alcohol) >= 0 && Number(e.alcohol) <= 25)) return err.alcohol;
+  if (e.critics.some((c) => !c.critic.trim() || !(c.score >= 50 && c.score <= 100))) return err.critics;
+  if (e.link.trim() && !linkLabel(e.link.trim())) return err.link;
   return null;
 }
 
@@ -91,11 +85,11 @@ export type PersonalRating = { raterId: string; name: string; score: number; vin
  * "נועה 4.5 · יונתן 3.8". Otherwise the shared score: "4.5 מתוך 5" (reads correctly in RTL).
  * A vintage's own ratings come before the wine's general ones.
  */
-export function ratingLine(personal: PersonalRating[], shared: number | null, vintageId: string): string | null {
+export function ratingLine(personal: PersonalRating[], shared: number | null, vintageId: string, t: Dictionary = he): string | null {
   const forVintage = personal.filter((r) => r.vintageId === vintageId);
   const chosen = forVintage.length ? forVintage : personal.filter((r) => r.vintageId === null);
   if (chosen.length) return chosen.map((r) => `${r.name} ${formatScore(r.score)}`).join(" · ");
-  return shared ? `${formatScore(shared)} מתוך 5` : null;
+  return shared ? t.bottle.outOf5(formatScore(shared)) : null;
 }
 
 /** Scores always show one decimal: 4 → "4.0", 4.25 → "4.3". */
