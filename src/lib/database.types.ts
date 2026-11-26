@@ -583,6 +583,9 @@ isOneToOne: false
 "peek_friend_invite":
 { Args: { "p_token": string }; Returns: (string)[]
                            },
+"readable_cellar_ids":
+{ Args: Record<PropertyKey, never>; Returns: string[]
+                           },
 "remove_friend":
 { Args: { "p_friend_cellar": string }; Returns: undefined
                            },
