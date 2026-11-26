@@ -28,7 +28,7 @@ export default function FriendCellarPage({ params }: PageProps<"/friends/[id]">)
 async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["params"] }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: friends } = await supabase.rpc("my_friends");
+  const [{ data: friends }, { data: custom }] = await Promise.all([supabase.rpc("my_friends"), supabase.rpc("friend_cellar_names")]);
   const friend = friends?.find((f) => f.cellar_id === id);
   if (!friend) notFound();
 
@@ -40,7 +40,7 @@ async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["pa
       <header className="flex flex-col gap-1">
         <BackLink href="/more" label="עוד" />
         <h1 className="text-2xl font-bold" dir="auto">
-          {cellarTitle(friend.names)}
+          {cellarTitle(friend.names, custom?.find((c) => c.cellar_id === id)?.custom_name)}
         </h1>
         <p className="text-sm text-muted">
           <span className="inline-block">{countBottles(stored)} במקרר · צפייה בלבד.</span>{" "}

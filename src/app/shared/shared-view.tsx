@@ -19,6 +19,7 @@ const dateFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "lo
  */
 export function SharedView() {
   const [cellar, setCellar] = useState<SharedCellar | null | "loading">("loading");
+  const [customName, setCustomName] = useState<string | null>(null);
 
   useEffect(() => {
     const token = window.location.hash.slice(1);
@@ -26,6 +27,11 @@ export function SharedView() {
       ? createClient().rpc("shared_cellar", { p_token: token }).then(({ data }) => data as SharedCellarJson | null)
       : Promise.resolve(null);
     load.then((json) => setCellar(json ? fromSharedCellar(json, new Date().getFullYear()) : null));
+    if (TOKEN.test(token)) {
+      createClient()
+        .rpc("shared_cellar_name", { p_token: token })
+        .then(({ data }) => setCustomName(data ?? null));
+    }
   }, []);
 
   if (cellar === "loading") return <p className="text-muted">טוען…</p>;
@@ -45,7 +51,7 @@ export function SharedView() {
     <>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold" dir="auto">
-          {cellarTitle(cellar.names)}
+          {cellarTitle(cellar.names, customName)}
         </h1>
         <p className="text-sm text-muted">{countBottles(stored)} במקרר · צפייה בלבד</p>
       </header>

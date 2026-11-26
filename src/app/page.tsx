@@ -34,10 +34,11 @@ async function Header() {
     .eq("role", "member")
     .order("joined_at");
   const names = (members ?? []).map((m) => m.profiles?.display_name ?? "");
+  const { data: cellar } = await supabase.from("cellars").select("custom_name").eq("id", user.cellarId).maybeSingle();
   return (
     <header>
       <h1 className="text-2xl font-bold" dir="auto">
-        {cellarTitle(names)}
+        {cellarTitle(names, cellar?.custom_name)}
       </h1>
       <p className="text-sm text-muted">שלום {user.displayName}</p>
       {!user.onboarded && <NamePrompt userId={user.id} initial={user.displayName === "משתמש חדש" ? "" : user.displayName} />}

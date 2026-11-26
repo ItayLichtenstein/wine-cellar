@@ -6,7 +6,7 @@ import { useState } from "react";
 import { cellarTitle } from "@/lib/cellar-title";
 import { createClient } from "@/lib/supabase/client";
 
-export type Friend = { cellarId: string; names: string[]; iShowPrices: boolean; theyShowPrices: boolean };
+export type Friend = { cellarId: string; names: string[]; customName: string | null; iShowPrices: boolean; theyShowPrices: boolean };
 
 /**
  * Friend cellars: open one, choose whether it sees our prices, end the
@@ -60,7 +60,7 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
             <li key={f.cellarId} className="flex flex-col gap-2 px-4 py-3">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <Link href={`/friends/${f.cellarId}`} className="font-medium underline underline-offset-2" dir="auto">
-                  {cellarTitle(f.names)}
+                  {cellarTitle(f.names, f.customName)}
                 </Link>
                 <span className="text-xs text-muted">{f.theyShowPrices ? "משתפים אתכם במחירים" : "המחירים שלהם מוסתרים"}</span>
               </div>

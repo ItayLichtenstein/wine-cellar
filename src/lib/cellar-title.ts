@@ -9,7 +9,9 @@ function and(name: string): string {
   return /^[א-ת]/.test(name) ? `ו${name}` : `ו־${name}`;
 }
 
-export function cellarTitle(names: string[]): string {
+/** The cellar's own name if it has one, else the title from its full members' names. */
+export function cellarTitle(names: string[], customName?: string | null): string {
+  if (customName?.trim()) return customName.trim();
   const list = names.map((n) => n.trim()).filter(Boolean);
   if (list.length === 0) return "מרתף יין";
   if (list.length === 1) return `המרתף של ${list[0]}`;

@@ -129,14 +129,14 @@ isOneToOne: true
                   ]
                 },"cellars": {
                   Row: {
-                    "created_at": string,"id": string,"name": string,"name_is_custom": boolean,"updated_at": string
+                    "created_at": string,"custom_name": string | null,"id": string,"name": string,"name_is_custom": boolean,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"name": string,"name_is_custom"?: boolean,"updated_at"?: string
+                    "created_at"?: string,"custom_name"?: string | null,"id"?: string,"name": string,"name_is_custom"?: boolean,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"name"?: string,"name_is_custom"?: boolean,"updated_at"?: string
+                    "created_at"?: string,"custom_name"?: string | null,"id"?: string,"name"?: string,"name_is_custom"?: boolean,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -534,6 +534,11 @@ isOneToOne: false
 "drink_bottle":
 { Args: { "p_bottle_id": string,"p_notes"?: string,"p_tasted_on"?: string }; Returns: string
                            },
+"friend_cellar_names":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "cellar_id": string,"custom_name": string
+            }[]
+                           },
 "give_new_cellar":
 { Args: { "p_user_id": string }; Returns: string
                            },
@@ -598,6 +603,9 @@ isOneToOne: false
                            },
 "shared_cellar":
 { Args: { "p_token": string }; Returns: Json
+                           },
+"shared_cellar_name":
+{ Args: { "p_token": string }; Returns: string
                            },
 "update_bottle":
 { Args: { "p_bottle_id": string,"p_drink_from": number,"p_drink_to": number,"p_is_gift": boolean,"p_name": string,"p_note": string,"p_paid": number,"p_regular": number,"p_type": Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year": number }; Returns: undefined

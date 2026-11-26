@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { fridgeCapacity } from "@/lib/fridge-layout";
 import { getFridges } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
+import { CellarName } from "./cellar-name";
 import { DeleteAccount } from "./delete-account";
 import { ExportButton } from "./export-button";
 import { FridgeList } from "./fridge-list";
@@ -69,25 +70,35 @@ async function Fridges() {
 
 async function Members() {
   const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
-  const { data } = await supabase
-    .from("cellar_members")
-    .select("user_id, role, profiles(display_name)")
-    .eq("cellar_id", user.cellarId)
-    .order("joined_at");
+  const [{ data }, { data: cellar }] = await Promise.all([
+    supabase.from("cellar_members").select("user_id, role, profiles(display_name)").eq("cellar_id", user.cellarId).order("joined_at"),
+    supabase.from("cellars").select("custom_name").eq("id", user.cellarId).maybeSingle(),
+  ]);
   const members: Member[] = (data ?? []).map((m) => ({
     userId: m.user_id,
     name: m.profiles?.display_name ?? "",
     role: m.role,
   }));
-  return <Household members={members} me={user.id} />;
+  return (
+    <>
+      <CellarName
+        cellarId={user.cellarId}
+        names={members.filter((m) => m.role === "member").map((m) => m.name)}
+        customName={cellar?.custom_name ?? null}
+        canEdit={user.canEdit}
+      />
+      <Household members={members} me={user.id} />
+    </>
+  );
 }
 
 async function FriendsSection() {
   const [user, supabase] = await Promise.all([getCurrentUser(), createClient()]);
-  const { data } = await supabase.rpc("my_friends");
+  const [{ data }, { data: custom }] = await Promise.all([supabase.rpc("my_friends"), supabase.rpc("friend_cellar_names")]);
   const friends = (data ?? []).map((f) => ({
     cellarId: f.cellar_id,
     names: f.names,
+    customName: custom?.find((c) => c.cellar_id === f.cellar_id)?.custom_name ?? null,
     iShowPrices: f.i_show_prices,
     theyShowPrices: f.they_show_prices,
   }));
