@@ -127,8 +127,8 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
           {link && (
             <>
               <p className="text-muted">
-                <span className="inline-block">שלחו את הקישור לחבר,</span>{" "}
-                <span className="inline-block">הוא עובד פעם אחת ותקף ל־7 ימים</span>{" "}
+                <span className="inline-block">שלחו את הקישור לחבר או לקבוצה,</span>{" "}
+                <span className="inline-block">עד 10 חברים יכולים להצטרף דרכו במשך 7 ימים</span>{" "}
                 <span className="inline-block">(המחירים ניתנים לשינוי גם אחר כך, ליד שם החבר)</span>
               </p>
               <div className="flex gap-2">

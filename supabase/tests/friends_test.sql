@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(35);
+select plan(39);
 
 create function pg_temp.login_as(p_user uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -70,7 +70,7 @@ select is(peek_friend_invite(current_setting('test.token')), array['מאיה'], 
 select is(peek_friend_invite('nope'), null, 'an unknown token reveals nothing');
 select throws_ok($$ select accept_friend_invite('nope') $$, 'P0002', null, 'an unknown token is refused');
 select lives_ok($$ select accept_friend_invite(current_setting('test.token'), false) $$, 'Noa accepts (keeps her prices hidden)');
-select throws_ok($$ select accept_friend_invite(current_setting('test.token')) $$, 'P0002', null, 'an invite works only once');
+select throws_ok($$ select accept_friend_invite(current_setting('test.token')) $$, '23505', null, 'the same cellar cannot accept twice');
 select is((select count(*)::int from friend_links), 2, 'the friendship is mutual: one row per direction');
 
 -- ---------- What a friend sees ----------
@@ -126,6 +126,21 @@ select pg_temp.login_as('aaaaaaaa-0000-0000-0000-000000000001');
 select lives_ok($$ select remove_friend(current_setting('test.maya')::uuid) $$, 'Noa ends the friendship');
 select is((select count(*)::int from bottles where cellar_id = current_setting('test.maya')::uuid), 0,
           'and no longer sees Maya''s bottles (both directions removed)');
+
+-- ---------- One link for a group ----------
+-- Sent to a group chat: several friends can join through it, up to max_uses.
+select pg_temp.logout();
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('ffffffff-0000-0000-0000-000000000001', 'gil@example.com', '{"full_name":"גיל"}'),
+  ('ffffffff-0000-0000-0000-000000000002', 'tal@example.com', '{"full_name":"טל"}');
+select pg_temp.login_as('ffffffff-0000-0000-0000-000000000001');
+select lives_ok($$ select accept_friend_invite(current_setting('test.token')) $$, 'a second friend joins through the same link');
+select is((select names from my_friends()), array['מאיה'], 'Gil is now Maya''s friend');
+select pg_temp.logout();
+update friend_invites set max_uses = 2 where cellar_id = current_setting('test.maya')::uuid;
+select pg_temp.login_as('ffffffff-0000-0000-0000-000000000002');
+select is(peek_friend_invite(current_setting('test.token')), null, 'a used-up link reveals nothing');
+select throws_ok($$ select accept_friend_invite(current_setting('test.token')) $$, 'P0002', null, 'the link stops after its last use');
 
 select pg_temp.logout();
 select * from finish();
