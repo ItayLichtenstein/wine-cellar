@@ -31,15 +31,17 @@ export function drinkState(w: DrinkWindow, year: number): DrinkState {
 /**
  * Badge colors: soft, and green grows stronger as the peak gets closer
  * (chosen 26 Nov 2026 after testers found the old saturated set loud; no
- * red/orange, which read as an error). Digits are always black (spec).
+ * red/orange, which read as an error). Same day: the steps were spread
+ * further apart in lightness, since the first set was too close to tell
+ * apart on the fridge. Digits are always black (spec).
  */
 export const DRINK_STATES: Record<DrinkState, { label: string; color: string }> = {
-  past:  { label: "עבר את השיא",              color: "#CDBFB4" }, // faded taupe
-  now:   { label: "בשיא",                       color: "#7FC28E" }, // strongest green
-  soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#AEDBA9" }, // mid green
-  hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#D3EBC6" }, // pale green
-  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#C6D5E5" }, // mist blue
-  young: { label: "עוד לא בשיא",              color: "#AAB5C3" }, // slate
+  past:  { label: "עבר את השיא",              color: "#C2A188" }, // warm tan
+  now:   { label: "בשיא",                       color: "#4FAE68" }, // strong green
+  soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#9AD691" }, // mid green
+  hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#E4F2B5" }, // pale yellow-green
+  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#A6C8EE" }, // clear sky blue
+  young: { label: "עוד לא בשיא",              color: "#8492AB" }, // deeper slate
   none:  { label: "בלי חלון שתייה",            color: "#E6E1DA" }, // neutral
 };
 
