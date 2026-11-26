@@ -17,13 +17,14 @@ export function ScoreInput({ value, onChange, label = "ציון" }: { value: str
         <button type="button" className={button} onClick={() => set((n ?? 3) - 0.1)} disabled={n !== null && n <= 1} aria-label="פחות 0.1">
           −
         </button>
-        <output className="flex-1 text-center tabular-nums" aria-live="polite">
+        <output className="relative flex-1 text-center tabular-nums" aria-live="polite">
           {n === null ? (
             <span className="text-muted">בלי ציון</span>
           ) : (
             <>
               <span className="text-3xl font-bold">{n.toFixed(1)}</span>
               <span className="text-sm text-muted"> / 5</span>
+              <Cheer score={n} />
             </>
           )}
         </output>
@@ -54,5 +55,25 @@ export function ScoreInput({ value, onChange, label = "ציון" }: { value: str
         </button>
       )}
     </div>
+  );
+}
+
+/**
+ * A little joy for a great bottle: a star pops in from 4.0, and from 4.5
+ * a party popper with a burst of sparks. Keyed by level, so it plays once each
+ * time the score crosses into a level, not on every 0.1 step. Motion is
+ * skipped for people who ask their device for less of it.
+ */
+function Cheer({ score }: { score: number }) {
+  const level = score >= 4.5 ? "fireworks" : score >= 4 ? "star" : null;
+  if (!level) return null;
+  return (
+    <span key={level} className="relative ms-2 inline-block align-middle" aria-hidden="true">
+      <span className="cheer-pop inline-block text-2xl">{level === "fireworks" ? "🎉" : "⭐"}</span>
+      {level === "fireworks" &&
+        [0, 60, 120, 180, 240, 300].map((deg) => (
+          <span key={deg} className="cheer-spark absolute start-1/2 top-1/2 size-1.5 rounded-full bg-accent" style={{ "--deg": `${deg}deg` } as React.CSSProperties} />
+        ))}
+    </span>
   );
 }
