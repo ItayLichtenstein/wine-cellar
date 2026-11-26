@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Heebo } from "next/font/google";
 import { BottomNav } from "@/components/bottom-nav";
+import { I18nProvider } from "@/i18n/provider";
+import { getLocale } from "@/i18n/server";
 import "./globals.css";
 
 // Heebo supports both Hebrew and Latin, so one font covers the whole UI.
@@ -35,20 +37,26 @@ export const viewport: Viewport = {
   ],
 };
 
-// Hebrew is the default language, so the whole document is right-to-left.
-// English support (and switching `dir`) comes later with i18n.
+// <html> is the static shell, drawn before the language cookie is read, so it
+// starts as Hebrew (the default). Everything inside waits for the cookie
+// (ADR 0010): the provider gives every page its language and direction.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="he" dir="rtl" className={`${heebo.variable} h-full antialiased`}>
+    <html lang="he" dir="rtl" suppressHydrationWarning className={`${heebo.variable} h-full antialiased`}>
       {/* pb-20 keeps the last content above the fixed bottom navigation. */}
       <body className="min-h-full flex flex-col pb-20">
-        {children}
-        {/* It reads the URL (usePathname), which must sit inside Suspense
-            so the rest of the page can still be prerendered. */}
         <Suspense fallback={null}>
-          <BottomNav />
+          <WithLocale>
+            {children}
+            <BottomNav />
+          </WithLocale>
         </Suspense>
       </body>
     </html>
   );
+}
+
+/** Reads the cookie (dynamic, hence inside Suspense) and hands the language down. */
+async function WithLocale({ children }: { children: React.ReactNode }) {
+  return <I18nProvider locale={await getLocale()}>{children}</I18nProvider>;
 }
