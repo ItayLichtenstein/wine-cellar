@@ -14,27 +14,25 @@ export function SavedTheme() {
 
 type Theme = "system" | "light" | "dark";
 
-// What "More" holds, grouped. History comes first: it is the most used.
+// What "More" holds, grouped. Each row opens its own page (spec: "More" and its pages).
 const GROUPS: { title: string; links: { href: string; label: string; hint: string; icon: string }[] }[] = [
   {
-    title: "שלנו",
+    title: "המרתף",
     links: [
       { href: "/history", label: "היסטוריה ודירוגים", hint: "מה שתינו, מתי, ואיך היה", icon: "🍷" },
+      { href: "/fridges", label: "המקררים", hint: "הוספה, עריכה וסדר", icon: "🧊" },
       { href: "/ai", label: "ה־AI שלכם", hint: "חיבור, טיוטות מחכות, העתקה ידנית", icon: "✨" },
-      { href: "/more#fridges", label: "המקררים", hint: "הוספה, עריכה וסדר", icon: "🧊" },
     ],
   },
   {
     title: "אנשים",
-    links: [
-      { href: "/more#sharing", label: "שיתוף", hint: "שותפים במרתף, חברים וקישור צפייה", icon: "🤝" },
-    ],
+    links: [{ href: "/sharing", label: "שיתוף", hint: "שותפים במרתף, חברים וקישור צפייה", icon: "🤝" }],
   },
   {
-    title: "עזרה וחשבון",
+    title: "הגדרות ועזרה",
     links: [
+      { href: "/settings", label: "הגדרות", hint: "השם שלי, ייצוא, פרטיות וחשבון", icon: "⚙️" },
       { href: "/guide", label: "מדריך למתחילים", hint: "כל מה שצריך לדעת בחמש דקות", icon: "📖" },
-      { href: "/more#account", label: "חשבון", hint: "ייצוא לאקסל, התנתקות, פרטיות", icon: "👤" },
     ],
   },
 ];
@@ -131,8 +129,8 @@ function applyTheme(next: Theme) {
   window.dispatchEvent(new Event(THEME_EVENT));
 }
 
-/** Automatic (follows the phone, the default), light, or dark (burgundy). */
-function ThemePicker() {
+/** Automatic (follows the phone, the default), light, or dark (burgundy). In the sheet and in settings. */
+export function ThemePicker({ heading = true }: { heading?: boolean }) {
   const theme = useSyncExternalStore(subscribeTheme, readTheme, () => "system" as Theme);
   const choose = applyTheme;
 
@@ -143,7 +141,7 @@ function ThemePicker() {
   ];
   return (
     <section className="flex flex-col gap-1.5">
-      <h3 className="text-xs font-medium text-muted">מראה</h3>
+      {heading && <h3 className="text-xs font-medium text-muted">מראה</h3>}
       <div role="radiogroup" aria-label="מראה" className="grid grid-cols-3 gap-1 rounded-xl bg-surface p-1 shadow-sm">
         {options.map((o) => (
           <button

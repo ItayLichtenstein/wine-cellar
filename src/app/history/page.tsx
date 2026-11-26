@@ -13,7 +13,7 @@ export default function HistoryPage() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 py-8">
       <header className="flex flex-col gap-1">
-        <BackLink href="/more" label="עוד" />
+        <BackLink href="/" label="המקרר" />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-2xl font-bold">היסטוריה ודירוגים</h1>
           <Suspense fallback={null}>

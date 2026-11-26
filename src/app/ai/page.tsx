@@ -38,7 +38,7 @@ export default function AiPage() {
 
 async function WithData() {
   const user = await getCurrentUser();
-  if (!user.canEdit) redirect("/more"); // drafts are for the household's editors (RLS too)
+  if (!user.canEdit) redirect("/"); // drafts are for the household's editors (RLS too)
   const supabase = await createClient();
   const [bottles, fridges, loose, ais, draftsRes] = await Promise.all([
     getCellarBottles(user.cellarId),

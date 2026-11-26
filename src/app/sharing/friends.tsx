@@ -48,7 +48,7 @@ export function Friends({ friends, canEdit }: { friends: Friend[]; canEdit: bool
 
   return (
     <section id="friends" className="flex scroll-mt-4 flex-col gap-2">
-      <h3 className="font-semibold">חברים</h3>
+      <h2 className="text-lg font-semibold">חברים</h2>
       {friends.length === 0 ? (
         <p className="text-sm text-muted">
           <span className="inline-block">חברים רואים את המרתף שלכם,</span>{" "}
