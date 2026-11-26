@@ -38,7 +38,7 @@ async function FriendCellar({ params }: { params: PageProps<"/friends/[id]">["pa
   return (
     <>
       <header className="flex flex-col gap-1">
-        <BackLink href="/more" label="עוד" />
+        <BackLink href="/sharing" label="שיתוף" />
         <h1 className="text-2xl font-bold" dir="auto">
           {cellarTitle(friend.names, custom?.find((c) => c.cellar_id === id)?.custom_name)}
         </h1>
