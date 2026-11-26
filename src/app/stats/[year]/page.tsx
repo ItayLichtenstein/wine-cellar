@@ -71,7 +71,7 @@ async function Summary({ params }: { params: PageProps<"/stats/[year]">["params"
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">נכנסים לחלון השתייה ב־{year + 1}</h2>
         {s.openingNextYear.length === 0 ? (
-          <p className="text-sm text-muted">אין יינות שמתחילים להיות בשלים בשנה הבאה</p>
+          <p className="text-sm text-muted">אין יינות שנכנסים לחלון השתייה בשנה הבאה</p>
         ) : (
           <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
             {s.openingNextYear.map((o) => (

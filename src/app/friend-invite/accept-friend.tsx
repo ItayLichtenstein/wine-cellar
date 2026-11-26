@@ -98,7 +98,7 @@ export function AcceptFriend() {
       </p>
       <p className="text-sm text-muted">
         <span className="inline-block">תוכלו לראות את המרתף שלהם,</span>{" "}
-        <span className="inline-block">והם את שלכם, בלי אפשרות לשנות</span>
+        <span className="inline-block">והם את שלכם (רק צפייה)</span>
       </p>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={showPrices} onChange={(e) => setShowPrices(e.target.checked)} className="size-4 accent-accent" />
