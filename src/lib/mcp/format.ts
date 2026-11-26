@@ -42,3 +42,22 @@ export function formatHistory(entries: HistoryEntry[], limit: number): string {
     .map((t) => `- ${t.tastedOn}: ${t.title} ${t.year ?? "NV"}${t.place ? ` (${t.place})` : ""}${t.score !== null ? ` · rated ${t.score}/5` : ""}${t.notes ? ` – ${t.notes}` : ""}`)
     .join("\n");
 }
+
+/**
+ * Everything about the wines matching a search: each vintage with its
+ * bottles (where, readiness, price) and what the household said when they
+ * drank it. For "what do we know about X?" questions.
+ */
+export function formatWineDetails(rows: ListRow[], history: HistoryEntry[], query: string): string {
+  const q = query.trim().toLowerCase();
+  const drank = history.filter((h) => h.title.toLowerCase().includes(q));
+  if (rows.length === 0 && drank.length === 0) return `Nothing in the cellar or the history matches "${query}". Try search_cellar with fewer words.`;
+  const lines: string[] = [];
+  if (rows.length) {
+    lines.push("In the cellar:", formatRows(rows, 15));
+  }
+  if (drank.length) {
+    lines.push("", "Drunk before:", formatHistory(drank, 10));
+  }
+  return lines.join("\n");
+}
