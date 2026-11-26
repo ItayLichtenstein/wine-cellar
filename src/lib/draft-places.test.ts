@@ -106,3 +106,11 @@ describe("placeText", () => {
     expect(placeText([fridge], { fridge: "", shelf: 1, zone: 1, slot: 3 })).toBe("מדף 1, שורה, מקום 3");
   });
 });
+
+describe("placeText in English", () => {
+  it("names the shelf, the translated zone and the place", () => {
+    const fridges = [{ name: "Main", shelves: [{ zones: [{ id: "z", kind: "row" as const, capacity: 3, label: "קדמי", bottles: [] }] }] }];
+    expect(placeText(fridges, { fridge: "", shelf: 1, zone: 1, slot: 2 }, "en")).toBe("Shelf 1, Front, Place 2");
+    expect(placeText(fridges, { fridge: "", shelf: 1, zone: 1, slot: 2 })).toBe("מדף 1, קדמי, מקום 2");
+  });
+});
