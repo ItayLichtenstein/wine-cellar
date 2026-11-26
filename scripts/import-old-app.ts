@@ -7,8 +7,7 @@
  * and writes through the normal API, so RLS applies exactly as in the app.
  * The export holds personal data: this script never prints its contents.
  *
- * Target and identity: see scripts/import-target.ts (local by default;
- * production as yourself, via .env.import.local).
+ * Target and identity: the local test user, see scripts/import-target.ts.
  */
 import { readFileSync } from "node:fs";
 import { connect } from "./import-target.ts";

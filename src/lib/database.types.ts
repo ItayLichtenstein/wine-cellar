@@ -45,17 +45,23 @@ isOneToOne: false
                   ]
                 },"bottles": {
                   Row: {
-                    "added_on": string,"cellar_id": string,"consumed_on": string | null,"created_at": string,"id": string,"link_url": string | null,"note": string | null,"slot": number | null,"status": Database["public"]['Enums']["bottle_status"],"updated_at": string,"vintage_id": string,"zone_id": string | null
+                    "added_on": string,"cellar_id": string,"consumed_on": string | null,"created_at": string,"id": string,"import_id": string | null,"link_url": string | null,"note": string | null,"slot": number | null,"status": Database["public"]['Enums']["bottle_status"],"updated_at": string,"vintage_id": string,"zone_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "added_on"?: string,"cellar_id": string,"consumed_on"?: string | null,"created_at"?: string,"id"?: string,"link_url"?: string | null,"note"?: string | null,"slot"?: number | null,"status"?: Database["public"]['Enums']["bottle_status"],"updated_at"?: string,"vintage_id": string,"zone_id"?: string | null
+                    "added_on"?: string,"cellar_id": string,"consumed_on"?: string | null,"created_at"?: string,"id"?: string,"import_id"?: string | null,"link_url"?: string | null,"note"?: string | null,"slot"?: number | null,"status"?: Database["public"]['Enums']["bottle_status"],"updated_at"?: string,"vintage_id": string,"zone_id"?: string | null
                   }
                   Update: {
-                    "added_on"?: string,"cellar_id"?: string,"consumed_on"?: string | null,"created_at"?: string,"id"?: string,"link_url"?: string | null,"note"?: string | null,"slot"?: number | null,"status"?: Database["public"]['Enums']["bottle_status"],"updated_at"?: string,"vintage_id"?: string,"zone_id"?: string | null
+                    "added_on"?: string,"cellar_id"?: string,"consumed_on"?: string | null,"created_at"?: string,"id"?: string,"import_id"?: string | null,"link_url"?: string | null,"note"?: string | null,"slot"?: number | null,"status"?: Database["public"]['Enums']["bottle_status"],"updated_at"?: string,"vintage_id"?: string,"zone_id"?: string | null
                   }
                   Relationships: [
                     {
+      foreignKeyName: "bottles_import_id_fkey"
+      columns: ["import_id"]
+isOneToOne: false
+      referencedRelation: "imports"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "bottles_vintage_id_cellar_id_fkey"
       columns: ["vintage_id","cellar_id"]
 isOneToOne: false
@@ -279,6 +285,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"imports": {
+                  Row: {
+                    "bottles": number,"cellar_id": string,"created_at": string,"created_by": string | null,"file_hash": string | null,"id": string,"source": string,"undone_at": string | null,"wines": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bottles"?: number,"cellar_id": string,"created_at"?: string,"created_by"?: string | null,"file_hash"?: string | null,"id"?: string,"source": string,"undone_at"?: string | null,"wines"?: number
+                  }
+                  Update: {
+                    "bottles"?: number,"cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"file_hash"?: string | null,"id"?: string,"source"?: string,"undone_at"?: string | null,"wines"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "imports_cellar_id_fkey"
+      columns: ["cellar_id"]
+isOneToOne: false
+      referencedRelation: "cellars"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "created_at": string,"display_name": string,"id": string,"locale": string,"onboarded_at": string | null,"theme": string,"updated_at": string
@@ -425,17 +451,23 @@ isOneToOne: false
                   ]
                 },"wine_vintages": {
                   Row: {
-                    "alcohol": number | null,"cellar_id": string,"created_at": string,"drink_from": number | null,"drink_to": number | null,"id": string,"peak_from": number | null,"peak_to": number | null,"updated_at": string,"window_source": Database["public"]['Enums']["window_source"] | null,"wine_id": string,"year": number | null
+                    "alcohol": number | null,"cellar_id": string,"created_at": string,"drink_from": number | null,"drink_to": number | null,"id": string,"import_id": string | null,"peak_from": number | null,"peak_to": number | null,"updated_at": string,"window_source": Database["public"]['Enums']["window_source"] | null,"wine_id": string,"year": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "alcohol"?: number | null,"cellar_id": string,"created_at"?: string,"drink_from"?: number | null,"drink_to"?: number | null,"id"?: string,"peak_from"?: number | null,"peak_to"?: number | null,"updated_at"?: string,"window_source"?: Database["public"]['Enums']["window_source"] | null,"wine_id": string,"year"?: number | null
+                    "alcohol"?: number | null,"cellar_id": string,"created_at"?: string,"drink_from"?: number | null,"drink_to"?: number | null,"id"?: string,"import_id"?: string | null,"peak_from"?: number | null,"peak_to"?: number | null,"updated_at"?: string,"window_source"?: Database["public"]['Enums']["window_source"] | null,"wine_id": string,"year"?: number | null
                   }
                   Update: {
-                    "alcohol"?: number | null,"cellar_id"?: string,"created_at"?: string,"drink_from"?: number | null,"drink_to"?: number | null,"id"?: string,"peak_from"?: number | null,"peak_to"?: number | null,"updated_at"?: string,"window_source"?: Database["public"]['Enums']["window_source"] | null,"wine_id"?: string,"year"?: number | null
+                    "alcohol"?: number | null,"cellar_id"?: string,"created_at"?: string,"drink_from"?: number | null,"drink_to"?: number | null,"id"?: string,"import_id"?: string | null,"peak_from"?: number | null,"peak_to"?: number | null,"updated_at"?: string,"window_source"?: Database["public"]['Enums']["window_source"] | null,"wine_id"?: string,"year"?: number | null
                   }
                   Relationships: [
                     {
+      foreignKeyName: "wine_vintages_import_id_fkey"
+      columns: ["import_id"]
+isOneToOne: false
+      referencedRelation: "imports"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "wine_vintages_wine_id_cellar_id_fkey"
       columns: ["wine_id","cellar_id"]
 isOneToOne: false
@@ -445,14 +477,14 @@ isOneToOne: false
                   ]
                 },"wines": {
                   Row: {
-                    "cellar_id": string,"country": string | null,"created_at": string,"grape": string | null,"id": string,"kosher": Database["public"]['Enums']["kosher_status"],"label_image_path": string | null,"label_thumb": string | null,"name": string,"region": string | null,"shape": Database["public"]['Enums']["bottle_shape"],"type": Database["public"]['Enums']["wine_type"],"updated_at": string,"winery": string
+                    "cellar_id": string,"country": string | null,"created_at": string,"grape": string | null,"id": string,"import_id": string | null,"kosher": Database["public"]['Enums']["kosher_status"],"label_image_path": string | null,"label_thumb": string | null,"name": string,"region": string | null,"shape": Database["public"]['Enums']["bottle_shape"],"type": Database["public"]['Enums']["wine_type"],"updated_at": string,"winery": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cellar_id": string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name": string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery": string
+                    "cellar_id": string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"import_id"?: string | null,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name": string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery": string
                   }
                   Update: {
-                    "cellar_id"?: string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name"?: string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery"?: string
+                    "cellar_id"?: string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"import_id"?: string | null,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name"?: string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery"?: string
                   }
                   Relationships: [
                     {
@@ -460,6 +492,12 @@ isOneToOne: false
       columns: ["cellar_id"]
 isOneToOne: false
       referencedRelation: "cellars"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "wines_import_id_fkey"
+      columns: ["import_id"]
+isOneToOne: false
+      referencedRelation: "imports"
       referencedColumns: ["id"]
     }
                   ]
@@ -550,6 +588,9 @@ isOneToOne: false
 "hash_token":
 { Args: { "p_token": string }; Returns: string
                            },
+"import_cellar":
+{ Args: { "p_bottles": Json,"p_file_hash": string,"p_source": string }; Returns: Json
+                           },
 "is_cellar_editor":
 { Args: { "p_cellar_id": string }; Returns: boolean
                            },
@@ -611,6 +652,9 @@ isOneToOne: false
                            },
 "shared_cellar_name":
 { Args: { "p_token": string }; Returns: string
+                           },
+"undo_last_import":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "update_bottle":
 { Args: { "p_bottle_id": string,"p_drink_from": number,"p_drink_to": number,"p_is_gift": boolean,"p_name": string,"p_note": string,"p_paid": number,"p_regular": number,"p_type": Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year": number }; Returns: undefined

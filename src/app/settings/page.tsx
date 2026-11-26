@@ -48,6 +48,11 @@ async function Settings() {
       <section className="flex flex-col items-start gap-2">
         <h2 className="text-lg font-semibold">{t.settings.myData}</h2>
         <ExportButton cellarId={user.cellarId} />
+        {user.canEdit && (
+          <Link href="/import" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
+            {t.importer.fromSettings}
+          </Link>
+        )}
         <Link href="/privacy" className="text-sm text-muted underline underline-offset-2">
           {t.settings.privacy}
         </Link>
