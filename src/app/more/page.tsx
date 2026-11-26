@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { fridgeCapacity } from "@/lib/fridge-layout";
 import { getFridges } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/server";
+import { DeleteAccount } from "./delete-account";
 import { ExportButton } from "./export-button";
 import { FridgeList } from "./fridge-list";
 import { Friends } from "./friends";
@@ -115,6 +116,7 @@ async function Account() {
       <div>
         <SignOutButton />
       </div>
+      <DeleteAccount cellarId={user.cellarId} />
     </section>
   );
 }

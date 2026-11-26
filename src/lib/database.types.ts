@@ -495,6 +495,9 @@ isOneToOne: false
 "accept_invite":
 { Args: { "p_bring_data"?: boolean,"p_token": string }; Returns: string
                            },
+"account_deletion_plan":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
 "add_bottles":
 { Args: { "p_drink_from"?: number,"p_drink_to"?: number,"p_is_gift"?: boolean,"p_name": string,"p_paid"?: number,"p_places"?: Json,"p_quantity": number,"p_regular"?: number,"p_rest_status"?: Database["public"]['Enums']["bottle_status"],"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: (string)[]
                            },
@@ -525,6 +528,9 @@ isOneToOne: false
 "create_share_link":
 { Args: { "p_hide_history"?: boolean,"p_hide_prices"?: boolean }; Returns: string
                            },
+"delete_my_account":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "drink_bottle":
 { Args: { "p_bottle_id": string,"p_notes"?: string,"p_tasted_on"?: string }; Returns: string
                            },
@@ -548,6 +554,9 @@ isOneToOne: false
                            },
 "leave_cellar":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"limit_oauth_clients":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "log_tasting":
 { Args: { "p_name": string,"p_notes"?: string,"p_place"?: string,"p_score"?: number,"p_tasted_on"?: string,"p_type"?: Database["public"]['Enums']["wine_type"],"p_winery": string,"p_year"?: number }; Returns: string
