@@ -6,7 +6,7 @@ export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
 /** Longest side after resizing: sharp on a phone, ~100–200 KB as WebP. */
 export const MAX_SIDE = 1200;
 
-/** The fridge thumbnail: portrait like a label, 2× the slot for sharp phones. */
+/** The fridge thumbnail: portrait like a label, 2× the slot for sharp phones. WebP, or JPEG on Safari. */
 export const THUMB = { width: 96, height: 128 } as const;
 
 /**
@@ -30,8 +30,8 @@ export function fitSize(width: number, height: number, max = MAX_SIDE): { width:
  * Where a wine's photo lives: inside the cellar's own folder (RLS checks
  * the first folder), with a timestamp so a new photo never hits a cached old one.
  */
-export function labelPath(cellarId: string, wineId: string, now = Date.now()): string {
-  return `${cellarId}/${wineId}-${now}.webp`;
+export function labelPath(cellarId: string, wineId: string, now = Date.now(), type = "image/webp"): string {
+  return `${cellarId}/${wineId}-${now}.${type === "image/jpeg" ? "jpg" : "webp"}`;
 }
 
 /**
@@ -49,9 +49,23 @@ export async function reencode(file: File): Promise<Blob> {
   canvas.height = height;
   canvas.getContext("2d")!.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
+  return encode(canvas, 0.82);
+}
+
+/**
+ * WebP when the browser can write it, JPEG otherwise. Safari (iPhone and Mac)
+ * reads WebP but cannot write it from a canvas: asked for WebP it quietly
+ * returns a PNG, many times bigger (over the bucket's 1MB limit) and refused
+ * by the label_thumb check.
+ */
+function blobOf(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("encode"))), "image/webp", 0.82),
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("encode"))), type, quality),
   );
+}
+async function encode(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
+  const webp = await blobOf(canvas, "image/webp", quality);
+  return webp.type === "image/webp" ? webp : blobOf(canvas, "image/jpeg", quality);
 }
 
 /**
@@ -66,5 +80,6 @@ export async function makeThumb(image: Blob): Promise<string> {
   canvas.height = THUMB.height;
   canvas.getContext("2d")!.drawImage(bitmap, sx, sy, sw, sh, 0, 0, THUMB.width, THUMB.height);
   bitmap.close();
-  return canvas.toDataURL("image/webp", 0.7);
+  const webp = canvas.toDataURL("image/webp", 0.7);
+  return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.75); // Safari, see encode()
 }

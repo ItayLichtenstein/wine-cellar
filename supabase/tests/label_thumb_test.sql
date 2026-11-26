@@ -1,8 +1,8 @@
--- The fridge thumbnail on a wine: only a small WebP data URL is accepted,
+-- The fridge thumbnail on a wine: only a small WebP or JPEG data URL is accepted,
 -- and only the cellar's editors can set it.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(5);
+select plan(6);
 
 create function pg_temp.login_as(p_user uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -17,6 +17,7 @@ insert into wines (id, cellar_id, winery, name) values ('acacacac-1111-0000-0000
 
 select pg_temp.login_as('acacacac-0000-0000-0000-000000000001');
 select lives_ok($$ update wines set label_thumb = 'data:image/webp;base64,UklGRg==' where id = 'acacacac-1111-0000-0000-000000000001' $$, 'an editor saves a WebP thumbnail');
+select lives_ok($$ update wines set label_thumb = 'data:image/jpeg;base64,/9j/' where id = 'acacacac-1111-0000-0000-000000000001' $$, 'a JPEG thumbnail from Safari too');
 select throws_ok($$ update wines set label_thumb = 'https://evil.example/x.png' where id = 'acacacac-1111-0000-0000-000000000001' $$, '23514', null, 'a URL is refused');
 select throws_ok($$ update wines set label_thumb = 'data:image/svg+xml;base64,PHN2Zz4=' where id = 'acacacac-1111-0000-0000-000000000001' $$, '23514', null, 'an SVG is refused');
 select throws_ok($$ update wines set label_thumb = 'data:image/webp;base64,' || repeat('A', 20000) where id = 'acacacac-1111-0000-0000-000000000001' $$, '23514', null, 'a big image is refused');

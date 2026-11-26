@@ -26,3 +26,8 @@ describe("coverCrop", () => {
     expect(coverCrop(300, 400, 96, 128)).toEqual({ sx: 0, sy: 0, sw: 300, sh: 400 });
   });
 });
+
+it("labelPath names a JPEG photo .jpg (Safari cannot write WebP)", () => {
+  expect(labelPath("c", "w", 5, "image/jpeg")).toBe("c/w-5.jpg");
+  expect(labelPath("c", "w", 5)).toBe("c/w-5.webp");
+});

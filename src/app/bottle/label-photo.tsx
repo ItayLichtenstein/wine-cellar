@@ -44,12 +44,14 @@ export function LabelPhoto({
     try {
       const blob = await reencode(file);
       const supabase = createClient();
-      const newPath = labelPath(cellarId, wineId);
+      const newPath = labelPath(cellarId, wineId, Date.now(), blob.type);
       const { error: upError } = await supabase.storage
         .from(LABEL_BUCKET)
-        .upload(newPath, blob, { contentType: "image/webp" });
+        .upload(newPath, blob, { contentType: blob.type });
       if (upError) throw upError;
-      const thumb = await makeThumb(blob); // the fridge shows this one
+      // The fridge shows this one. If it fails the photo still saves; the
+      // home page makes the thumbnail later (LabelThumbBackfill).
+      const thumb = await makeThumb(blob).catch(() => null);
       const { error: dbError } = await supabase.from("wines").update({ label_image_path: newPath, label_thumb: thumb }).eq("id", wineId);
       if (dbError) throw dbError;
       if (current) await supabase.storage.from(LABEL_BUCKET).remove([current]); // the old photo is no longer used
