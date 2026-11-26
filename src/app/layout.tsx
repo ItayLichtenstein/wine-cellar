@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Heebo } from "next/font/google";
 import { BottomNav } from "@/components/bottom-nav";
@@ -24,6 +24,15 @@ export const metadata: Metadata = {
   description: PREVIEW_TEXT,
   openGraph: { title: PREVIEW_TITLE, description: PREVIEW_TEXT, siteName: "מרתף יין", locale: "he_IL", type: "website" },
   twitter: { card: "summary_large_image", title: PREVIEW_TITLE, description: PREVIEW_TEXT },
+  appleWebApp: { capable: true, title: "מרתף יין", statusBarStyle: "default" },
+};
+
+// The browser bar and the installed app's status bar match the page.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6ecea" },
+    { media: "(prefers-color-scheme: dark)", color: "#2a0b12" },
+  ],
 };
 
 // Hebrew is the default language, so the whole document is right-to-left.
