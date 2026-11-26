@@ -710,6 +710,14 @@ export const en: Dictionary = {
     notNow: "Not now",
     failed: "Something went wrong, try connecting again from your AI",
   },
+  oops: {
+    errorTitle: "Something went wrong",
+    errorLines: ["We couldn't load the page,", "but your data is fine. Try again in a moment"],
+    retry: "Try again",
+    notFoundTitle: "Page not found",
+    notFoundLines: ["Maybe the link is old,", "or the wine isn't in the cellar anymore"],
+    home: "Back to the cellar",
+  },
   install: {
     title: "Install as an app",
     intro: "Add the site to your home screen and it opens like an app, without the address bar",
