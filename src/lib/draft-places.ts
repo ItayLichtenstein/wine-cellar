@@ -2,7 +2,9 @@
 // and describing the fridges back to the AI in the same words. Pure, so
 // both directions are tested; used by the MCP server and the approval screen.
 
+import type { Locale } from "@/i18n/locales";
 import type { DraftPlace } from "./drafts";
+import { zoneLabel } from "./zone-label";
 
 type Zone = { id: string; kind: "row" | "stack"; capacity: number; label: string; bottles: { slot: number | null; id?: string; title?: string; year?: number | null }[] };
 type Fridge = { name: string; shelves: { zones: Zone[] }[] };
@@ -106,8 +108,16 @@ export function findBottle(
 }
 
 /** "מדף 1, קדמי, מקום 1": one place in words, with the zone's own name from the fridge. */
-export function placeText(fridges: Fridge[], p: DraftPlace): string {
+export function placeText(fridges: Fridge[], p: DraftPlace, locale: Locale = "he"): string {
   const fridge = (p.fridge && fridges.find((f) => f.name.trim() === p.fridge.trim())) || fridges[0];
   const zone = fridge?.shelves[p.shelf - 1]?.zones[p.zone - 1];
-  return [fridges.length > 1 && fridge ? fridge.name : "", `מדף ${p.shelf}`, zone?.label ?? "", p.slot ? `מקום ${p.slot}` : ""].filter(Boolean).join(", ");
+  const en = locale === "en";
+  return [
+    fridges.length > 1 && fridge ? fridge.name : "",
+    en ? `Shelf ${p.shelf}` : `מדף ${p.shelf}`,
+    zone?.label ? zoneLabel(zone.label, locale) : "",
+    p.slot ? (en ? `Place ${p.slot}` : `מקום ${p.slot}`) : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
 }

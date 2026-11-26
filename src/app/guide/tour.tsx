@@ -30,41 +30,42 @@ type Step = { emoji: string; title: string; text: string; demo?: React.ReactNode
  */
 export function GuideTour() {
   const t = useT();
+  const g = t.guide;
   const steps: Step[] = [
     {
       emoji: "🍷",
-      title: "ברוכים הבאים למרתף",
-      text: "מה יש בבית, איפה כל בקבוק ומתי לפתוח אותו, בסיור קצר על מקרר לדוגמה",
+      title: g.steps.welcome[0],
+      text: g.steps.welcome[1],
       demo: <Welcome />,
     },
     {
       emoji: "🧊",
-      title: "מציירים את המקרר",
-      text: "לכל מדף בוחרים סידור, כמו במקרר שלכם. נסו בעצמכם",
+      title: g.steps.draw[0],
+      text: g.steps.draw[1],
       demo: <ArrangementDemo />,
     },
     {
       emoji: "🍾",
-      title: "מוסיפים בקבוק",
-      text: "לוחצים על מקום ריק וזה המקום של הבקבוק. נסו בעצמכם",
+      title: g.steps.add[0],
+      text: g.steps.add[1],
       demo: <PickDemo />,
     },
     {
       emoji: "🎨",
-      title: "הצבע אומר מתי לשתות",
-      text: "המספר הוא שנת הבציר, למשל 19 בשביל 2019, והצבע אומר מתי לשתות. לחצו על בקבוק",
+      title: g.steps.colors[0],
+      text: g.steps.colors[1],
       demo: <ColorsDemo />,
     },
     {
       emoji: "🥂",
-      title: "פתחנו בקבוק",
-      text: "לוחצים על הבקבוק, על \"שתינו\", ונותנים ציון מ־1 עד 5. נסו בעצמכם",
+      title: g.steps.drink[0],
+      text: g.steps.drink[1],
       demo: <DrinkDemo />,
     },
     {
       emoji: "↔️",
-      title: "מזיזים בקבוק",
-      text: "לוחצים על בקבוק ואז על המקום החדש. נסו בעצמכם",
+      title: g.steps.move[0],
+      text: g.steps.move[1],
       demo: <MoveDemo />,
     },
     {
@@ -74,14 +75,14 @@ export function GuideTour() {
     },
     {
       emoji: "✨",
-      title: "ועוד כמה דברים",
-      text: "ועוד כמה דברים",
+      title: g.steps.more[0],
+      text: g.steps.more[1],
       demo: <MoreDemo />,
     },
     {
       emoji: "🎉",
-      title: "זהו, אתם מוכנים!",
-      text: "כמעט הכול אפשר לשנות אחר כך, והסיור נמצא תמיד ב\"עוד\"",
+      title: g.steps.done[0],
+      text: g.steps.done[1],
       demo: <Finish />,
     },
   ];
@@ -91,10 +92,10 @@ export function GuideTour() {
   const last = i === steps.length - 1;
 
   return (
-    <section aria-label="סיור במרתף" className="flex flex-1 flex-col gap-4">
+    <section aria-label={g.tour} className="flex flex-1 flex-col gap-4">
       {/* Progress: a dot per step; tapping one jumps there. */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1.5" role="tablist" aria-label="שלבי הסיור">
+        <div className="flex gap-1.5" role="tablist" aria-label={g.stepsLabel}>
           {steps.map((s, k) => (
             <button
               key={s.title}
@@ -108,7 +109,7 @@ export function GuideTour() {
           ))}
         </div>
         <span className="text-xs text-muted tabular-nums">
-          {i + 1} מתוך {steps.length}
+          {g.of(i + 1, steps.length)}
         </span>
       </div>
 
@@ -127,16 +128,16 @@ export function GuideTour() {
       <div className="mt-auto flex gap-3">
         {i > 0 && (
           <button type="button" onClick={() => setI(i - 1)} className="rounded-full border border-muted/40 px-5 py-3">
-            → הקודם
+            {g.prev}
           </button>
         )}
         {!last ? (
           <button type="button" onClick={() => setI(i + 1)} className="flex-1 rounded-full bg-accent px-5 py-3 font-medium text-white dark:text-black">
-            {i === 0 ? "בואו נתחיל ←" : "הבא ←"}
+            {i === 0 ? g.start : g.next}
           </button>
         ) : (
           <Link href="/" className="flex-1 rounded-full bg-accent px-5 py-3 text-center font-medium text-white dark:text-black">
-            למקרר שלי ←
+            {g.toFridge}
           </Link>
         )}
       </div>
@@ -145,12 +146,8 @@ export function GuideTour() {
 }
 
 function Welcome() {
-  const items = [
-    ["🧊", "מציירים את המקרר פעם אחת"],
-    ["🍾", "מניחים כל בקבוק במקום שלו"],
-    ["🎨", "הצבע אומר מתי לפתוח"],
-    ["⭐", "מדרגים, והכול נשמר"],
-  ];
+  const t = useT();
+  const items = ["🧊", "🍾", "🎨", "⭐"].map((icon, k) => [icon, t.guide.welcome[k]]);
   return (
     <ul className="grid grid-cols-2 gap-2">
       {items.map(([icon, text]) => (
@@ -167,31 +164,33 @@ function Welcome() {
 
 /** Pick an arrangement and watch the shelf change. */
 function ArrangementDemo() {
+  const { guide } = useT();
+  const a = guide.arrangements;
   const options = {
     one: {
-      name: "שורה אחת",
-      note: "שורה אחת של בקבוקים",
+      name: a.one[0],
+      note: a.one[1],
       zones: [{ kind: "row" as const, capacity: 4, label: "שורה" }],
     },
     rows: {
-      name: "שתי שורות",
-      note: "שורה מאחור ושורה מלפנים",
+      name: a.rows[0],
+      note: a.rows[1],
       zones: [
         { kind: "row" as const, capacity: 4, label: "אחורי" },
         { kind: "row" as const, capacity: 3, label: "קדמי" },
       ],
     },
     pile: {
-      name: "ערימה",
-      note: "בקבוקים זה על זה, למשל בתחתית המקרר",
+      name: a.pile[0],
+      note: a.pile[1],
       zones: [
         { kind: "stack" as const, capacity: 3, label: "שכבה עליונה" },
         { kind: "stack" as const, capacity: 4, label: "שכבה תחתונה" },
       ],
     },
     front: {
-      name: "בחזית",
-      note: "בקבוקים ששוכבים לרוחב בקדמת המדף",
+      name: a.front[0],
+      note: a.front[1],
       zones: [
         { kind: "row" as const, capacity: 4, label: "אחורי" },
         { kind: "row" as const, capacity: 3, label: "קדמי" },
@@ -203,7 +202,7 @@ function ArrangementDemo() {
   const o = options[key];
   return (
     <div className="flex flex-col gap-3">
-      <div role="radiogroup" aria-label="סידור המדף" className="grid grid-cols-4 gap-1 rounded-xl bg-background p-1">
+      <div role="radiogroup" aria-label={guide.arrangementLabel} className="grid grid-cols-4 gap-1 rounded-xl bg-background p-1">
         {(Object.keys(options) as (keyof typeof options)[]).map((k) => (
           <button
             key={k}
@@ -225,6 +224,7 @@ function ArrangementDemo() {
 
 /** Tap empty places to pick them, as in "add bottles". */
 function PickDemo() {
+  const g = useT().guide;
   const [picked, setPicked] = useState<Place[]>([]);
   const shelves = [
     {
@@ -242,8 +242,8 @@ function PickDemo() {
       <FridgePreview shelves={shelves} onPick={pick} picked={picked} />
       <p className="text-sm font-medium" aria-live="polite">
         {picked.length === 0
-          ? "👆 לחצו על אחד המקומות הריקים"
-          : `יופי! ${picked.length === 1 ? "מקום אחד נבחר" : `${picked.length} מקומות נבחרו`} (לחיצה נוספת מבטלת)`}
+          ? g.tapEmpty
+          : g.picked(picked.length)}
       </p>
     </div>
   );
@@ -251,6 +251,7 @@ function PickDemo() {
 
 /** Tap a bottle to see what its color means. */
 function ColorsDemo() {
+  const t = useT();
   const states = DRINK_STATE_ORDER.filter((s) => s !== "none");
   const bottles = states.map((s, k) => bottle(`c${k}`, s, 2014 + k, ["Port", "Rioja", "Chianti", "Barolo", "Pinot", "Syrah"][k] ?? "Wine", null));
   const [open, setOpen] = useState<DrinkState | null>(null);
@@ -264,10 +265,10 @@ function ColorsDemo() {
         {open ? (
           <>
             <span className="me-2 inline-block size-3 rounded-sm align-middle" style={{ backgroundColor: DRINK_STATES[open].color }} aria-hidden="true" />
-            {DRINK_STATES[open].label}
+            {t.drinkState[open]}
           </>
         ) : (
-          "👆 לחצו על אחד הבקבוקים"
+          t.guide.tapBottleOne
         )}
       </p>
     </div>
@@ -276,6 +277,7 @@ function ColorsDemo() {
 
 /** Open the bottle card, tap "שתינו", give a score. */
 function DrinkDemo() {
+  const g = useT().guide;
   const [stage, setStage] = useState<"shelf" | "card" | "rate" | "done">("shelf");
   const [score, setScore] = useState("");
   const b = bottle("d1", "now", 2019, "Rioja", 2);
@@ -283,7 +285,7 @@ function DrinkDemo() {
     return (
       <div className="flex flex-col gap-3">
         <FridgePreview shelves={[{ zones: [{ id: "d-row", kind: "row" as const, capacity: 3, label: "שורה", bottles: [b] }] }]} onBottleClick={() => setStage("card")} />
-        <p className="text-sm font-medium">👆 לחצו על הבקבוק</p>
+        <p className="text-sm font-medium">{g.tapTheBottle}</p>
       </div>
     );
   }
@@ -294,12 +296,12 @@ function DrinkDemo() {
       </p>
       {stage === "card" && (
         <button type="button" onClick={() => setStage("rate")} className="self-start rounded-full bg-accent px-4 py-2 font-medium text-white dark:text-black">
-          🍷 שתינו
+          {g.drank}
         </button>
       )}
       {stage === "rate" && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm">איך היה? ציון מ־1 עד 5</span>
+          <span className="text-sm">{g.howWasIt}</span>
           <ScoreInput value={score} onChange={setScore} />
           <button
             type="button"
@@ -307,17 +309,17 @@ function DrinkDemo() {
             onClick={() => setStage("done")}
             className="self-start rounded-full bg-accent px-4 py-2 font-medium text-white disabled:opacity-50 dark:text-black"
           >
-            לחיים!
+            {g.cheers}
           </button>
         </div>
       )}
       {stage === "done" && (
         <p className="text-sm" aria-live="polite">
-          <span className="text-lg">לחיים! {score}</span>
+          <span className="text-lg">{g.cheers} {score}</span>
           <br />
-          נשמר בהיסטוריה ·{" "}
+          {g.savedToHistory}{" "}
           <button type="button" onClick={() => (setStage("shelf"), setScore(""))} className="underline underline-offset-2">
-            שוב
+            {g.again}
           </button>
         </p>
       )}
@@ -327,6 +329,7 @@ function DrinkDemo() {
 
 /** Tap a bottle, then an empty place: it moves (or swaps with a bottle). */
 function MoveDemo() {
+  const g = useT().guide;
   const [slots, setSlots] = useState<Record<string, number>>({ m1: 1, m2: 3 });
   const [moving, setMoving] = useState<string | null>(null);
   const all = [bottle("m1", "now", 2019, "Rioja"), bottle("m2", "hold", 2020, "Barolo")];
@@ -348,22 +351,16 @@ function MoveDemo() {
         onBottleClick={(b, p) => (moving && b.id !== moving ? to(p.slot) : setMoving(b.id === moving ? null : b.id))}
       />
       <p className="text-sm font-medium" aria-live="polite">
-        {moving ? "עכשיו לחצו על המקום החדש" : "👆 לחצו על בקבוק כדי להזיז אותו"}
+        {moving ? g.tapNewPlace : g.tapToMove}
       </p>
     </div>
   );
 }
 
 function MoreDemo() {
-  const items: [IconName, string, string][] = [
-    ["list", "רשימה", "כל הבקבוקים, עם חיפוש וסינון"],
-    ["wish", "Wishlist", "יינות שרוצים לקנות או לטעום"],
-    ["stats", "סטטיסטיקות", "שווי המרתף, מה בשל ומה אתם הכי אוהבים"],
-    ["people", "חברים ושיתוף", "מזמינים בקישור, שותף מנהל איתכם וחבר רק צופה. את המקררים של החברים פותחים ב\"החברים שלי\" במסך הראשי"],
-    ["sparkle", "חיבור AI", "שואלים \"מה לפתוח הערב?\" או מצלמים את המקרר, וה־AI ממלא אותו (תמיד ב\"עוד\")"],
-    ["moon", "מראה", "בהיר, כהה או אוטומטי, ב\"עוד\""],
-    ["phone", "כמו אפליקציה", "מוסיפים למסך הבית, ההוראות לאייפון ולאנדרואיד ב\"עוד\" ← \"התקנה כאפליקציה\""],
-  ];
+  const m = useT().guide.moreItems;
+  const icons: IconName[] = ["list", "wish", "stats", "people", "sparkle", "moon", "phone"];
+  const items: [IconName, string, string][] = icons.map((icon) => [icon, m[icon][0], m[icon][1]]);
   return (
     <ul className="flex flex-col gap-2">
       {items.map(([icon, name, text]) => (
@@ -382,18 +379,19 @@ function MoreDemo() {
 }
 
 function Finish() {
+  const g = useT().guide;
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium">מכאן אפשר להמשיך ישר אל</p>
+      <p className="text-sm font-medium">{g.goOn}</p>
       <div className="flex flex-wrap gap-2">
       <Link href="/fridges/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
-        הגדרת מקרר
+        {g.setupFridge}
       </Link>
       <Link href="/bottles/new" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
-        הוספת בקבוק
+        {g.addBottle}
       </Link>
       <Link href="/ai" className="rounded-full border border-muted/40 px-4 py-2 text-sm">
-        חיבור AI
+        {g.connectAi}
       </Link>
       </div>
     </div>

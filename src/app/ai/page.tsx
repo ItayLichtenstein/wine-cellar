@@ -1,5 +1,5 @@
 import { pageTitle } from "@/i18n/metadata";
-import { getT } from "@/i18n/server";
+import { getLocale, getT } from "@/i18n/server";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -40,7 +40,7 @@ export default async function AiPage() {
 }
 
 async function WithData() {
-  const [user, t] = await Promise.all([getCurrentUser(), getT()]);
+  const [user, t, locale] = await Promise.all([getCurrentUser(), getT(), getLocale()]);
   if (!user.canEdit) redirect("/"); // drafts are for the household's editors (RLS too)
   const supabase = await createClient();
   const [bottles, fridges, loose, ais, draftsRes] = await Promise.all([
@@ -79,7 +79,7 @@ async function WithData() {
     if (!r.ok) return [];
     const bottle = findBottle(fridges, loose, r.action);
     const target = r.action.kind === "move" ? (resolvePlaces(fridges, [r.action.to])[0] ?? null) : null;
-    const targetText = r.action.kind === "move" ? placeText(fridges, r.action.to) : "";
+    const targetText = r.action.kind === "move" ? placeText(fridges, r.action.to, locale) : "";
     return [{ id: d.id, action: r.action, bottle, target, targetText }];
   });
 
