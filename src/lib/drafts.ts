@@ -198,3 +198,36 @@ export function buildPrompt(task: "add" | "drink", cellar: CellarLine[], extra: 
     .filter((l, i, a) => l !== "" || a[i - 1] !== "")
     .join("\n");
 }
+
+/**
+ * A suggested action on a bottle already in the cellar: drink it, or move
+ * it. The AI names the bottle as a person would (wine + vintage, and where
+ * it is if there are several); the site finds it and shows which one.
+ */
+export type ActionDraft =
+  | { kind: "drink"; winery: string; name: string; year: number | null; at: DraftPlace | null; date: string | null; notes: string; score: number | null }
+  | { kind: "move"; winery: string; name: string; year: number | null; at: DraftPlace | null; to: DraftPlace };
+
+export function parseActionDraft(kind: string, input: unknown): { ok: true; action: ActionDraft } | { ok: false; error: string } {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) return { ok: false, error: "Expected an object." };
+  const o = input as Record<string, unknown>;
+  const winery = text(pick(o, "winery", "producer"), 120);
+  const name = text(pick(o, "name", "wine"), 120);
+  if (!winery || !name) return { ok: false, error: "\"winery\" and \"name\" are required, exactly as in search_cellar." };
+  const rawYear = pick(o, "year", "vintage");
+  const year = typeof rawYear === "string" && /^n\.?v\.?$/i.test(rawYear.trim()) ? null : int(rawYear);
+  const at = parsePlace(pick(o, "at", "from", "place"))[0] ?? null;
+  if (kind === "move") {
+    const to = parsePlace(pick(o, "to", "destination"))[0];
+    if (!to) return { ok: false, error: "\"to\" is required: { \"shelf\": 2, \"zone\": 1, \"slot\": 3 } (see fridge_layout)." };
+    return { ok: true, action: { kind: "move", winery, name, year, at, to } };
+  }
+  if (kind === "drink") {
+    const rawDate = text(pick(o, "date", "tasted_on"), 10);
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : null;
+    const rawScore = Number(pick(o, "score", "rating"));
+    const score = Number.isFinite(rawScore) && rawScore >= 1 && rawScore <= 5 ? Math.round(rawScore * 10) / 10 : null;
+    return { ok: true, action: { kind: "drink", winery, name, year, at, date, notes: text(pick(o, "notes", "note"), 1000), score } };
+  }
+  return { ok: false, error: "Unknown kind." };
+}

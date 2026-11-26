@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { describeFridges, placesSummary, resolvePlaces } from "./draft-places";
-import { parseBottleDraft, parsePlace } from "./drafts";
+import { describeFridges, findBottle, placeText, placesSummary, resolvePlaces } from "./draft-places";
+import { parseActionDraft, parseBottleDraft, parsePlace } from "./drafts";
 
 const fridge = {
   name: "מקרר יין",
@@ -65,5 +65,44 @@ describe("placesSummary", () => {
     const p = (shelf: number, slot: number | null) => ({ fridge: "", shelf, zone: 1, slot });
     expect(placesSummary([p(1, 1), p(1, 2), p(2, null), p(2, null), p(2, null)])).toBe("מדף 1 (מקומות 1, 2) · מדף 2 (3 בקבוקים)");
     expect(placesSummary([p(4, 3)])).toBe("מדף 4 (מקום 3)");
+  });
+});
+
+describe("parseActionDraft", () => {
+  it("drink: the wine, and optional date / notes / score", () => {
+    const r = parseActionDraft("drink", { winery: "Yatir", name: "Forest", year: 2019, score: "4.25", date: "2026-11-20", notes: "יפה" });
+    expect(r).toEqual({ ok: true, action: { kind: "drink", winery: "Yatir", name: "Forest", year: 2019, at: null, date: "2026-11-20", notes: "יפה", score: 4.3 } });
+  });
+  it("move needs a destination", () => {
+    expect(parseActionDraft("move", { winery: "Y", name: "F" }).ok).toBe(false);
+    expect(parseActionDraft("move", { winery: "Y", name: "F", to: { shelf: 2, slot: 1 } }).ok).toBe(true);
+  });
+});
+
+describe("findBottle", () => {
+  const f = {
+    name: "מקרר",
+    shelves: [
+      { zones: [{ id: "z1", kind: "row" as const, capacity: 3, label: "", bottles: [{ slot: 1, id: "a", title: "Yatir – Forest", year: 2019 }, { slot: 3, id: "b", title: "Yatir – Forest", year: 2019 }] }] },
+    ],
+  };
+  const ref = { winery: "yatir", name: "forest", year: 2019, at: null };
+  it("finds the wine and says where it is", () => {
+    expect(findBottle([f], [], ref)).toEqual({ id: "a", where: "מדף 1, מקום 1" });
+  });
+  it("uses the place when given", () => {
+    expect(findBottle([f], [], { ...ref, at: { fridge: "", shelf: 1, zone: 1, slot: 3 } })?.id).toBe("b");
+    expect(findBottle([f], [], { ...ref, at: { fridge: "", shelf: 1, zone: 1, slot: 2 } })).toBeNull();
+  });
+  it("falls back to bottles outside the fridge; another vintage does not match", () => {
+    expect(findBottle([], [{ id: "c", title: "Yatir – Forest", year: 2019 }], ref)).toEqual({ id: "c", where: "מחוץ למקרר" });
+    expect(findBottle([f], [], { ...ref, year: 2020 })).toBeNull();
+  });
+});
+
+describe("placeText", () => {
+  it("names the zone from the fridge", () => {
+    expect(placeText([fridge], { fridge: "", shelf: 2, zone: 2, slot: null })).toBe("מדף 2, שכבה תחתונה");
+    expect(placeText([fridge], { fridge: "", shelf: 1, zone: 1, slot: 3 })).toBe("מדף 1, שורה, מקום 3");
   });
 });
