@@ -15,7 +15,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold">מרתף יין</h1>
           {/* Each span is one unit of meaning; lines break only between them. */}
           <p className="text-muted">
-            <span className="inline-block">כל הבקבוקים שלכם במקום אחד:</span>{" "}
+            <span className="inline-block">כל הבקבוקים שלכם במקום אחד</span>{" "}
             <span className="inline-block">מה יש במקרר, מה בשל לשתייה,</span>{" "}
             <span className="inline-block">ומה כדאי לפתוח הערב.</span>
           </p>
