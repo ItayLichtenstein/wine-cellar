@@ -300,6 +300,10 @@ export const he = {
     less: "פחות 0.1",
     more: "יותר 0.1",
   },
+  guide: {
+    // Above every practice demo, so the sample bottles aren't mistaken for yours.
+    sample: "מקרר לדוגמה לתרגול, שום דבר כאן לא נשמר",
+  },
   language: {
     he: "עברית",
     en: "English",
