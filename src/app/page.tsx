@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCellarBottles, getFridges, getLooseBottles } from "@/lib/fridges";
 import { AiCard } from "./ai-card";
 import { CellarView } from "./cellar-view";
+import { LabelThumbBackfill } from "./label-thumb-backfill";
 import { GuideCard } from "./guide-card";
 import { NamePrompt } from "./name-prompt";
 
@@ -102,6 +103,7 @@ async function Fridges() {
       {user.canEdit && <AiCard connected={connected} pendingDrafts={drafts} nearlyEmpty={stored.length + loose.length < 6} />}
 
       <CellarView fridges={fridges} loose={loose} drinkNow={drinkNow(all)} canEdit={user.canEdit} />
+      {user.canEdit && <LabelThumbBackfill cellarId={user.cellarId} />}
 
       {(stored.length > 0 || loose.length > 0) && <Legend />}
     </section>

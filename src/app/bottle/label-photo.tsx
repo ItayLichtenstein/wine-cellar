@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ACCEPTED_TYPES, LABEL_BUCKET, labelPath, reencode } from "@/lib/label-image";
+import { ACCEPTED_TYPES, LABEL_BUCKET, labelPath, makeThumb, reencode } from "@/lib/label-image";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -49,7 +49,8 @@ export function LabelPhoto({
         .from(LABEL_BUCKET)
         .upload(newPath, blob, { contentType: "image/webp" });
       if (upError) throw upError;
-      const { error: dbError } = await supabase.from("wines").update({ label_image_path: newPath }).eq("id", wineId);
+      const thumb = await makeThumb(blob); // the fridge shows this one
+      const { error: dbError } = await supabase.from("wines").update({ label_image_path: newPath, label_thumb: thumb }).eq("id", wineId);
       if (dbError) throw dbError;
       if (current) await supabase.storage.from(LABEL_BUCKET).remove([current]); // the old photo is no longer used
       setUrl(null);

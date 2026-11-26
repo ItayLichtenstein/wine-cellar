@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fitSize, labelPath } from "./label-image";
+import { coverCrop, fitSize, labelPath } from "./label-image";
 
 describe("fitSize", () => {
   it("shrinks the longer side to the maximum, keeping the ratio", () => {
@@ -13,4 +13,16 @@ describe("fitSize", () => {
 
 it("labelPath puts the photo in the cellar's own folder", () => {
   expect(labelPath("cellar-1", "wine-2", 123)).toBe("cellar-1/wine-2-123.webp");
+});
+
+describe("coverCrop", () => {
+  it("cuts the sides of a wide photo, keeping the middle", () => {
+    expect(coverCrop(1200, 800, 96, 128)).toEqual({ sx: 300, sy: 0, sw: 600, sh: 800 });
+  });
+  it("cuts top and bottom of a tall photo", () => {
+    expect(coverCrop(600, 1600, 96, 128)).toEqual({ sx: 0, sy: 400, sw: 600, sh: 800 });
+  });
+  it("takes everything when the ratio already matches", () => {
+    expect(coverCrop(300, 400, 96, 128)).toEqual({ sx: 0, sy: 0, sw: 300, sh: 400 });
+  });
 });

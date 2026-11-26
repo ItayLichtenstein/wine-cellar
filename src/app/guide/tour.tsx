@@ -16,6 +16,7 @@ const bottle = (id: string, state: DrinkState, year: number, label: string, slot
   state,
   title: label,
   label,
+  thumb: null,
 });
 
 type Step = { emoji: string; title: string; text: string; demo?: React.ReactNode };
