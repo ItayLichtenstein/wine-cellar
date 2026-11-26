@@ -12,7 +12,7 @@ export type CurrentUser = {
   displayName: string;
   /** False until the user confirmed a name (first sign-in). */
   onboarded: boolean;
-  /** A viewer only reads (spec); the UI hides editing for them. RLS enforces it anyway. */
+  /** Partners all edit (no viewer level since 26 Nov 2026); false only for a legacy viewer row. RLS enforces it anyway. */
   canEdit: boolean;
 };
 

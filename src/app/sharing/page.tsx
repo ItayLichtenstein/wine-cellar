@@ -36,13 +36,12 @@ export default async function SharingPage() {
 async function OurCellar() {
   const [user, supabase, t] = await Promise.all([getCurrentUser(), createClient(), getT()]);
   const [{ data }, { data: cellar }] = await Promise.all([
-    supabase.from("cellar_members").select("user_id, role, profiles(display_name)").eq("cellar_id", user.cellarId).order("joined_at"),
+    supabase.from("cellar_members").select("user_id, profiles(display_name)").eq("cellar_id", user.cellarId).order("joined_at"),
     supabase.from("cellars").select("custom_name").eq("id", user.cellarId).maybeSingle(),
   ]);
   const members: Member[] = (data ?? []).map((m) => ({
     userId: m.user_id,
     name: m.profiles?.display_name ?? "",
-    role: m.role,
   }));
   return (
     <section className="flex flex-col gap-2">
@@ -52,7 +51,7 @@ async function OurCellar() {
       </p>
       <CellarName
         cellarId={user.cellarId}
-        names={members.filter((m) => m.role === "member").map((m) => m.name)}
+        names={members.map((m) => m.name)}
         customName={cellar?.custom_name ?? null}
         canEdit={user.canEdit}
       />

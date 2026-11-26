@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(105);
+select plan(106);
 
 -- ---------- Helpers: act as a given user ----------
 -- Supabase reads the user id from the JWT claims; we fake them here.
@@ -422,7 +422,7 @@ select throws_ok(
 select throws_ok($$ select create_invite() $$, '42501', null, 'a viewer cannot create an invite');
 
 select pg_temp.login_as('11111111-1111-1111-1111-111111111111');
-select set_config('test.token', create_invite('member'), true);
+select set_config('test.token', create_invite(), true);
 select matches(current_setting('test.token'), '^[0-9a-f]{64}$', 'an invite token is 32 random bytes (64 hex)');
 select is((select count(*)::int from cellar_invites where token_hash = current_setting('test.token')), 0,
           'the raw token is never stored, only its hash');
@@ -443,7 +443,7 @@ select throws_ok($$ select accept_invite('not-a-real-token') $$, 'P0002', null, 
 
 -- Maya already has bottles: refused until moving bottles is built
 select pg_temp.login_as('11111111-1111-1111-1111-111111111111');
-select set_config('test.token2', create_invite('member'), true);
+select set_config('test.token2', create_invite(), true);
 select pg_temp.login_as('22222222-2222-2222-2222-222222222222');
 select throws_ok(format($$ select accept_invite('%s') $$, current_setting('test.token2')),
                  '23514', null, 'joining with a cellar that has data is refused (for now)');
@@ -454,12 +454,10 @@ select set_config('test.yonatan_bottles', (select count(*)::text from bottles), 
 select lives_ok($$ select leave_cellar() $$, 'a member can leave');
 select isnt(my_cellar_id()::text, current_setting('test.yonatan_cellar'), 'after leaving the user has a cellar of their own');
 
--- removing the viewer; then Yonatan cannot demote himself (last full member)
+-- removing the viewer
 select pg_temp.login_as('11111111-1111-1111-1111-111111111111');
 select is((select count(*)::text from bottles), current_setting('test.yonatan_bottles'), 'leaving took no bottles away');
 select lives_ok($$ select remove_member('33333333-3333-3333-3333-333333333333') $$, 'a member can remove a viewer');
-select throws_ok($$ select set_member_role(auth.uid(), 'viewer') $$, '23514', null,
-                 'the last full member cannot become a viewer');
 select pg_temp.login_as('33333333-3333-3333-3333-333333333333');
 
 -- realtime: every cellar table is streamed (and RLS filters who hears what)
@@ -491,7 +489,7 @@ select set_rating((select id from wines where name = 'לבן'), 4.5);
 
 -- the host invites; without confirming, the joiner is refused
 select pg_temp.login_as('66666666-6666-6666-6666-666666666666');
-select set_config('test.token3', create_invite('member'), true);
+select set_config('test.token3', create_invite(), true);
 select pg_temp.login_as('77777777-7777-7777-7777-777777777777');
 select throws_ok(format($$ select accept_invite('%s') $$, current_setting('test.token3')),
                  '23514', null, 'joining with data needs an explicit "bring my bottles"');
@@ -545,5 +543,9 @@ select throws_ok($$ select is_cellar_member(gen_random_uuid()) $$, '42501', null
                  'anon cannot call helper functions');
 
 select pg_temp.logout();
+-- every partner has the same rights: no way to make or demote to a viewer
+select hasnt_function('public', 'set_member_role', 'partners cannot be demoted to viewers');
+select hasnt_function('public', 'peek_friend_invite', 'the old invite peek is gone');
+
 select * from finish();
 rollback;

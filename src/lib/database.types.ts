@@ -523,7 +523,7 @@ isOneToOne: false
 { Args: { "p_shows_prices"?: boolean }; Returns: string
                            },
 "create_invite":
-{ Args: { "p_role"?: Database["public"]['Enums']["member_role"] }; Returns: string
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "create_share_link":
 { Args: { "p_hide_prices"?: boolean }; Returns: string
@@ -588,9 +588,6 @@ isOneToOne: false
 "peek_cellar_names":
 { Args: { "p_cellar": string }; Returns: (string)[]
                            },
-"peek_friend_invite":
-{ Args: { "p_token": string }; Returns: (string)[]
-                           },
 "readable_cellar_ids":
 { Args: Record<PropertyKey, never>; Returns: string[]
                            },
@@ -605,9 +602,6 @@ isOneToOne: false
                            },
 "set_friend_prices":
 { Args: { "p_friend_cellar": string,"p_shows": boolean }; Returns: undefined
-                           },
-"set_member_role":
-{ Args: { "p_role": Database["public"]['Enums']["member_role"],"p_user_id": string }; Returns: undefined
                            },
 "set_rating":
 { Args: { "p_rater_id"?: string,"p_score": number,"p_vintage_id"?: string,"p_wine_id": string }; Returns: undefined
