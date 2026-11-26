@@ -733,7 +733,7 @@ export const en: Dictionary = {
   importer: {
     title: "Import from a file",
     intro: "Choose a file, see what will come in, and only then import",
-    formats: "A CSV file, like the one the site exports or your own sheet with a header row (winery, wine, vintage, quantity, price)",
+    formats: "A CSV file, like the one the site exports, a CellarTracker or Vivino export, or your own sheet with a header row (winery, wine, vintage, quantity, price)",
     excelHint: "In Excel: File → Save As → CSV. In Google Sheets: File → Download → CSV",
     choose: "Choose a file",
     reading: "Reading the file…",

@@ -73,3 +73,32 @@ describe("summarize", () => {
     expect(summarize([b("A"), b("a", "consumed"), b("B")])).toEqual({ bottles: 3, consumed: 1, toPlace: 2, wines: 2 });
   });
 });
+
+describe("guessMapping for other apps' exports", () => {
+  it("reads a CellarTracker header", () => {
+    const header = ["iWine", "Type", "Color", "Quantity", "Vintage", "Wine", "Producer", "Varietal", "Country", "Region", "Appellation", "BeginConsume", "EndConsume", "Price", "Value"];
+    const m = guessMapping(header);
+    expect(m.winery).toBe(6);
+    expect(m.name).toBe(5);
+    expect(m.year).toBe(4);
+    expect(m.quantity).toBe(3);
+    expect(m.grape).toBe(7);
+    expect(m.region).toBe(9);
+    expect(m.drinkFrom).toBe(11);
+    expect(m.drinkTo).toBe(12);
+    expect(m.paid).toBe(13);
+    expect(m.regular).toBe(14);
+  });
+  it("reads a Vivino header", () => {
+    const header = ["Winery", "Wine name", "Vintage", "Region", "Country", "Regional wine style", "Average rating", "Scan date", "Your rating", "Your review", "Personal Note", "Wine type", "Link to wine", "Wine price"];
+    const m = guessMapping(header);
+    expect(m.winery).toBe(0);
+    expect(m.name).toBe(1);
+    expect(m.year).toBe(2);
+    expect(m.type).toBe(11);
+    expect(m.added).toBe(7);
+    expect(m.note).toBe(10);
+    expect(m.link).toBe(12);
+    expect(m.paid).toBe(13);
+  });
+});
