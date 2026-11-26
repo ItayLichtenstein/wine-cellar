@@ -15,3 +15,12 @@ describe("cellarTitle", () => {
     expect(cellarTitle([" "])).toBe("מרתף יין");
   });
 });
+
+describe("cellarTitle with a custom name", () => {
+  it("the cellar's own name wins; blank falls back", async () => {
+    const { cellarTitle } = await import("./cellar-title");
+    expect(cellarTitle(["נועה"], "הבית ברחובות")).toBe("הבית ברחובות");
+    expect(cellarTitle(["נועה"], "  ")).toBe("המרתף של נועה");
+    expect(cellarTitle(["נועה"], null)).toBe("המרתף של נועה");
+  });
+});
