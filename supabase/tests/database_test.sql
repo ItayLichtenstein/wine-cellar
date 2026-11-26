@@ -106,7 +106,7 @@ insert into fridges (id, cellar_id, name) values
 insert into shelves (id, fridge_id, cellar_id, position) values
   ('aaaaaaaa-0000-0000-0000-000000000002', 'aaaaaaaa-0000-0000-0000-000000000001', my_cellar_id(), 1);
 insert into shelf_zones (id, shelf_id, cellar_id, position, kind, capacity, label) values
-  ('aaaaaaaa-0000-0000-0000-000000000003', 'aaaaaaaa-0000-0000-0000-000000000002', my_cellar_id(), 1, 'row', 3, 'אחורית'),
+  ('aaaaaaaa-0000-0000-0000-000000000003', 'aaaaaaaa-0000-0000-0000-000000000002', my_cellar_id(), 1, 'row', 3, 'אחורי'),
   ('aaaaaaaa-0000-0000-0000-000000000004', 'aaaaaaaa-0000-0000-0000-000000000002', my_cellar_id(), 2, 'stack', 1, 'ערימה');
 insert into wines (id, cellar_id, winery, name) values
   ('bbbbbbbb-0000-0000-0000-000000000001', my_cellar_id(), 'יקב', 'קומטו');
@@ -254,7 +254,7 @@ select pg_temp.login_as('22222222-2222-2222-2222-222222222222');
 
 select lives_ok(
   $$ select create_fridge('מקרר יין', '[
-       {"zones":[{"kind":"row","capacity":5,"label":"אחורית"},{"kind":"row","capacity":5,"label":"קדמית"}]},
+       {"zones":[{"kind":"row","capacity":5,"label":"אחורי"},{"kind":"row","capacity":5,"label":"קדמי"}]},
        {"zones":[{"kind":"stack","capacity":8},{"kind":"stack","capacity":8},{"kind":"row","capacity":2}]}
      ]'::jsonb, 'Liebherr', 'WKt 4552') $$,
   'create_fridge builds a fridge with mixed zones');

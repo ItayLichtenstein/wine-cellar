@@ -100,8 +100,8 @@ function fridgeLayout(shelves: OldShelf[]) {
           { kind: "stack", capacity: s.front, label: "שכבה תחתונה" },
         ]
       : [
-          { kind: "row", capacity: s.back, label: "אחורית" },
-          { kind: "row", capacity: s.front, label: "קדמית" },
+          { kind: "row", capacity: s.back, label: "אחורי" },
+          { kind: "row", capacity: s.front, label: "קדמי" },
         ];
     if (s.extra) zones.push({ kind: "row", capacity: s.extra, label: "בחזית" });
     return { zones: zones.filter((z) => z.capacity > 0) };

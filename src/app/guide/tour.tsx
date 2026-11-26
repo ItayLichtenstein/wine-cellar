@@ -166,8 +166,8 @@ function ArrangementDemo() {
       name: "שתי שורות",
       note: "שורה אחורית ושורה קדמית.",
       zones: [
-        { kind: "row" as const, capacity: 4, label: "אחורית" },
-        { kind: "row" as const, capacity: 3, label: "קדמית" },
+        { kind: "row" as const, capacity: 4, label: "אחורי" },
+        { kind: "row" as const, capacity: 3, label: "קדמי" },
       ],
     },
     pile: {
@@ -182,8 +182,8 @@ function ArrangementDemo() {
       name: "בחזית",
       note: "בקבוקים ששוכבים לרוחב, לפני המדף.",
       zones: [
-        { kind: "row" as const, capacity: 4, label: "אחורית" },
-        { kind: "row" as const, capacity: 3, label: "קדמית" },
+        { kind: "row" as const, capacity: 4, label: "אחורי" },
+        { kind: "row" as const, capacity: 3, label: "קדמי" },
         { kind: "row" as const, capacity: 2, label: FRONT_LABEL },
       ],
     },
@@ -218,8 +218,8 @@ function PickDemo() {
   const shelves = [
     {
       zones: [
-        { id: "p1", kind: "row" as const, capacity: 4, label: "אחורית", bottles: [bottle("x1", "now", 2019, "Rioja", 1), bottle("x2", "hold", 2020, "Barolo", 3)] },
-        { id: "p2", kind: "row" as const, capacity: 3, label: "קדמית", bottles: [bottle("x3", "soon", 2021, "Chianti", 2)] },
+        { id: "p1", kind: "row" as const, capacity: 4, label: "אחורי", bottles: [bottle("x1", "now", 2019, "Rioja", 1), bottle("x2", "hold", 2020, "Barolo", 3)] },
+        { id: "p2", kind: "row" as const, capacity: 3, label: "קדמי", bottles: [bottle("x3", "soon", 2021, "Chianti", 2)] },
       ],
     },
   ];

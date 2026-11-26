@@ -29,8 +29,8 @@ export const SHELF_PRESETS = {
     title: "שתי שורות",
     make: (n: number): Shelf => ({
       zones: [
-        { kind: "row", capacity: n, label: "אחורית" },
-        { kind: "row", capacity: n, label: "קדמית" },
+        { kind: "row", capacity: n, label: "אחורי" },
+        { kind: "row", capacity: n, label: "קדמי" },
       ],
     }),
   },
@@ -56,7 +56,7 @@ export const SHELF_PRESETS = {
       zones: [
         { kind: "stack", capacity: n, label: "ערימה ימנית" },
         { kind: "stack", capacity: n, label: "ערימה שמאלית" },
-        { kind: "row", capacity: 2, label: "קדמית" },
+        { kind: "row", capacity: 2, label: "קדמי" },
       ],
     }),
   },
