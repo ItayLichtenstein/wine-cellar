@@ -59,7 +59,7 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
         )}
         {plan === "leave" && (
           <p>
-            <span className="inline-block">המרתף נשאר אצל שאר בני הבית, עם כל הבקבוקים וההיסטוריה.</span>{" "}
+            <span className="inline-block">המרתף נשאר אצל שאר השותפים, עם כל הבקבוקים וההיסטוריה.</span>{" "}
             <span className="inline-block">יימחקו השם שלכם, החברות שלכם במרתף והציונים האישיים שלכם.</span>{" "}
             <span className="inline-block font-medium">אי אפשר לשחזר.</span>
           </p>
@@ -67,7 +67,7 @@ export function DeleteAccount({ cellarId }: { cellarId: string }) {
         {plan === "last_member" && (
           <p>
             <span className="inline-block">אתם השותפים היחידים, ויש צופים במרתף.</span>{" "}
-            <span className="inline-block">קודם הפכו מישהו לשותף או הסירו את הצופים (בבני הבית).</span>
+            <span className="inline-block">קודם הפכו מישהו לשותף או הסירו את הצופים (ב״שיתוף״).</span>
           </p>
         )}
         {(plan === "delete_cellar" || plan === "leave") && (

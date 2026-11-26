@@ -51,7 +51,7 @@ export function Household({ members, me }: { members: Member[]; me: string }) {
 
   return (
     <section id="household" className="flex scroll-mt-4 flex-col gap-2">
-      <h2 className="text-lg font-semibold">בני הבית</h2>
+      <h3 className="font-semibold">מי במרתף</h3>
       <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
         {members.map((m) => (
           <li key={m.userId} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">

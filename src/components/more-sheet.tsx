@@ -27,8 +27,7 @@ const GROUPS: { title: string; links: { href: string; label: string; hint: strin
   {
     title: "אנשים",
     links: [
-      { href: "/more#household", label: "בני הבית", hint: "מי מנהל איתכם את המרתף", icon: "🏠" },
-      { href: "/more#friends", label: "חברים", hint: "מי רואה את המרתף, וקישור צפייה", icon: "🤝" },
+      { href: "/more#sharing", label: "שיתוף", hint: "שותפים במרתף, חברים וקישור צפייה", icon: "🤝" },
     ],
   },
   {
