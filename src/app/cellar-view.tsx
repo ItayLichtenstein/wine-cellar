@@ -154,6 +154,7 @@ export function CellarView({
           </div>
           <FridgePreview
             shelves={fridge.shelves}
+            cabinet={fridge.kind === "cabinet"}
             view={view}
             hideEmpty={!canEdit}
             activeBottleId={movingId ?? undefined}

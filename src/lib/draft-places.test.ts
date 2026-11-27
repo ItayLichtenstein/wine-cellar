@@ -55,6 +55,10 @@ describe("describeFridges", () => {
     expect(text).toContain("free 1,3");
     expect(text).toContain("1/2 used");
   });
+  it("tells the AI a cabinet is a cabinet", () => {
+    expect(describeFridges([{ ...fridge, name: "ארון", kind: "cabinet" }])).toContain('"ארון" (a cabinet or rack');
+    expect(describeFridges([fridge])).not.toContain("cabinet");
+  });
   it("says so when there is no fridge", () => {
     expect(describeFridges([])).toContain("No fridge yet");
   });

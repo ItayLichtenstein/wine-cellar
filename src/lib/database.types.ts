@@ -251,14 +251,14 @@ isOneToOne: false
                   ]
                 },"fridges": {
                   Row: {
-                    "brand": string | null,"cellar_id": string,"created_at": string,"id": string,"model": string | null,"model_id": string | null,"name": string,"position": number,"updated_at": string
+                    "brand": string | null,"cellar_id": string,"created_at": string,"id": string,"kind": string,"model": string | null,"model_id": string | null,"name": string,"position": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "brand"?: string | null,"cellar_id": string,"created_at"?: string,"id"?: string,"model"?: string | null,"model_id"?: string | null,"name": string,"position"?: number,"updated_at"?: string
+                    "brand"?: string | null,"cellar_id": string,"created_at"?: string,"id"?: string,"kind"?: string,"model"?: string | null,"model_id"?: string | null,"name": string,"position"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "brand"?: string | null,"cellar_id"?: string,"created_at"?: string,"id"?: string,"model"?: string | null,"model_id"?: string | null,"name"?: string,"position"?: number,"updated_at"?: string
+                    "brand"?: string | null,"cellar_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"model"?: string | null,"model_id"?: string | null,"name"?: string,"position"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     {

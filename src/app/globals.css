@@ -12,6 +12,8 @@
   --accent: #6d1a2a;
   /* The fridge drawing is dark in both themes, like a real wine fridge. */
   --fridge: #1c1716;
+  /* A cabinet instead of a fridge: a dark wooden frame around the same shelves. */
+  --cabinet: #3b2415;
   /* Shelves are wooden, like the pull-out shelves of a real wine fridge. */
   --shelf: #7a5132;
   --slot: #4a2f1b; /* an empty place: a hollow in the wood */
@@ -56,6 +58,7 @@
   --color-surface: var(--surface);
   --color-accent: var(--accent);
   --color-fridge: var(--fridge);
+  --color-cabinet: var(--cabinet);
   --color-shelf: var(--shelf);
   --color-slot: var(--slot);
   --color-on-fridge: var(--on-fridge);

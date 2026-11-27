@@ -14,6 +14,7 @@ export type SharedCellarJson = {
     id: string;
     name: string;
     brand: string | null;
+    kind?: string; // not sent by the share-link function yet: drawn as a fridge
     model: string | null;
     shelves: { id: string; zones: { id: string; kind: string; capacity: number; label: string | null }[] }[];
   }[];
@@ -115,6 +116,7 @@ export function fromSharedCellar(json: SharedCellarJson, year: number, locale: L
       id: f.id,
       name: f.name,
       brand: f.brand,
+      kind: f.kind === "cabinet" ? "cabinet" : "fridge",
       model: f.model,
       shelves: f.shelves.map((s) => ({
         id: s.id,
