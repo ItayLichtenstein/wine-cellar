@@ -634,7 +634,7 @@ export const he = {
     shelfLayout: (n: number) => `סידור מדף ${n}`,
     addFront: "+ בקבוקים בחזית",
     zoneOnShelf: (zone: string, n: number) => `${zone}, מדף ${n}`,
-    presets: { twoRows: "שתי שורות", oneRow: "שורה אחת", doubleStack: "ערימה", stacksAndRow: "ערימות מאחור ושורה מקדימה" },
+    presets: { twoRows: "שתי שורות", oneRow: "שורה אחת", doubleStack: "ערימה", twoStacks: "שתי ערימות", stacksAndRow: "ערימות מאחור ושורה מקדימה" },
     preview: "כך זה ייראה",
     total: (n: number) => `סך הכול מקום ל־${n} בקבוקים`,
     perMakerShort: (n: number) => ` (לפי היצרן ${n})`,

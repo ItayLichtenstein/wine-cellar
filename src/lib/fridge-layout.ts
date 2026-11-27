@@ -50,6 +50,17 @@ export const SHELF_PRESETS = {
       ],
     }),
   },
+  // Two piles, one behind the other (deep shelves). Each is its own pile,
+  // with no numbered places, like the single pile above.
+  twoStacks: {
+    title: "שתי ערימות",
+    make: (n: number): Shelf => ({
+      zones: [
+        { kind: "stack", capacity: n, label: "ערימה אחורית" },
+        { kind: "stack", capacity: n, label: "ערימה קדמית" },
+      ],
+    }),
+  },
   stacksAndRow: {
     title: "ערימות מאחור ושורה מקדימה",
     make: (n: number): Shelf => ({
@@ -69,7 +80,7 @@ export type PresetKey = keyof typeof SHELF_PRESETS;
  * stays in the code (existing shelves still show) but is not offered:
  * a pile and plain rows cover real fridges more clearly.
  */
-export const CHOOSABLE_PRESETS: PresetKey[] = ["twoRows", "oneRow", "doubleStack"];
+export const CHOOSABLE_PRESETS: PresetKey[] = ["twoRows", "oneRow", "doubleStack", "twoStacks"];
 
 /**
  * Some shelves have room for a few more bottles lying across the front.

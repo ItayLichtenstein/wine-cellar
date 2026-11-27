@@ -622,7 +622,7 @@ export const en: Dictionary = {
     shelfLayout: (n: number) => `Layout of shelf ${n}`,
     addFront: "+ Bottles across the front",
     zoneOnShelf: (zone: string, n: number) => `${zone}, shelf ${n}`,
-    presets: { twoRows: "Two rows", oneRow: "One row", doubleStack: "Pile", stacksAndRow: "Piles at the back, a row in front" },
+    presets: { twoRows: "Two rows", oneRow: "One row", doubleStack: "Pile", twoStacks: "Two piles", stacksAndRow: "Piles at the back, a row in front" },
     preview: "How it will look",
     total: (n: number) => `Room for ${n} bottles in all`,
     perMakerShort: (n: number) => ` (the maker says ${n})`,

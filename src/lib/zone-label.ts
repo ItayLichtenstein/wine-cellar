@@ -13,6 +13,8 @@ const EN: Record<string, string> = {
   "בקבוקים עומדים": "Standing bottles",
   "ערימה ימנית": "Right pile",
   "ערימה שמאלית": "Left pile",
+  "ערימה אחורית": "Back pile",
+  "ערימה קדמית": "Front pile",
 };
 
 export function zoneLabel(label: string, locale: Locale): string {
