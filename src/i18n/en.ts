@@ -421,7 +421,7 @@ export const en: Dictionary = {
           "Next to \"Wine Cellar\" tap Connect",
         ],
       },
-      chatgpt: { who: "", linkLabel: "", steps: [] as string[] },
+      chatgpt: { who: "Direct connection only on a work account (Business or Enterprise)", linkLabel: "ChatGPT", steps: [] as string[] },
       gemini: {
         who: "Works with a personal Google account (not work or school) with Keep Activity on. Connect once on a computer, and it then works on the phone too",
         linkLabel: "Open Gemini",

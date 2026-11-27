@@ -427,7 +427,7 @@ export const he = {
           "ליד \"מרתף יין\" לחצו Connect",
         ],
       },
-      chatgpt: { who: "", linkLabel: "", steps: [] as string[] },
+      chatgpt: { who: "חיבור ישיר רק בחשבון עבודה (Business או Enterprise)", linkLabel: "ChatGPT", steps: [] as string[] },
       gemini: {
         who: "עובד בחשבון גוגל אישי (לא של עבודה או לימודים), עם Keep Activity פעיל. החיבור נעשה פעם אחת במחשב, ואחר כך עובד גם בטלפון",
         linkLabel: "פתיחת Gemini",
