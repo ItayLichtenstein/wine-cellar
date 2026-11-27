@@ -6,7 +6,7 @@ export type ConnectedAi = {
   name: string;
   key: AiKey | null;
   since: string;
-  /** "Makes changes itself" (ADR 0013); otherwise it only suggests drafts. */
+  /** "Helps manage the cellar" (ADR 0013); otherwise it only suggests drafts. */
   canEdit: boolean;
 };
 

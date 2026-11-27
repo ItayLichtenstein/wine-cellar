@@ -431,7 +431,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     async ({ bottles }) => {
       if (!canEdit) {
         return text(
-          `Not deleted: the user set you to suggest only. Tell them they can delete bottles on the site, or tick "makes changes itself" for you on ${siteUrl}/ai (it applies at once, no need to reconnect) and ask again.`,
+          `Not deleted: the user set you to suggest only. Tell them they can delete bottles on the site, or turn on "helps manage the cellar" (in Hebrew: עוזר בניהול המרתף) for you on ${siteUrl}/ai (it applies at once, no need to reconnect) and ask again.`,
         );
       }
       const lines: string[] = [];

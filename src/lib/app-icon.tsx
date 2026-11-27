@@ -35,8 +35,8 @@ export function appIcon(size: number, padding = 0.12): ImageResponse {
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           {bottle(DRINK_STATES.now.color)}
           <div style={{ display: "flex", gap: d * 0.06, marginTop: -d * 0.12 }}>
-            {bottle(DRINK_STATES.soon.color)}
-            {bottle(DRINK_STATES.young.color)}
+            {bottle(DRINK_STATES.past.color)}
+            {bottle(DRINK_STATES.near.color)}
           </div>
         </div>
       </div>
