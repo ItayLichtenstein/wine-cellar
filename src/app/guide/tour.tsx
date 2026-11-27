@@ -2,7 +2,8 @@
 
 import { LineIcon, type IconName } from "@/components/line-icon";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { GUIDE_SEEN_COOKIE } from "@/lib/guide-first";
 import { useT } from "@/i18n/provider";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
 import { ScoreInput } from "@/components/score-input";
@@ -88,6 +89,10 @@ export function GuideTour() {
   ];
 
   const [i, setI] = useState(0);
+  // Seen on this device: the home page stops opening it by itself.
+  useEffect(() => {
+    document.cookie = `${GUIDE_SEEN_COOKIE}=1; path=/; max-age=31536000; samesite=lax`;
+  }, []);
   const step = steps[i];
   const last = i === steps.length - 1;
 
@@ -359,12 +364,13 @@ function MoveDemo() {
 
 function MoreDemo() {
   const m = useT().guide.moreItems;
-  const icons: IconName[] = ["list", "wish", "stats", "people", "sparkle", "moon", "phone"];
+  const icons: IconName[] = ["list", "wish", "stats", "camera", "people", "sparkle", "moon", "phone"];
   const items: [IconName, string, string][] = icons.map((icon) => [icon, m[icon][0], m[icon][1]]);
   return (
-    <ul className="flex flex-col gap-2">
+    // A plain list, not cards: testers took boxed rows for buttons.
+    <ul className="flex flex-col divide-y divide-muted/20">
       {items.map(([icon, name, text]) => (
-        <li key={name} className="flex items-start gap-3 rounded-xl bg-background px-3 py-2.5">
+        <li key={name} className="flex items-start gap-3 py-2.5">
           <span className="pt-0.5 text-accent">
             <LineIcon name={icon} className="size-5" />
           </span>

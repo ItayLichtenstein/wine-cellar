@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useT } from "@/i18n/provider";
 import { LineIcon } from "./line-icon";
-import { MoreSheet, SavedTheme } from "./more-sheet";
+import { MoreSheet } from "./more-sheet";
 import { RealtimeRefresh } from "./realtime-refresh";
 
 // Line icons (shared with "More"). Emoji were used before, but every emoji
@@ -42,7 +42,6 @@ export function BottomNav() {
     <>
       {/* Signed-in pages only (same rule as the navigation itself). */}
       <RealtimeRefresh />
-      <SavedTheme />
       <nav
         aria-label={t.nav.main}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-muted/20 bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"

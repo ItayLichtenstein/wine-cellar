@@ -5,15 +5,6 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useT } from "@/i18n/provider";
 import { LineIcon } from "./line-icon";
 
-/** Applies the look saved on this device. Mounted on every signed-in page (with the nav). */
-export function SavedTheme() {
-  useEffect(() => {
-    const saved = readTheme();
-    if (saved !== "system") document.documentElement.dataset.theme = saved;
-  }, []);
-  return null;
-}
-
 type Theme = "system" | "light" | "dark";
 
 // What "More" holds, grouped. Each row opens its own page (spec: "More" and its pages).
@@ -24,6 +15,7 @@ const GROUPS = [
     links: [
       { href: "/history", text: "history", icon: "glass" },
       { href: "/fridges", text: "fridges", icon: "fridge" },
+      { href: "/labels", text: "labels", icon: "camera" },
       { href: "/ai", text: "ai", icon: "sparkle" },
     ],
   },
@@ -100,16 +92,17 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
 }
 
 // The chosen look lives in localStorage (this device only) and in
-// data-theme on <html>, which the CSS reads. A tiny store lets React read it
-// without a hydration mismatch: the server always renders "system".
+// data-theme on <html>, which the CSS reads. Dark is the default, so it is
+// the absence of both. A tiny store lets React read it without a hydration
+// mismatch: the server always renders "dark".
 const THEME_EVENT = "theme-change";
 
 function readTheme(): Theme {
   try {
     const saved = localStorage.getItem("theme");
-    return saved === "light" || saved === "dark" ? saved : "system";
+    return saved === "light" || saved === "system" ? saved : "dark";
   } catch {
-    return "system";
+    return "dark";
   }
 }
 
@@ -120,10 +113,10 @@ function subscribeTheme(onChange: () => void) {
 
 function applyTheme(next: Theme) {
   const root = document.documentElement;
-  if (next === "system") delete root.dataset.theme;
+  if (next === "dark") delete root.dataset.theme;
   else root.dataset.theme = next;
   try {
-    if (next === "system") localStorage.removeItem("theme");
+    if (next === "dark") localStorage.removeItem("theme");
     else localStorage.setItem("theme", next);
   } catch {
     // Private mode: the choice still applies until the page is closed.
@@ -131,16 +124,16 @@ function applyTheme(next: Theme) {
   window.dispatchEvent(new Event(THEME_EVENT));
 }
 
-/** Automatic (follows the phone, the default), light, or dark (burgundy). In the sheet and in settings. */
+/** Dark (burgundy, the default), light, or automatic (follows the phone). In the sheet and in settings. */
 export function ThemePicker({ heading = true }: { heading?: boolean }) {
-  const theme = useSyncExternalStore(subscribeTheme, readTheme, () => "system" as Theme);
+  const theme = useSyncExternalStore(subscribeTheme, readTheme, () => "dark" as Theme);
   const choose = applyTheme;
 
   const t = useT();
   const options: { value: Theme; label: string }[] = [
-    { value: "system", label: t.theme.system },
-    { value: "light", label: t.theme.light },
     { value: "dark", label: t.theme.dark },
+    { value: "light", label: t.theme.light },
+    { value: "system", label: t.theme.system },
   ];
   return (
     <section className="flex flex-col gap-1.5">

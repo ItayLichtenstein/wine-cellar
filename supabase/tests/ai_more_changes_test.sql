@@ -1,7 +1,7 @@
--- More AI changes (migration 44): a wine's details and the fridge, each undoable.
+-- More AI changes (migration 44): a wine's details, the fridge and a label photo, each undoable.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(13);
 
 create function pg_temp.login_as(p_user uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -48,6 +48,22 @@ select set_config('test.fridge', jsonb_build_object('fridge', 'e2000000-4444-000
 update shelf_zones set capacity = 6 where cellar_id = my_cellar_id();
 select undo_ai_change(pg_temp.logged('fridge', current_setting('test.fridge')::jsonb));
 select is((select capacity from shelf_zones where cellar_id = my_cellar_id()), 5, 'undo: the fridge layout is back');
+
+-- ---------- a label photo, then undo ----------
+update wines set label_image_path = my_cellar_id()::text || '/own.webp', label_thumb = 'data:image/webp;base64,AAAA'
+ where id = 'e2000000-1111-0000-0000-000000000001';
+select set_config('test.label', jsonb_build_object('wine', 'e2000000-1111-0000-0000-000000000001',
+  'path', my_cellar_id()::text || '/own.webp', 'thumb', 'data:image/webp;base64,AAAA')::text, true);
+update wines set label_image_path = my_cellar_id()::text || '/web-1.webp', label_thumb = null
+ where id = 'e2000000-1111-0000-0000-000000000001';
+select undo_ai_change(pg_temp.logged('label', current_setting('test.label')::jsonb));
+select is((select label_image_path from wines where id = 'e2000000-1111-0000-0000-000000000001'), my_cellar_id()::text || '/own.webp', 'undo: the old photo is back');
+select is((select label_thumb from wines where id = 'e2000000-1111-0000-0000-000000000001'), 'data:image/webp;base64,AAAA', 'undo: and its thumbnail');
+select undo_ai_change(pg_temp.logged('label', jsonb_build_object('wine', 'e2000000-1111-0000-0000-000000000001', 'path', null, 'thumb', null)));
+select is((select label_image_path from wines where id = 'e2000000-1111-0000-0000-000000000001'), null, 'undo: a wine that had no photo has none again');
+select throws_ok(
+  format($$ select undo_ai_change(pg_temp.logged('label', '{"wine":"e2000000-1111-0000-0000-000000000001","path":"00000000-0000-0000-0000-000000000000/x.webp","thumb":null}')) $$),
+  '23514', null, 'undo cannot point a wine at another cellar''s photo');
 
 -- ---------- the guard ----------
 insert into ai_edit_grants (client_id) values ('claude');

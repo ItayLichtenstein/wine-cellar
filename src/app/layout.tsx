@@ -36,10 +36,7 @@ const BASE_METADATA: Metadata = {
 
 // The browser bar and the installed app's status bar match the page.
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6ecea" },
-    { media: "(prefers-color-scheme: dark)", color: "#2a0b12" },
-  ],
+  themeColor: "#2a0b12", // the dark theme is the default
 };
 
 // <html> is the static shell, drawn before the language cookie is read, so it
@@ -48,6 +45,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="he" dir="rtl" suppressHydrationWarning className={`${heebo.variable} h-full antialiased`}>
+      <head>
+        {/* Blocking on purpose: the saved look must be set before the first paint. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/theme.js" />
+      </head>
       {/* pb-20 keeps the last content above the fixed bottom navigation. */}
       <body className="min-h-full flex flex-col pb-20">
         <Suspense fallback={null}>

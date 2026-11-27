@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export type AiChange = {
   id: string;
-  kind: "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge";
+  kind: "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge" | "label";
   title: string;
   count: number;
   when: string;
@@ -45,14 +45,17 @@ export function AiChanges({ changes }: { changes: AiChange[] }) {
   }
 
   if (changes.length === 0) return null;
-  const verb = (c: AiChange) =>
-    c.kind === "add_bottles"
-      ? a.changeAdd(c.count)
-      : c.kind === "drink"
-        ? a.changeDrink
-        : c.kind === "move"
-          ? a.changeMove
-          : a.changeDelete;
+  const verbs: Record<Exclude<AiChange["kind"], "add_bottles">, string> = {
+    drink: a.changeDrink,
+    move: a.changeMove,
+    delete: a.changeDelete,
+    edit: a.changeEdit,
+    wishlist: a.changeWishlist,
+    taste: a.changeTaste,
+    fridge: a.changeFridge,
+    label: a.changeLabel,
+  };
+  const verb = (c: AiChange) => (c.kind === "add_bottles" ? a.changeAdd(c.count) : verbs[c.kind]);
 
   const row = (c: AiChange) => (
     <li

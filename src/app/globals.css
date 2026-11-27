@@ -18,32 +18,32 @@
   --on-fridge: #f2ebe6;
 }
 
-/* Burgundy (dark) theme. It follows the phone's setting unless the user
-   picked one in "More" (data-theme on <html>, set before the first paint). */
+/* Burgundy (dark) theme, the default. "Light" in "More" turns it off, and
+   "Automatic" follows the phone (data-theme on <html>, from localStorage). */
+:root:not([data-theme="light"], [data-theme="system"]) {
+  --background: #2a0b12;
+  --foreground: #f4e4c1;
+  --muted: #c4ad8a;
+  --surface: #3a131c;
+  --accent: #f2b8c2;
+}
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root[data-theme="system"] {
     --background: #2a0b12;
-    --foreground: #f6ece9;
-    --muted: #c7a3aa;
+    --foreground: #f4e4c1;
+    --muted: #c4ad8a;
     --surface: #3a131c;
     --accent: #f2b8c2;
   }
 }
-:root[data-theme="dark"] {
-  --background: #2a0b12;
-  --foreground: #f6ece9;
-  --muted: #c7a3aa;
-  --surface: #3a131c;
-  --accent: #f2b8c2;
-}
 
 /* Tailwind's dark: classes follow the same rule as the colors above. */
 @custom-variant dark {
-  &:where([data-theme="dark"], [data-theme="dark"] *) {
+  &:where(:root:not([data-theme="light"], [data-theme="system"]), :root:not([data-theme="light"], [data-theme="system"]) *) {
     @slot;
   }
   @media (prefers-color-scheme: dark) {
-    &:where(:root:not([data-theme="light"]) *) {
+    &:where([data-theme="system"], [data-theme="system"] *) {
       @slot;
     }
   }

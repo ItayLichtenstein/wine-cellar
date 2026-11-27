@@ -5,6 +5,8 @@
 --   wishlist – a wine added to the wishlist (add_to_wishlist)
 --   taste    – a drink outside the cellar, e.g. a restaurant (log_tasting)
 --   fridge   – the fridge's shelves and zones (update_fridge)
+--   label    – a wine's label photo, added or replaced from a link
+--              (PATCH /wines; the old photo stays in storage for the undo)
 -- An AI that only suggests does not get these: the tools tell the user to
 -- make the change on the site or to let the AI make changes.
 -- =====================================================================
@@ -13,11 +15,12 @@ alter type public.draft_kind add value if not exists 'edit';
 alter type public.draft_kind add value if not exists 'wishlist';
 alter type public.draft_kind add value if not exists 'taste';
 alter type public.draft_kind add value if not exists 'fridge';
+alter type public.draft_kind add value if not exists 'label';
 
--- A fridge's layout (to undo a fridge change) is bigger than a bottle.
+-- A fridge's layout or a label thumbnail (to undo) is bigger than a bottle.
 alter table public.drafts drop constraint if exists drafts_undo_check;
 alter table public.drafts add constraint drafts_undo_check
-  check (undo is null or (jsonb_typeof(undo) = 'object' and char_length(undo::text) <= 40000));
+  check (undo is null or (jsonb_typeof(undo) = 'object' and char_length(undo::text) <= 60000));
 
 -- Changes a wine's details: only the keys present in p_changes. Wine
 -- fields (type, grape, country, region) and the vintage's drinking window
@@ -121,7 +124,7 @@ begin
 end;
 $$;
 
--- Undo, now also for the four new kinds.
+-- Undo, now also for the five new kinds.
 create or replace function public.undo_ai_change(p_draft_id uuid)
 returns void
 language plpgsql
@@ -200,6 +203,14 @@ begin
       raise exception 'cannot undo' using errcode = 'check_violation';
     end if;
     perform public.update_fridge((u ->> 'fridge')::uuid, u ->> 'name', u -> 'shelves', u ->> 'brand', u ->> 'model');
+
+  elsif d.kind = 'label' then
+    -- Back to the photo before (or none); the wines check keeps the path in the cellar's folder.
+    update public.wines set label_image_path = u ->> 'path', label_thumb = u ->> 'thumb'
+     where id = (u ->> 'wine')::uuid and cellar_id = d.cellar_id;
+    if not found then
+      raise exception 'cannot undo' using errcode = 'check_violation';
+    end if;
   end if;
 
   update public.drafts set undone_at = now() where id = p_draft_id;

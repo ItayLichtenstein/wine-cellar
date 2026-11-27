@@ -1,6 +1,6 @@
 // More MCP tools (ADR 0013): edit a wine's details, the wishlist, a drink
 // outside the cellar, and the fridge's layout. They change data only for an
-// AI the user lets make changes; one that only suggests is told so, and the
+// AI the user lets make changes; a label photo too; one that only suggests is told so, and the
 // user makes the change on the site. Every change can be undone on /ai.
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -10,8 +10,9 @@ import { findBottle, pickFridge } from "../draft-places";
 import { applyFridgeEdit, fridgeJson } from "../fridge-edit";
 import { CHOOSABLE_PRESETS } from "../fridge-layout";
 import { getCellarBottles, getFridges, getLooseBottles, type Db } from "../fridges";
+import { imageMatchSchema, labelsPage, savedNote, saveWebLabel } from "./label-photos";
 
-export type ChangeKind = "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge";
+export type ChangeKind = "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge" | "label";
 
 type Ctx = {
   db: Db;
@@ -273,6 +274,60 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
       if (error) return text("NOT changed – the database refused it (check the numbers with fridge_layout).");
       await logChange("fridge", { fridge: r.name }, { fridge: f.id, name: f.name, brand: f.brand, model: f.model, shelves: fridgeJson(f) });
       return done([`"${f.name}": ${r.summary.join("; ")}.`]);
+    },
+  );
+  server.registerTool(
+    "set_label_photo",
+    {
+      title: "Add or replace label photos",
+      description:
+        "Gives wines already in the cellar a label photo from the web, or replaces the one they have (e.g. the user says the photo is wrong). " +
+        "For each wine, find its page at a shop or the winery, or a direct image link, and say honestly how well it matches (image_match). " +
+        `The user's own photos cannot be saved from the chat: for those, send them to ${labelsPage(siteUrl)}. Works only if the user lets you make changes yourself. ` +
+        ONE_CALL,
+      inputSchema: {
+        wines: z
+          .array(
+            z.object({
+              winery: z.string().describe("Exactly as in search_cellar"),
+              name: z.string().describe("Exactly as in search_cellar"),
+              image_url: z.string().describe("The wine's page at a shop or the winery (the server takes its main photo), or the image file (JPEG, PNG or WebP). Not a search results page."),
+              image_match: imageMatchSchema,
+            }),
+          )
+          .min(1)
+          .max(30),
+      },
+      annotations: { ...write, openWorldHint: true },
+    },
+    async ({ wines }) => {
+      if (!canEdit) return suggestOnly(`add label photos (they can take them themselves at ${labelsPage(siteUrl)})`);
+      const { data: all } = await db.from("wines").select("id, winery, name, label_image_path, label_thumb").eq("cellar_id", cellarId);
+      const lines: string[] = [];
+      for (const w of wines) {
+        const name = label(w);
+        const wine = (all ?? []).find((x) => x.winery.toLowerCase() === w.winery.toLowerCase() && x.name.toLowerCase() === w.name.toLowerCase());
+        if (!wine) {
+          lines.push(`${name}: NOT saved – not in the cellar (check the exact winery and name with search_cellar).`);
+          continue;
+        }
+        const match = w.image_match ?? "exact";
+        const saved = await saveWebLabel(db, cellarId, w.image_url.trim(), match);
+        if (!saved.ok) {
+          lines.push(`${name}: label image NOT saved – ${saved.reason}. Try another link, or the user can take it at ${labelsPage(siteUrl)}.`);
+          continue;
+        }
+        // The old photo stays in storage, so the undo can bring it back. The
+        // fridge thumbnail is made again on the user's next visit.
+        const { error } = await db.from("wines").update({ label_image_path: saved.path, label_thumb: null }).eq("id", wine.id);
+        if (error) {
+          lines.push(`${name}: label image NOT saved – the database refused it.`);
+          continue;
+        }
+        await logChange("label", { winery: wine.winery, name: wine.name }, { wine: wine.id, path: wine.label_image_path, thumb: wine.label_thumb });
+        lines.push(`${wine.label_image_path ? "Replaced. " : ""}${savedNote(name, match, siteUrl)}`);
+      }
+      return done(lines);
     },
   );
 }
