@@ -1,5 +1,4 @@
-import { fetchLabelImage } from "@/lib/web-image";
-import { LABEL_BUCKET } from "@/lib/label-image";
+import { countMissing, formatLabelPhotos, imageMatchSchema, missingNote, savedNote, saveWebLabel } from "./label-photos";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { buildRows, drinkNow, EMPTY_FILTERS } from "../bottle-list";
@@ -10,6 +9,7 @@ import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } fr
 import { tasteProfile } from "../stats";
 import { getStatsData } from "../stats-data";
 import { formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
+import { registerMoreTools, type ChangeKind } from "./more-tools";
 
 /**
  * The MCP server (stage 7, ADR 0001). A thin client of the same service
@@ -23,26 +23,40 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     { name: "wine-cellar", version: "1.0.0" },
     {
       instructions: [
-        "This is the user's home wine cellar (Hebrew-first app; wine names are usually in their original language).",
-        "Be an active, helpful cellar assistant, not a passive one.",
+        "This is the user's home wine cellar (Hebrew-first app; wine names are usually in their original language). Answer in the user's language.",
+        "Be an active, helpful cellar assistant: after each action, offer the natural next step.",
+        // What to offer: the user does not know what is possible until told.
         "The first time the user mentions the cellar in a chat, answer and then offer, in one short list, what you can do:",
-        "add bottles from a label photo, a receipt or just their words (into the exact place in the fridge); recommend what to open tonight;",
-        "find what should be drunk soon; mark a bottle as drunk; move or rearrange bottles. After each action, offer the natural next step.",
-        "Adding bottles: fill in what the user did not say yourself. Use web search to look up the drinking window, grape, country, region and",
-        "a typical price for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess:",
-        "ask the user to turn on web search in this chat (the tools menu of the message box) so you can look it up, or to say they prefer to skip it.",
-        "Afterwards tell the user, in one line, which details you found and which you could not, so they can fill those in on the site.",
-        "Label photos: always try to give image_url for each bottle you add: the link to that exact wine's page at a shop or the winery",
-        "(the server takes the product photo from the page), or a direct link to the image file. Never say a photo was added unless",
-        "the tool reply says \"label image saved\" for that bottle; if it says NOT saved, tell the user why.",
-        "Use search_cellar to see what they have, wine_details for everything about one wine, what_to_drink for a recommendation, history for what they drank.",
-        "Changes: the user decides on the site, per AI and at any time, whether your changes take effect at once or wait for their approval",
-        "as drafts. Every tool reply says which happened: repeat that to the user and never assume (a setting may have changed since your last call).",
+        "(1) add bottles from a photo of a whole shelf, a label, a receipt or just their words, each straight into its place in the fridge;",
+        "(2) recommend what to open tonight and what should be drunk soon; (3) mark bottles as drunk, move or rearrange them;",
+        "(4) fix a wine's details (drinking window, price, grape) and give wines a label photo from the web; (5) the wishlist and wines drunk outside the cellar (a restaurant);",
+        "(6) change the fridge itself (e.g. one more slot on shelf 5).",
+        // Photos of shelves.
+        "Shelf photos: the user can send a photo of a whole shelf (or several, one per shelf). Call fridge_layout first, identify every bottle and where it sits",
+        "(zone and slot, slot 1 = rightmost as the user looks at it), and add them in ONE suggest_bottles call with `places`, so the shelf goes in exactly as it is.",
+        "If a label or a position is unclear, ask the user rather than guess. A whole fridge: shelf by shelf (the fill_fridge prompt).",
+        // Details from the web.
+        "Adding bottles: fill in what the user did not say. Use web search to look up the drinking window, grape, country, region and a typical price",
+        "for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess: ask the user to turn on web search in this chat",
+        "(the tools menu of the message box), or to say they prefer to skip it. Afterwards tell the user, in one line, which details you found and which you could not.",
+        // Label photos: what is possible and what to tell the user.
+        "Label photos: photos the user sends you in the chat cannot be saved to the app (the chat does not pass files to tools), so never promise that.",
+        "Instead, for each wine find its page at a shop or the winery (or a direct image link) and pass it as image_url, with image_match saying honestly",
+        "whether it is this exact wine and vintage, another vintage, or only similar. When it is not exact, tell the user plainly what you used",
+        "(e.g. \"I only found the 2022 label, not the 2021\") and that they can keep it or replace it with their own photo on the bottle's card in the app",
+        `or at ${siteUrl}/labels (every wine without a photo, and the web photos, in one place). Wines already in the cellar get a photo with set_label_photo.`,
+        "Never say a photo was added unless the tool reply says \"label image saved\" for it; if it says NOT saved, tell the user why.",
+        // Reading.
+        "Use search_cellar to see what they have, wine_details for everything about one wine (including its label photo), what_to_drink for a recommendation, history for what they drank.",
+        // Changes and modes.
+        "Changes: the user decides on the site, per AI and at any time, whether your changes take effect at once or wait for their approval as drafts.",
+        "Every tool reply says which happened: repeat that to the user and never assume (a setting may have changed since your last call).",
+        "Mark as drunk / move: suggest_drink / suggest_move. Details: edit_wine. Wishlist: wishlist / add_to_wishlist. Outside the cellar: log_tasting.",
+        "The fridge's shelves and zones: edit_fridge. Label photos: set_label_photo. These last five work only when the user lets you make changes;",
+        "otherwise the reply says so: tell the user they can do it on the site, or let you make changes on its AI page.",
         "delete_bottle removes a bottle entered by mistake. A deleted bottle is not a drunk one: before deleting, always ask the user",
         "whether they want to delete it or mark it as drunk, and delete only after they say delete.",
-        "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot),",
-        "so every bottle goes straight into its spot. Filling a whole fridge: go shelf by shelf (the fill_fridge prompt).",
-        "To mark bottles as drunk or move them, use suggest_drink / suggest_move. Every tool takes a list: several bottles go in ONE call, never in parallel calls. Answer the user in their language.",
+        "Every tool takes a list: several bottles go in ONE call, never in parallel calls.",
       ].join(" "),
     },
   );
@@ -52,7 +66,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
 
   // Edit mode: a change is logged as a draft that is already approved, with
   // what is needed to undo it (shown on the site's AI page).
-  const logChange = async (kind: "add_bottles" | "drink" | "move" | "delete", payload: object, undo: Record<string, unknown>) => {
+  const logChange = async (kind: ChangeKind, payload: object, undo: Record<string, unknown>) => {
     const id = crypto.randomUUID();
     const { error } = await db.from("drafts").insert({ id, cellar_id: cellarId, kind, payload: payload as never, source: "mcp" as const });
     if (error) return;
@@ -123,14 +137,19 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     {
       title: "Wine details",
       description:
-        "Everything about one wine (or a few): every vintage in the cellar with where each bottle is, readiness and price, plus when the household drank it, their notes and rating.",
+        "Everything about one wine (or a few): every vintage in the cellar with where each bottle is, readiness and price, its label photo (none, the user's own, or from the web), plus when the household drank it, their notes and rating.",
       inputSchema: { query: z.string().min(2).max(100).describe("Winery and/or wine name, e.g. 'Yatir Forest'") },
       annotations: read,
     },
     async ({ query }) => {
-      const [bottles, history, fridges] = await Promise.all([getCellarBottles(cellarId, db), getHistory(cellarId, db), getFridges(cellarId, db)]);
+      const [bottles, history, fridges, { data: wines }] = await Promise.all([
+        getCellarBottles(cellarId, db),
+        getHistory(cellarId, db),
+        getFridges(cellarId, db),
+        db.from("wines").select("winery, name, label_image_path").eq("cellar_id", cellarId),
+      ]);
       const rows = buildRows(bottles, { ...EMPTY_FILTERS, text: query }, "year");
-      return text(formatWineDetails(rows, history, query, bottlePlaces(fridges)));
+      return text(formatWineDetails(rows, history, query, bottlePlaces(fridges)) + (rows.length ? formatLabelPhotos(wines ?? [], query, siteUrl) : ""));
     },
   );
 
@@ -162,8 +181,8 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     {
       title: "Suggest bottles to add",
       description:
-        "Adds bottles (from a label photo, a receipt or the user's words): at once, or as drafts the user approves, by the user's setting; the reply says which." +
-        " Before calling, look up missing details (drinking window, grape, region, typical price) with web search, and find each wine's page for image_url." +
+        "Adds bottles (from a photo of a whole shelf, a label, a receipt or the user's words), each into its place when you give `places`: at once, or as drafts the user approves, by the user's setting; the reply says which." +
+        " Before calling, look up missing details (drinking window, grape, region, typical price) with web search, and find each wine's page for image_url (with an honest image_match)." +
         " Leave out only what you could not find; the reply lists what is still empty, to tell the user.",
       inputSchema: {
         bottles: z
@@ -187,6 +206,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
                 .describe(
                   "An https link for this wine's label photo: its product page at a shop or the winery (the server takes the page's main photo), or the image file itself (JPEG, PNG or WebP, up to 5MB). Not a search results page. The reply says for each bottle whether it was saved.",
                 ),
+              image_match: imageMatchSchema,
               places: z
                 .array(
                   z.object({
@@ -217,19 +237,13 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
           const link = bottles[i].image_url?.trim();
           if (!link) return draft;
           const label = `Bottle ${i + 1} (${draft.winery} – ${draft.name})`;
-          const img = await fetchLabelImage(link);
-          if (!img.ok) {
-            imageNotes.push(`${label}: label image NOT saved – ${img.reason}.`);
+          const saved = await saveWebLabel(db, cellarId, link, bottles[i].image_match ?? "exact");
+          if (!saved.ok) {
+            imageNotes.push(`${label}: label image NOT saved – ${saved.reason}.`);
             return draft;
           }
-          // "web-": the nightly backup skips it; the source link (metadata) can fetch it again.
-          const path = `${cellarId}/web-${crypto.randomUUID()}.webp`;
-          const { error: upError } = await db.storage.from(LABEL_BUCKET).upload(path, img.webp, { contentType: "image/webp", metadata: { source: link } });
-          if (upError) {
-            imageNotes.push(`${label}: label image NOT saved – storage error.`);
-            return draft;
-          }
-          imageNotes.push(`${label}: label image saved.`);
+          imageNotes.push(savedNote(label, bottles[i].image_match ?? "exact", siteUrl));
+          const path = saved.path;
           return { ...draft, image: path };
         }),
       );
@@ -252,6 +266,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
             ...lines,
             `The user can undo any of these on ${siteUrl}/ai.`,
             ...imageNotes,
+            missingNote(await countMissing(db, cellarId, good), siteUrl),
             ...reportGaps(good),
             ...errors,
             errors.length ? `Fix and call again. Expected shape:\n${DRAFT_FORMAT}` : "",
@@ -279,7 +294,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
           ...imageNotes,
           ...(good.length ? reportGaps(good) : []),
           imageNotes.some((n) => n.includes("NOT saved"))
-            ? "Tell the user which label images were not saved and why; they can try another direct image link from you, or take a photo on the site after approving."
+            ? `Tell the user which label images were not saved and why; you can try another link, or they can take the photo themselves at ${siteUrl}/labels after approving.`
             : "",
           ...errors,
           errors.length ? `Fix and call again. Expected shape:\n${DRAFT_FORMAT}` : "",
@@ -438,6 +453,8 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     },
   );
 
+  registerMoreTools(server, { db, cellarId, siteUrl, canEdit, logChange });
+
   server.registerPrompt(
     "scan_label",
     { title: "Add bottles from a photo", description: "Read wine labels or a receipt from a photo and suggest them as drafts." },
@@ -447,7 +464,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
           role: "user",
           content: {
             type: "text",
-            text: "I'll attach a photo of wine labels or a receipt. Identify each wine (winery, name, vintage, type, and if you know them: grape, country, region, drinking window). Check search_cellar so the same wine uses the exact existing name. Look up what's missing on the web and find each wine's page for image_url. Then call suggest_bottles once with all of them, and tell me what the reply says (added, or waiting for my approval) and what is still empty.",
+            text: "I'll attach a photo of wine labels or a receipt. Identify each wine (winery, name, vintage, type, and if you know them: grape, country, region, drinking window). Check search_cellar so the same wine uses the exact existing name. Look up what's missing on the web and find each wine's page for image_url, with an honest image_match. Then call suggest_bottles once with all of them, and tell me what the reply says (added, or waiting for my approval), what is still empty, and which label photos are not an exact match.",
           },
         },
       ],
@@ -493,7 +510,9 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
               "3. For each shelf: identify every wine (winery, name, vintage, type; grape/country/region and drinking window if you know them),",
               "   and where it sits (zone and slot, slot 1 = rightmost as I look at it). If unsure about a bottle, ask me rather than guess.",
               "4. Call suggest_bottles once per shelf with all its bottles and their `places`. Reuse exact names from search_cellar for wines I already have.",
-              "5. Tell me what the reply says (added, or waiting for my approval: then 'approve all' on the site puts them in place) and what is still empty. Then move on to the next shelf.",
+              "   For each new wine, give image_url (its page at a shop or the winery) and an honest image_match; my own photos cannot be saved from the chat.",
+              "5. Tell me what the reply says (added, or waiting for my approval: then 'approve all' on the site puts them in place), what is still empty,",
+              "   and which label photos are not an exact match or missing (I can take those on the site's label photos page). Then move on to the next shelf.",
               "Answer me in Hebrew.",
             ].join("\n"),
           },

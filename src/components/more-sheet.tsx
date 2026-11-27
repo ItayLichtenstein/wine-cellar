@@ -15,6 +15,7 @@ const GROUPS = [
     links: [
       { href: "/history", text: "history", icon: "glass" },
       { href: "/fridges", text: "fridges", icon: "fridge" },
+      { href: "/labels", text: "labels", icon: "camera" },
       { href: "/ai", text: "ai", icon: "sparkle" },
     ],
   },
