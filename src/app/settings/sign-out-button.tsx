@@ -10,7 +10,10 @@ export function SignOutButton() {
 
   async function signOut() {
     setBusy(true);
-    await createClient().auth.signOut();
+    // This device only ("local"): the default ("global") ends every session
+    // of the user, and an AI connector's OAuth session is one of them, so
+    // Claude or Gemini would have to be connected again.
+    await createClient().auth.signOut({ scope: "local" });
     // A full reload on purpose (not router.push): on a shared device nothing
     // from the signed-in session may stay in the page's memory.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
