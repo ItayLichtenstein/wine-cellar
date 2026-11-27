@@ -3,12 +3,12 @@
 /* Color tokens. Components use these names (bg-background, text-muted...)
    instead of raw colors, so dark mode only has to change the values here. */
 :root {
-  /* Burgundy theme (from the link-preview picture): a wine-tinted cream by
+  /* Burgundy theme (from the link-preview picture): a rosy, wine-tinted pink by
      day, deep burgundy by night, and the dark fridge in both. */
-  --background: #f6ecea;
+  --background: #ecd3ce;
   --foreground: #2a0b12;
-  --muted: #80616a;
-  --surface: #fffafa;
+  --muted: #765660; /* 4.5:1 on the background */
+  --surface: #f8ebe8;
   --accent: #6d1a2a;
   /* The fridge drawing is dark in both themes, like a real wine fridge. */
   --fridge: #1c1716;
