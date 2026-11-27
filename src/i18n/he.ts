@@ -465,6 +465,8 @@ export const he = {
     connectedSince: (date: string) => `מחובר מ־${date}`,
     editSelfSwitch: "עושה שינויים בעצמו",
     changesTitle: "מה ה־AI שינה",
+    changesMore: (n: number) => (n === 1 ? "עוד שינוי אחד" : `עוד ${n} שינויים`),
+    changesKept: "אפשר לבטל שינוי של ה־AI עד 30 יום, ואחר כך הוא נמחק מהרשימה",
     changeAdd: (n: number) => (n === 1 ? "הוסיף בקבוק" : `הוסיף ${n} בקבוקים`),
     changeDrink: "סימן כשתוי",
     changeMove: "הזיז",
