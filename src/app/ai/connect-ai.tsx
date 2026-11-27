@@ -121,6 +121,9 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
  * exactly what to look for on the screen.
  */
 function MixedText({ text }: { text: string }) {
+  // In English the whole sentence is Latin: nothing to isolate, and bolding it
+  // would make it one unbreakable line.
+  if (!/[֐-׿]/.test(text)) return text;
   return text.split(/([A-Za-z][A-Za-z+ ]*[A-Za-z]|\+)/).map((part, i) =>
     i % 2 ? (
       <bdi key={i} className="whitespace-nowrap font-semibold">
