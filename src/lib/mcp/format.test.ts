@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ListBottle, ListRow } from "../bottle-list";
-import { formatHistory, formatRows, formatWineDetails } from "./format";
+import { formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
 
 const bottle = (over: Partial<ListBottle> = {}): ListBottle => ({
   id: "b", status: "stored", vintageId: "v", winery: "Yatir", name: "Forest", type: "red", year: 2019,
@@ -48,5 +48,25 @@ describe("formatWineDetails", () => {
   });
   it("says so when nothing matches", () => {
     expect(formatWineDetails([], h, "barolo")).toContain("Nothing in the cellar");
+  });
+});
+
+describe("reportGaps", () => {
+  const full = { winery: "Galil", name: "Alon", price: 65, grape: "Cabernet", country: "Israel", region: "", drinkFrom: 2024, drinkTo: 2028, image: "c/web-1.webp" };
+
+  it("says nothing is empty for a complete bottle", () => {
+    const out = reportGaps([full]);
+    expect(out.some((l) => l.includes("still empty"))).toBe(false);
+    expect(out.join(" ")).toContain("everything was filled in");
+  });
+
+  it("lists each empty detail and a missing photo", () => {
+    const out = reportGaps([{ ...full, price: null, drinkFrom: null, drinkTo: null, image: "", country: "", grape: "" }]);
+    expect(out[0]).toBe("Galil – Alon: still empty – drinking window, price, grape, country/region, label photo.");
+    expect(out.join(" ")).toContain("estimates");
+  });
+
+  it("counts a window with only one end as filled", () => {
+    expect(reportGaps([{ ...full, drinkFrom: null }])[0]).not.toContain("drinking window");
   });
 });

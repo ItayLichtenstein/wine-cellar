@@ -9,7 +9,7 @@ import { applyAdd, applyDrink, applyMove } from "../ai-apply";
 import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } from "../fridges";
 import { tasteProfile } from "../stats";
 import { getStatsData } from "../stats-data";
-import { formatHistory, formatRows, formatWineDetails } from "./format";
+import { formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
 
 /**
  * The MCP server (stage 7, ADR 0001). A thin client of the same service
@@ -32,25 +32,17 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "a typical price for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess:",
         "ask the user to turn on web search in this chat (the tools menu of the message box) so you can look it up, or to say they prefer to skip it.",
         "Afterwards tell the user, in one line, which details you found and which you could not, so they can fill those in on the site.",
-        "Label photos: when you can find one, pass image_url, a direct https link to the image file of that exact wine (a producer or shop product photo).",
-        "Never say a photo was added unless the tool reply says \"label image saved\" for that bottle; if it says NOT saved, tell the user why.",
+        "Label photos: always try to give image_url for each bottle you add: the link to that exact wine's page at a shop or the winery",
+        "(the server takes the product photo from the page), or a direct link to the image file. Never say a photo was added unless",
+        "the tool reply says \"label image saved\" for that bottle; if it says NOT saved, tell the user why.",
         "Use search_cellar to see what they have, wine_details for everything about one wine, what_to_drink for a recommendation, history for what they drank.",
-        ...(canEdit
-          ? [
-              "The user let you make changes yourself: suggest_bottles, suggest_drink and suggest_move take effect at once, and the user can undo any of them on the site.",
-              "delete_bottle removes a bottle entered by mistake. A deleted bottle is not a drunk one: before deleting, always ask the user",
-              "whether they want to delete it or mark it as drunk, and delete only after they say delete.",
-            ]
-          : [
-              "To add bottles (from a label photo, a receipt, or the user's words) call suggest_bottles. It only creates",
-              "drafts; the user approves them on the site (one by one, or all at once). Never claim a bottle was added – say it awaits approval.",
-              "You cannot delete bottles. If the user asks, tell them they can delete it on the site, or let you make changes yourself on the site's AI page.",
-            ]),
-        "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot) –",
-        "then approving puts every bottle straight into its spot. Filling a whole fridge: go shelf by shelf (the fill_fridge prompt).",
-        canEdit
-          ? "To mark a bottle as drunk or move it, use suggest_drink / suggest_move. Answer the user in their language."
-          : "To mark a bottle as drunk or move it, use suggest_drink / suggest_move: they too are drafts the user approves. Answer the user in their language.",
+        "Changes: the user decides on the site, per AI and at any time, whether your changes take effect at once or wait for their approval",
+        "as drafts. Every tool reply says which happened: repeat that to the user and never assume (a setting may have changed since your last call).",
+        "delete_bottle removes a bottle entered by mistake. A deleted bottle is not a drunk one: before deleting, always ask the user",
+        "whether they want to delete it or mark it as drunk, and delete only after they say delete.",
+        "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot),",
+        "so every bottle goes straight into its spot. Filling a whole fridge: go shelf by shelf (the fill_fridge prompt).",
+        "To mark a bottle as drunk or move it, use suggest_drink / suggest_move. Answer the user in their language.",
       ].join(" "),
     },
   );
@@ -171,10 +163,9 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     {
       title: "Suggest bottles to add",
       description:
-        (canEdit
-          ? "Adds bottles to the cellar at once (from a label photo, a receipt or the user's words); the user can undo it on the site. Before calling,"
-          : "Creates DRAFTS for bottles to add (from a label photo, a receipt or the user's words). Nothing is added until the user approves it on the site. Before calling,") +
-        " look up missing details (drinking window, grape, region, typical price) with web search; leave out only what you could not verify, and tell the user which.",
+        "Adds bottles (from a label photo, a receipt or the user's words): at once, or as drafts the user approves, by the user's setting; the reply says which." +
+        " Before calling, look up missing details (drinking window, grape, region, typical price) with web search, and find each wine's page for image_url." +
+        " Leave out only what you could not find; the reply lists what is still empty, to tell the user.",
       inputSchema: {
         bottles: z
           .array(
@@ -195,7 +186,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
                 .string()
                 .optional()
                 .describe(
-                  "A direct https link to a photo of this wine's label or bottle on a public website (the image file itself: JPEG, PNG or WebP, up to 5MB; not a web page, not a Google Images result page). The server downloads it; the reply says for each bottle whether it was saved.",
+                  "An https link for this wine's label photo: its product page at a shop or the winery (the server takes the page's main photo), or the image file itself (JPEG, PNG or WebP, up to 5MB). Not a search results page. The reply says for each bottle whether it was saved.",
                 ),
               places: z
                 .array(
@@ -256,7 +247,15 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
           lines.push(`${d.winery} – ${d.name}: added ${r.bottleIds.length} bottle(s), ${r.placed} in the requested place(s)${r.placed < r.bottleIds.length ? ", the rest outside the fridge" : ""}.`);
         }
         return text(
-          [...lines, `The user can undo any of these on ${siteUrl}/ai.`, ...imageNotes, ...errors, errors.length ? `Fix and call again. Expected shape:\n${DRAFT_FORMAT}` : ""]
+          [
+            "Added at once (the user lets you make changes yourself).",
+            ...lines,
+            `The user can undo any of these on ${siteUrl}/ai.`,
+            ...imageNotes,
+            ...reportGaps(good),
+            ...errors,
+            errors.length ? `Fix and call again. Expected shape:\n${DRAFT_FORMAT}` : "",
+          ]
             .filter(Boolean)
             .join("\n"),
         );
@@ -274,8 +273,11 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
       }
       return text(
         [
-          good.length ? `${good.length} draft(s) are waiting for the user's approval at ${siteUrl}/ai.` : "No drafts were created.",
+          good.length
+            ? `Not added yet: the user set you to suggest only, so ${good.length} draft(s) are waiting for their approval at ${siteUrl}/ai. Say so; never claim they were added.`
+            : "No drafts were created.",
           ...imageNotes,
+          ...(good.length ? reportGaps(good) : []),
           imageNotes.some((n) => n.includes("NOT saved"))
             ? "Tell the user which label images were not saved and why; they can try another direct image link from you, or take a photo on the site after approving."
             : "",
@@ -318,7 +320,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
       }
       if (!res.ok) return fail("It did not work (the bottle or the place may have changed). Nothing was changed.");
       await logChange(kind, r.action, res.undo);
-      return text(`Done: ${kind === "drink" ? "marked as drunk" : "moved"}. The user can undo it on ${siteUrl}/ai.`);
+      return text(`Done at once (the user lets you make changes yourself): ${kind === "drink" ? "marked as drunk" : "moved"}. The user can undo it on ${siteUrl}/ai.`);
     }
     const { error } = await db.from("drafts").insert({ cellar_id: cellarId, kind, payload: r.action, source: "mcp" as const });
     if (error) {
@@ -327,14 +329,14 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         content: [{ type: "text" as const, text: error.hint === "too_many_drafts" ? "50 drafts are already waiting. Ask the user to approve or reject them first." : "Could not save the suggestion. Try again." }],
       };
     }
-    return text(`${done} It waits for the user's approval at ${siteUrl}/ai.`);
+    return text(`${done} Not done yet: the user set you to suggest only, so it waits for their approval at ${siteUrl}/ai.`);
   };
 
   server.registerTool(
     "suggest_drink",
     {
       title: "Suggest marking a bottle as drunk",
-      description: `When the user says they opened / drank a bottle from the cellar. ${canEdit ? "Takes effect at once; the user can undo it on the site." : "Creates a draft; the user approves it on the site."} Optional score 1.0-5.0 and tasting notes.`,
+      description: `When the user says they opened / drank a bottle from the cellar. At once or as a draft, by the user's setting; the reply says which. Optional score 1.0-5.0 and tasting notes.`,
       inputSchema: {
         ...bottleRef,
         date: z.string().optional().describe("YYYY-MM-DD, default today"),
@@ -350,25 +352,31 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     "suggest_move",
     {
       title: "Suggest moving a bottle",
-      description: `Move a bottle to another place in the fridge (see fridge_layout for free slots). ${canEdit ? "Takes effect at once; the user can undo it on the site." : "Creates a draft; the user approves it on the site."}`,
+      description: `Move a bottle to another place in the fridge (see fridge_layout for free slots). At once or as a draft, by the user's setting; the reply says which.`,
       inputSchema: { ...bottleRef, to: placeSchema.describe("The new place") },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async (args) => saveAction("move", args, "The move suggestion is saved."),
   );
 
-  // Only for an AI the user let make changes itself.
-  if (canEdit) {
+  // Listed in both modes, so switching mode on the site works without
+  // reconnecting (clients keep the tool list they got when connecting).
+  {
     server.registerTool(
       "delete_bottle",
       {
         title: "Delete a bottle entered by mistake",
         description:
-          "Removes a bottle that should not be in the cellar (entered by mistake, a duplicate). NOT for a bottle they drank: use suggest_drink. Ask the user first whether to delete it or mark it as drunk, and call this only after they say delete. The user can undo it on the site.",
+          "Removes a bottle that should not be in the cellar (entered by mistake, a duplicate). NOT for a bottle they drank: use suggest_drink. Ask the user first whether to delete it or mark it as drunk, and call this only after they say delete. Works only if the user lets you make changes yourself (the reply says); the user can undo it on the site.",
         inputSchema: { ...bottleRef, user_confirmed_delete: z.literal(true).describe("The user said to delete it (not that they drank it)") },
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       },
       async (args) => {
+        if (!canEdit) {
+          return text(
+            `Not deleted: the user set you to suggest only. Tell them they can delete it on the site, or tick "makes changes itself" for you on ${siteUrl}/ai (it applies at once, no need to reconnect) and ask again.`,
+          );
+        }
         const [fridges, loose] = await Promise.all([getFridges(cellarId, db), getLooseBottles(cellarId, db)]);
         const ref = { winery: args.winery, name: args.name, year: args.year ?? null, at: args.at ? { fridge: args.at.fridge ?? "", shelf: args.at.shelf, zone: args.at.zone ?? 1, slot: args.at.slot ?? null } : null };
         const bottle = findBottle(fridges, loose, ref);
@@ -376,7 +384,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         const { data: snapshot, error } = await db.rpc("ai_delete_bottle", { p_bottle_id: bottle.id });
         if (error || !snapshot) return fail("It did not work. Nothing was deleted.");
         await logChange("delete", { winery: args.winery, name: args.name, year: ref.year }, snapshot as Record<string, unknown>);
-        return text(`Deleted. The user can undo it on ${siteUrl}/ai.`);
+        return text(`Deleted at once. The user can undo it on ${siteUrl}/ai.`);
       },
     );
   }
@@ -390,7 +398,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
           role: "user",
           content: {
             type: "text",
-            text: "I'll attach a photo of wine labels or a receipt. Identify each wine (winery, name, vintage, type, and if you know them: grape, country, region, drinking window). Check search_cellar so the same wine uses the exact existing name. Then call suggest_bottles once with all of them, and tell me they await my approval.",
+            text: "I'll attach a photo of wine labels or a receipt. Identify each wine (winery, name, vintage, type, and if you know them: grape, country, region, drinking window). Check search_cellar so the same wine uses the exact existing name. Look up what's missing on the web and find each wine's page for image_url. Then call suggest_bottles once with all of them, and tell me what the reply says (added, or waiting for my approval) and what is still empty.",
           },
         },
       ],
@@ -436,7 +444,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
               "3. For each shelf: identify every wine (winery, name, vintage, type; grape/country/region and drinking window if you know them),",
               "   and where it sits (zone and slot, slot 1 = rightmost as I look at it). If unsure about a bottle, ask me rather than guess.",
               "4. Call suggest_bottles once per shelf with all its bottles and their `places`. Reuse exact names from search_cellar for wines I already have.",
-              "5. Tell me how many await my approval, and that 'approve all' on the site puts them in place. Then move on to the next shelf.",
+              "5. Tell me what the reply says (added, or waiting for my approval: then 'approve all' on the site puts them in place) and what is still empty. Then move on to the next shelf.",
               "Answer me in Hebrew.",
             ].join("\n"),
           },

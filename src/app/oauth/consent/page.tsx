@@ -2,6 +2,7 @@ import { pageTitle } from "@/i18n/metadata";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getT } from "@/i18n/server";
+import { aiDisplayName } from "@/lib/ai-providers";
 import { createClient } from "@/lib/supabase/server";
 import { ConsentButtons } from "./consent-buttons";
 
@@ -39,7 +40,7 @@ async function Consent({ searchParams }: { searchParams: PageProps<"/oauth/conse
 
   return (
     <>
-      <h1 className="text-2xl font-bold">{c.asks(data.client.name || c.anApp)}</h1>
+      <h1 className="text-2xl font-bold">{c.asks(data.client.name ? aiDisplayName(data.client.name) : c.anApp)}</h1>
       <p className="text-sm">{c.canRead}</p>
       <ConsentButtons authorizationId={data.authorization_id} clientId={data.client.id} />
       <p className="text-xs text-muted">{c.disconnect}</p>
