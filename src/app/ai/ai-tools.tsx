@@ -8,6 +8,7 @@ import { buildPrompt, parseAiAnswer, type BottleDraft, type CellarLine } from "@
 import { placeText, placesSummary } from "@/lib/draft-places";
 import type { FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/client";
+import { LABEL_BUCKET } from "@/lib/label-image";
 import { approveAll, type ApproveResult } from "./approve-all";
 
 export type PendingDraft = {
@@ -195,7 +196,9 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
     router.refresh();
   }
 
-  async function reject(id: string) {
+  async function reject(id: string, image: string) {
+    // A label photo fetched for this draft is not needed any more.
+    if (image) await createClient().storage.from(LABEL_BUCKET).remove([image]);
     await createClient().from("drafts").update({ status: "rejected", decided_at: new Date().toISOString() }).eq("id", id);
     router.refresh();
   }
@@ -259,7 +262,7 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
                 >
                   {a.review}
                 </Link>
-                <button type="button" onClick={() => reject(id)} className="text-muted underline underline-offset-2">
+                <button type="button" onClick={() => reject(id, d.image)} className="text-muted underline underline-offset-2">
                   {a.reject}
                 </button>
               </div>

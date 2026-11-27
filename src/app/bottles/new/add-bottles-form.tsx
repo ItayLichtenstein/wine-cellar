@@ -1,5 +1,6 @@
 "use client";
 
+import { attachDraftImage } from "@/lib/draft-image";
 import { markAiHintSeen, readAiHintSeen, shouldShowAiHint, writeAiHintSeen } from "@/lib/ai-hint";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,6 +35,8 @@ export type Prefill = {
   extra?: Partial<WineExtra>;
   wishId?: string;
   draftId?: string;
+  /** The label photo the AI found for this draft (stored path). */
+  image?: string;
   /** Places to start with picked (an AI draft that says where the bottles are). */
   places?: Place[];
 };
@@ -171,6 +174,7 @@ export function AddBottlesForm({
     if (prefill?.wishId) await supabase.from("wishlist_items").delete().eq("id", prefill.wishId);
     // Approved: the draft leaves the waiting list.
     if (prefill?.draftId) {
+      if (prefill.image && ids?.length) await attachDraftImage(supabase, ids[0], prefill.image);
       await supabase.from("drafts").update({ status: "approved", decided_at: new Date().toISOString() }).eq("id", prefill.draftId);
     }
     if (!aiConnected) {

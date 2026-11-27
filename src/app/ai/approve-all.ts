@@ -6,6 +6,7 @@ import type { BottleDraft } from "@/lib/drafts";
 import type { FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/client";
 import { saveExtra } from "../bottle/details";
+import { attachDraftImage } from "@/lib/draft-image";
 
 export type ApproveResult = { bottles: number; placed: number; failed: number };
 
@@ -68,6 +69,7 @@ export async function approveAll(
       const { data: v } = await supabase.from("bottles").select("vintage_id, wine_vintages(wine_id)").eq("id", res.data[0]).single();
       if (v?.wine_vintages) await saveExtra(v.wine_vintages.wine_id, v.vintage_id, res.data, { ...EMPTY_EXTRA, grape: d.grape, country: d.country, region: d.region });
     }
+    await attachDraftImage(supabase, res.data[0], d.image);
     await supabase.from("drafts").update({ status: "approved", decided_at: new Date().toISOString() }).eq("id", id);
   }
   return result;

@@ -77,6 +77,7 @@ async function loadDraft(cellarId: string, id: string, fridges: FridgeView[]): P
   const d = r.draft;
   return {
     draftId: data.id,
+    image: d.image,
     winery: d.winery,
     name: d.name,
     type: d.type,
