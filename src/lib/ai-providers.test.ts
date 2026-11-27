@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AI_PROVIDERS, CONNECTABLE, identifyAi } from "./ai-providers";
+import { AI_PROVIDERS, aiDisplayName, CONNECTABLE, identifyAi } from "./ai-providers";
 
 describe("identifyAi", () => {
   it("knows the three assistants by the name they register with", () => {
@@ -33,5 +33,13 @@ describe("chatUrl", () => {
   });
   it("Gemini has no request in its link", () => {
     expect(AI_PROVIDERS.gemini.chatUrl("x")).toBe("https://gemini.google.com/app");
+  });
+});
+
+describe("aiDisplayName", () => {
+  it("names Google's client Gemini, and keeps unknown names", () => {
+    expect(aiDisplayName("Google")).toBe("Gemini");
+    expect(aiDisplayName("Claude")).toBe("Claude");
+    expect(aiDisplayName("Some MCP Tool")).toBe("Some MCP Tool");
   });
 });

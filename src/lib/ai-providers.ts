@@ -87,3 +87,9 @@ export function identifyAi(clientName: string): AiKey | null {
   if (n.includes("gemini") || n.includes("google")) return "gemini";
   return null;
 }
+
+/** The name to show for a connected client: "Gemini" for Google's client, which registers as "Google". */
+export function aiDisplayName(clientName: string): string {
+  const key = identifyAi(clientName);
+  return key ? AI_PROVIDERS[key].name : clientName;
+}

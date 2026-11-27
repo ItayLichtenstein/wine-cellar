@@ -61,3 +61,28 @@ export function formatWineDetails(rows: ListRow[], history: HistoryEntry[], quer
   }
   return lines.join("\n");
 }
+
+type DraftGaps = { winery: string; name: string; price: number | null; grape: string; country: string; region: string; drinkFrom: number | null; drinkTo: number | null; image: string };
+
+/**
+ * What is still empty in bottles the AI just added or suggested, so it has
+ * to tell the user (weaker models skip the server instructions, but always
+ * read a tool's reply). The label photo is reported separately.
+ */
+export function reportGaps(drafts: DraftGaps[]): string[] {
+  const lines = drafts.flatMap((d) => {
+    const missing = [
+      d.drinkFrom === null && d.drinkTo === null ? "drinking window" : "",
+      d.price === null ? "price" : "",
+      d.grape ? "" : "grape",
+      d.country || d.region ? "" : "country/region",
+      d.image ? "" : "label photo",
+    ].filter(Boolean);
+    return missing.length ? [`${d.winery} – ${d.name}: still empty – ${missing.join(", ")}.`] : [];
+  });
+  return [
+    ...lines,
+    "Now tell the user, in one or two short lines: which details you looked up on the web, which you filled from your own knowledge (say they are estimates),",
+    lines.length ? "and which are still empty (listed above), so they can fill them in on the site or ask you to search again." : "and that everything was filled in.",
+  ];
+}

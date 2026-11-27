@@ -7,12 +7,15 @@ import { request } from "node:https";
 import type { LookupFunction } from "node:net";
 import sharp from "sharp";
 import { checkImageUrl, isPublicAddress } from "./web-address";
+import { findPageImage } from "./page-image";
 import { MAX_SIDE } from "./label-image";
 
 const MAX_BYTES = 5_000_000;
 const TIMEOUT_MS = 8000;
 const MAX_REDIRECTS = 3;
+const MAX_PAGE_BYTES = 1_000_000;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const PAGE_TYPES = ["text/html", "application/xhtml+xml"];
 
 export type WebImage = { ok: true; webp: Buffer } | { ok: false; reason: string };
 
@@ -32,13 +35,14 @@ const publicLookup: LookupFunction = (hostname, options, callback) => {
   });
 };
 
-type Got = { ok: true; body: Buffer } | { ok: false; reason: string } | { redirect: string };
+type Got = { ok: true; body: Buffer } | { ok: false; reason: string } | { redirect: string } | { page: string };
 
-function getOnce(url: URL): Promise<Got> {
+/** One request. A web page is read (its first 1MB) only when `pageAllowed`. */
+function getOnce(url: URL, pageAllowed: boolean): Promise<Got> {
   return new Promise((resolve) => {
     const req = request(
       url,
-      { method: "GET", lookup: publicLookup, timeout: TIMEOUT_MS, headers: { accept: "image/jpeg,image/png,image/webp", "user-agent": "WineCellarApp/1.0 (label photo)" } },
+      { method: "GET", lookup: publicLookup, timeout: TIMEOUT_MS, headers: { accept: "image/jpeg,image/png,image/webp,text/html;q=0.8", "user-agent": "Mozilla/5.0 (compatible; WineCellarApp/1.0; label photo)" } },
       (res) => {
         const status = res.statusCode ?? 0;
         if (status >= 300 && status < 400 && res.headers.location) {
@@ -50,9 +54,26 @@ function getOnce(url: URL): Promise<Got> {
           return resolve({ ok: false, reason: `the site answered ${status} (broken link or blocked)` });
         }
         const type = (res.headers["content-type"] ?? "").split(";")[0].trim().toLowerCase();
+        if (pageAllowed && PAGE_TYPES.includes(type)) {
+          // The wine's page at a shop or winery: read the start of it to
+          // find its product photo.
+          const chunks: Buffer[] = [];
+          let size = 0;
+          res.on("data", (c: Buffer) => {
+            size += c.length;
+            chunks.push(c);
+            if (size > MAX_PAGE_BYTES) {
+              req.destroy();
+              resolve({ page: Buffer.concat(chunks).toString("utf8") });
+            }
+          });
+          res.on("end", () => resolve({ page: Buffer.concat(chunks).toString("utf8") }));
+          res.on("error", () => resolve({ ok: false, reason: "the page could not be read" }));
+          return;
+        }
         if (!IMAGE_TYPES.includes(type)) {
           res.resume();
-          return resolve({ ok: false, reason: "the link is a web page or another file, not a JPEG/PNG/WebP image" });
+          return resolve({ ok: false, reason: "the link is not a JPEG/PNG/WebP image or a web page with one" });
         }
         const chunks: Buffer[] = [];
         let size = 0;
@@ -78,15 +99,28 @@ function getOnce(url: URL): Promise<Got> {
   });
 }
 
-/** Downloads the image (following up to 3 redirects, each checked again) and re-encodes it. */
+/**
+ * Downloads the image and re-encodes it. The link may be the image itself or
+ * the wine's web page, whose product photo (og:image) is then fetched. Every
+ * address on the way (redirects, the photo on the page) is checked again.
+ */
 export async function fetchLabelImage(link: string): Promise<WebImage> {
   let current = link;
-  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+  let pageAllowed = true;
+  for (let hop = 0; hop <= MAX_REDIRECTS + 1; hop++) {
     const checked = checkImageUrl(current);
     if (!checked.ok) return checked;
-    const got = await getOnce(checked.url);
+    const got = await getOnce(checked.url, pageAllowed);
     if ("redirect" in got) {
       current = got.redirect;
+      continue;
+    }
+    if ("page" in got) {
+      const image = findPageImage(got.page, checked.url.toString());
+      if (!image) return { ok: false, reason: "the page has no product photo (send the image file's own link instead)" };
+      // Only one page: the photo it points to must be an image.
+      current = image;
+      pageAllowed = false;
       continue;
     }
     if (!got.ok) return got;

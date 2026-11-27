@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { identifyAi, type AiKey } from "./ai-providers";
+import { aiDisplayName, identifyAi, type AiKey } from "./ai-providers";
 
 export type ConnectedAi = {
   clientId: string;
@@ -27,7 +27,7 @@ export async function getConnectedAis(): Promise<ConnectedAi[]> {
     const name = g.client.name || "AI";
     return {
       clientId: g.client.id,
-      name,
+      name: aiDisplayName(name),
       key: identifyAi(name),
       since: g.granted_at,
       canEdit: editing.has(g.client.id),
