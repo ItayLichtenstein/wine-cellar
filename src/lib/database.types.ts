@@ -37,6 +37,20 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"ai_edit_grants": {
+                  Row: {
+                    "client_id": string,"created_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_id": string,"created_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "client_id"?: string,"created_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"app_admins": {
                   Row: {
                     "added_at": string,"user_id": string
@@ -197,14 +211,14 @@ isOneToOne: false
                   ]
                 },"drafts": {
                   Row: {
-                    "cellar_id": string,"created_at": string,"created_by": string | null,"decided_at": string | null,"id": string,"kind": Database["public"]['Enums']["draft_kind"],"payload": NonNullable<Json>,"source": Database["public"]['Enums']["draft_source"],"status": Database["public"]['Enums']["draft_status"]
+                    "applied_by_ai": boolean,"cellar_id": string,"created_at": string,"created_by": string | null,"decided_at": string | null,"id": string,"kind": Database["public"]['Enums']["draft_kind"],"payload": NonNullable<Json>,"source": Database["public"]['Enums']["draft_source"],"status": Database["public"]['Enums']["draft_status"],"undo": Json | null,"undone_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "cellar_id": string,"created_at"?: string,"created_by"?: string | null,"decided_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["draft_kind"],"payload": NonNullable<Json>,"source": Database["public"]['Enums']["draft_source"],"status"?: Database["public"]['Enums']["draft_status"]
+                    "applied_by_ai"?: boolean,"cellar_id": string,"created_at"?: string,"created_by"?: string | null,"decided_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["draft_kind"],"payload": NonNullable<Json>,"source": Database["public"]['Enums']["draft_source"],"status"?: Database["public"]['Enums']["draft_status"],"undo"?: Json | null,"undone_at"?: string | null
                   }
                   Update: {
-                    "cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"decided_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["draft_kind"],"payload"?: NonNullable<Json>,"source"?: Database["public"]['Enums']["draft_source"],"status"?: Database["public"]['Enums']["draft_status"]
+                    "applied_by_ai"?: boolean,"cellar_id"?: string,"created_at"?: string,"created_by"?: string | null,"decided_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["draft_kind"],"payload"?: NonNullable<Json>,"source"?: Database["public"]['Enums']["draft_source"],"status"?: Database["public"]['Enums']["draft_status"],"undo"?: Json | null,"undone_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -596,6 +610,9 @@ isOneToOne: false
               "banned": boolean,"bottles": number,"cellar_name": string,"created_at": string,"display_name": string,"is_admin": boolean,"is_me": boolean,"last_active": string,"members": number,"user_id": string
             }[]
                            },
+"ai_delete_bottle":
+{ Args: { "p_bottle_id": string }; Returns: Json
+                           },
 "can_read_cellar":
 { Args: { "p_cellar_id": string }; Returns: boolean
                            },
@@ -710,6 +727,9 @@ isOneToOne: false
 "shared_cellar_name":
 { Args: { "p_token": string }; Returns: string
                            },
+"undo_ai_change":
+{ Args: { "p_draft_id": string }; Returns: undefined
+                           },
 "undo_last_import":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
@@ -727,7 +747,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "bottle_shape": "standard"|"burgundy","bottle_status": "stored"|"unplaced"|"in_transit"|"consumed","draft_kind": "add_bottles"|"drink"|"move","draft_source": "mcp"|"paste","draft_status": "pending"|"approved"|"rejected","kosher_status": "yes"|"no"|"unknown","member_role": "member"|"viewer","window_source": "critic"|"estimate","wine_type": "red"|"white"|"rose"|"orange"|"sparkling"|"dessert"|"fortified"|"other","zone_kind": "row"|"stack"
+            "bottle_shape": "standard"|"burgundy","bottle_status": "stored"|"unplaced"|"in_transit"|"consumed","draft_kind": "add_bottles"|"drink"|"move"|"delete","draft_source": "mcp"|"paste","draft_status": "pending"|"approved"|"rejected","kosher_status": "yes"|"no"|"unknown","member_role": "member"|"viewer","window_source": "critic"|"estimate","wine_type": "red"|"white"|"rose"|"orange"|"sparkling"|"dessert"|"fortified"|"other","zone_kind": "row"|"stack"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -847,7 +867,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "bottle_shape": ["standard", "burgundy"],"bottle_status": ["stored", "unplaced", "in_transit", "consumed"],"draft_kind": ["add_bottles", "drink", "move"],"draft_source": ["mcp", "paste"],"draft_status": ["pending", "approved", "rejected"],"kosher_status": ["yes", "no", "unknown"],"member_role": ["member", "viewer"],"window_source": ["critic", "estimate"],"wine_type": ["red", "white", "rose", "orange", "sparkling", "dessert", "fortified", "other"],"zone_kind": ["row", "stack"]
+            "bottle_shape": ["standard", "burgundy"],"bottle_status": ["stored", "unplaced", "in_transit", "consumed"],"draft_kind": ["add_bottles", "drink", "move", "delete"],"draft_source": ["mcp", "paste"],"draft_status": ["pending", "approved", "rejected"],"kosher_status": ["yes", "no", "unknown"],"member_role": ["member", "viewer"],"window_source": ["critic", "estimate"],"wine_type": ["red", "white", "rose", "orange", "sparkling", "dessert", "fortified", "other"],"zone_kind": ["row", "stack"]
           }
         }
 } as const

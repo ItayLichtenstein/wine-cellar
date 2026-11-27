@@ -1,3 +1,4 @@
+import { AiChanges, type AiChange } from "./ai-changes";
 import { pageTitle } from "@/i18n/metadata";
 import { getLocale, getT } from "@/i18n/server";
 import type { Dictionary } from "@/i18n/dictionaries";
@@ -39,11 +40,17 @@ export default async function AiPage() {
   );
 }
 
+/** The changes list looks back this far (an ISO date for the query). */
+function daysAgo(days: number): string {
+  return new Date(Date.now() - days * 86400000).toISOString();
+}
+
 async function WithData() {
   const [user, t, locale] = await Promise.all([getCurrentUser(), getT(), getLocale()]);
   if (!user.canEdit) redirect("/"); // drafts are for the household's editors (RLS too)
   const supabase = await createClient();
-  const [bottles, fridges, loose, ais, draftsRes] = await Promise.all([
+  const since = daysAgo(30);
+  const [bottles, fridges, loose, ais, draftsRes, changesRes] = await Promise.all([
     getCellarBottles(user.cellarId),
     getFridges(user.cellarId),
     getLooseBottles(user.cellarId),
@@ -54,7 +61,27 @@ async function WithData() {
       .eq("cellar_id", user.cellarId)
       .eq("status", "pending")
       .order("created_at"),
+    // What an AI changed by itself in the last 30 days and was not undone.
+    supabase
+      .from("drafts")
+      .select("id, kind, payload, undo")
+      .eq("cellar_id", user.cellarId)
+      .eq("applied_by_ai", true)
+      .is("undone_at", null)
+      .gte("decided_at", since)
+      .order("decided_at", { ascending: false })
+      .limit(20),
   ]);
+  const changes: AiChange[] = (changesRes.data ?? []).map((c) => {
+    const p = (c.payload ?? {}) as { winery?: string; name?: string; year?: number | null };
+    const undo = (c.undo ?? {}) as { bottles?: unknown[] };
+    return {
+      id: c.id,
+      kind: c.kind as AiChange["kind"],
+      title: `${p.winery ?? ""} – ${p.name ?? ""} ${p.year ?? ""}`.trim(),
+      count: undo.bottles?.length ?? 1,
+    };
+  });
 
   // One line per vintage for the prompt: the AI sees what we have and how ready it is.
   const cellar = buildRows(bottles, EMPTY_FILTERS, "state").map((r) => ({
@@ -91,6 +118,7 @@ async function WithData() {
       {/* What waits on the user comes first. */}
       <PendingActions actions={actions} />
       <PendingDrafts drafts={drafts} fridges={fridges} cellarId={user.cellarId} />
+      <AiChanges changes={changes} />
 
       {ais.length > 0 ? (
         <section className="flex flex-col gap-2">

@@ -121,8 +121,8 @@ export type LooseBottle = {
   title: string;
 };
 
-export async function getLooseBottles(cellarId: string): Promise<LooseBottle[]> {
-  const supabase = await createClient();
+export async function getLooseBottles(cellarId: string, db?: Db): Promise<LooseBottle[]> {
+  const supabase = db ?? (await createClient());
   const { data, error } = await supabase
     .from("bottles")
     .select("id, status, wine_vintages(year, drink_from, drink_to, peak_from, peak_to, wines(winery, name))")

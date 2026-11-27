@@ -18,10 +18,22 @@ export function ConnectedAis({ ais }: { ais: ConnectedAi[] }) {
   const dateFormat = new Intl.DateTimeFormat(intlTag(useLocale()), { day: "numeric", month: "long", year: "numeric" });
   const [failed, setFailed] = useState(false);
 
+  // "Makes changes itself" on or off: a row the database guard reads.
+  async function setEdit(clientId: string, on: boolean) {
+    setFailed(false);
+    const grants = createClient().from("ai_edit_grants");
+    const { error } = on ? await grants.insert({ client_id: clientId }) : await grants.delete().eq("client_id", clientId);
+    if (error) return setFailed(true);
+    router.refresh();
+  }
+
   async function disconnect(clientId: string) {
     setFailed(false);
-    const { error } = await createClient().auth.oauth.revokeGrant({ clientId });
+    const supabase = createClient();
+    const { error } = await supabase.auth.oauth.revokeGrant({ clientId });
     if (error) return setFailed(true);
+    // Reconnecting asks again what it may change.
+    await supabase.from("ai_edit_grants").delete().eq("client_id", clientId);
     router.refresh();
   }
 
@@ -35,6 +47,10 @@ export function ConnectedAis({ ais }: { ais: ConnectedAi[] }) {
                 {g.name}
               </span>
               <span className="text-xs text-muted">{a.connectedSince(dateFormat.format(new Date(g.since)))}</span>
+              <label className="mt-1 flex cursor-pointer items-center gap-2 text-sm">
+                <input type="checkbox" checked={g.canEdit} onChange={(e) => setEdit(g.clientId, e.target.checked)} className="size-4 accent-[var(--accent)]" />
+                {a.editSelfSwitch}
+              </label>
             </span>
             <button type="button" onClick={() => disconnect(g.clientId)} className="text-sm text-muted underline underline-offset-2">
               {a.disconnect}
