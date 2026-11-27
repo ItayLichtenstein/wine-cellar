@@ -4,7 +4,8 @@ import { getT } from "@/i18n/server";
 
 export const generateMetadata = pageTitle((t) => t.titles.terms);
 
-// Short terms in plain language: 18+, provided as is, AI is not advice,
+// Short terms in plain language: no use under 18, drinking is on the user,
+// provided as is, no liability (capped), AI is not advice,
 // what gets an account closed, Israeli law. Public, like the privacy page.
 export default async function TermsPage() {
   const p = (await getT()).terms;
