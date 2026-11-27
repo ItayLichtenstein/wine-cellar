@@ -8,42 +8,54 @@ export type AiKey = "claude" | "chatgpt" | "gemini";
 
 export type AiProvider = {
   name: string;
-  /** Offered in "connect an AI". False where it can't be done from Israel today. */
-  connectable: boolean;
   /**
-   * The page the first connection step opens. The steps' words (and who can
-   * connect it) live in the dictionaries under `aiSetup`, in both languages.
+   * Offered in "connect an AI". False where a regular (free or personal)
+   * account can't connect it today: ChatGPT allows custom connections only on
+   * work plans, so it is kept just to recognise a connection made there.
    */
-  setupUrl: string | null;
+  connectable: boolean;
+  /** Shown first, with a "recommended" tag: works on any account, also on the phone. */
+  recommended: boolean;
+  /**
+   * The page the first connection step opens, given our MCP address and the
+   * name to show. The steps' words (and who can connect it) live in the
+   * dictionaries under `ai.setup`, in both languages.
+   */
+  setupUrl: ((mcpUrl: string, name: string) => string) | null;
   /** Opens a new chat; with the request typed in when the app supports it. */
   chatUrl: (request: string) => string;
   prefills: boolean;
 };
 
-// Checked against each company's help pages (26 Nov 2026). Sources:
-// support.claude.com/en/articles/11176164, help.openai.com/en/articles/12584461,
-// support.google.com/gemini/answer/17209137
+// Checked 27 Nov 2026 (research_notes/חיבור בינה מלאכותית אישית). Sources:
+// support.claude.com/en/articles/11176164 (free accounts get one custom
+// connector), help.openai.com/en/articles/12584461 (custom MCP only on
+// Business/Enterprise/Edu), Gemini "custom apps" (personal accounts, web
+// setup in English, Keep Activity on; only secondary sources so far).
 export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
   claude: {
     name: "Claude",
     connectable: true,
-    setupUrl: "https://claude.ai/customize/connectors",
+    recommended: true,
+    // Claude's own install link: opens "add custom connector" already filled in.
+    setupUrl: (url, name) =>
+      `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=${encodeURIComponent(name)}&connectorUrl=${encodeURIComponent(url)}`,
     chatUrl: (q) => `https://claude.ai/new?q=${encodeURIComponent(q)}`,
     prefills: true,
   },
   chatgpt: {
     name: "ChatGPT",
-    connectable: true,
-    setupUrl: "https://chatgpt.com/plugins",
+    connectable: false,
+    recommended: false,
+    setupUrl: null,
     chatUrl: (q) => `https://chatgpt.com/?q=${encodeURIComponent(q)}`,
     prefills: true,
   },
-  // Custom connections in Gemini are US-only and English-only for now, so
-  // it is not offered; kept so a connection made elsewhere is recognised.
   gemini: {
     name: "Gemini",
-    connectable: false,
-    setupUrl: null,
+    connectable: true,
+    recommended: false,
+    setupUrl: () => "https://gemini.google.com/app",
     chatUrl: () => "https://gemini.google.com/app",
     prefills: false,
   },

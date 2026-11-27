@@ -55,7 +55,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
       text,
       extra: i === 0 && p.setupUrl && (
         <a
-          href={p.setupUrl}
+          href={p.setupUrl(url, a.connectorName)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-accent/50 px-4 py-2 text-sm font-medium text-accent"
@@ -85,6 +85,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
           >
             <AiLogo ai={k} className="size-8" />
             {AI_PROVIDERS[k].name}
+            {AI_PROVIDERS[k].recommended && <span className="rounded-full bg-accent/15 px-2 text-xs font-medium text-accent">{a.recommended}</span>}
           </button>
         ))}
       </div>
