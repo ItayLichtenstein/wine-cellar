@@ -1,0 +1,14 @@
+# Only the GitHub Actions we use, pinned by commit SHA: Dependabot opens one
+# grouped PR a month to move the pins. npm packages get security updates
+# only (turned on in the repo settings), not every new version.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
