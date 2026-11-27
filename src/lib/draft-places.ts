@@ -7,7 +7,7 @@ import type { DraftPlace } from "./drafts";
 import { zoneLabel } from "./zone-label";
 
 type Zone = { id: string; kind: "row" | "stack"; capacity: number; label: string; bottles: { slot: number | null; id?: string; title?: string; year?: number | null }[] };
-type Fridge = { name: string; shelves: { zones: Zone[] }[] };
+type Fridge = { name: string; kind?: "fridge" | "cabinet"; shelves: { zones: Zone[] }[] };
 export type ResolvedPlace = { zoneId: string; slot: number | null };
 
 /**
@@ -83,7 +83,9 @@ export function describeFridges(fridges: Fridge[]): string {
         });
         return `  shelf ${si + 1} (from the top): ${zones.join("; ")}`;
       });
-      return [`Fridge ${i + 1}: "${f.name}"`, ...shelves].join("\n");
+      // A cabinet is stored like a fridge; the AI should call it what it is.
+      const cabinet = f.kind === "cabinet" ? " (a cabinet or rack, not a fridge: call it that)" : "";
+      return [`Fridge ${i + 1}: "${f.name}"${cabinet}`, ...shelves].join("\n");
     })
     .join("\n")
     .concat(fridges.length > 1 ? `\n${fridges.length} fridges: always pass \`fridge\` (its name, or its number as above) in every place.` : "");

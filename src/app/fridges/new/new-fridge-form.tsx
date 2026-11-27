@@ -37,9 +37,18 @@ const DEFAULT_SIZE: Record<PresetKey, number> = {
   stacksAndRow: 8,
 };
 
-function makeShelf(preset: PresetKey): FormShelf {
-  return { preset, ...SHELF_PRESETS[preset].make(DEFAULT_SIZE[preset]) };
+function makeShelf(preset: PresetKey, size = DEFAULT_SIZE[preset]): FormShelf {
+  return { preset, ...SHELF_PRESETS[preset].make(size) };
 }
+
+type Kind = FridgeView["kind"];
+/** A new fridge starts with 6 shelves of two rows; a cabinet with 4 plain shelves of 5. */
+const START: Record<Kind, () => FormShelf[]> = {
+  fridge: () => Array.from({ length: 6 }, () => makeShelf("twoRows")),
+  cabinet: () => Array.from({ length: 4 }, () => makeShelf("oneRow", 5)),
+};
+/** The arrangement a shelf added with the counter gets. */
+const NEW_SHELF: Record<Kind, () => FormShelf> = { fridge: () => makeShelf("twoRows"), cabinet: () => makeShelf("oneRow", 5) };
 
 /** Which dropdown entry a catalog shelf matches. */
 function presetOf(shelf: Shelf): PresetKey {
@@ -58,6 +67,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
   const router = useRouter();
   const locale = useLocale();
   const f = useT().fridgeSetup;
+  const [kind, setKind] = useState<Kind>(existing?.kind ?? "fridge");
   const [name, setName] = useState(existing?.name ?? f.defaultName);
   const [brand, setBrand] = useState(existing?.brand ?? "");
   const [model, setModel] = useState(existing?.model ?? "");
@@ -78,7 +88,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
           preset: presetOf(s),
           zones: s.zones.map(({ id, kind, capacity, label }) => ({ id, kind, capacity, label })),
         }))
-      : Array.from({ length: 6 }, () => makeShelf("twoRows")),
+      : START.fridge(),
   );
   const [confirmed, setConfirmed] = useState(false);
   const leaving = existing
@@ -94,9 +104,18 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
     const n = clamp(count, LIMITS.shelves.min, LIMITS.shelves.max);
     setShelves((prev) =>
       n > prev.length
-        ? [...prev, ...Array.from({ length: n - prev.length }, () => makeShelf("twoRows"))]
+        ? [...prev, ...Array.from({ length: n - prev.length }, NEW_SHELF[kind])]
         : prev.slice(0, n),
     );
+  }
+
+  /** Fridge or cabinet. A new one starts over with that kind's shelves; a cabinet has no brand. */
+  function chooseKind(next: Kind) {
+    setKind(next);
+    if (next === "cabinet") chooseBrand("");
+    if (existing) return;
+    if (name === f.defaultName || name === f.cabinetName) setName(next === "cabinet" ? f.cabinetName : f.defaultName);
+    setShelves(START[next]());
   }
 
   function chooseBrand(value: string) {
@@ -170,7 +189,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
     setError(null);
 
     const supabase = createClient();
-    const { error: rpcError } = existing
+    const { data: newId, error: rpcError } = existing
       ? await supabase.rpc("update_fridge", {
           p_fridge_id: existing.id,
           p_name: name,
@@ -185,7 +204,13 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
           p_shelves: shelves.map(({ zones }) => ({ zones })),
         });
 
-    if (rpcError) {
+    // The kind is a plain column (RLS: editors update), set after the shelves are saved.
+    const fridgeId = existing?.id ?? (newId as string | null);
+    const kindError =
+      !rpcError && fridgeId && kind !== (existing?.kind ?? "fridge")
+        ? (await supabase.from("fridges").update({ kind }).eq("id", fridgeId)).error
+        : null;
+    if (rpcError || kindError) {
       setSaving(false);
       // Never show database details to the user.
       setError(f.saveFailed);
@@ -199,7 +224,26 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
     <form onSubmit={save} className="flex flex-col gap-6">
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-2 text-lg font-semibold">{f.details}</legend>
+        <div className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{f.kindLabel}</span>
+          <div role="radiogroup" aria-label={f.kindLabel} className="grid grid-cols-2 gap-1 rounded-xl bg-surface p-1 shadow-sm">
+            {(["fridge", "cabinet"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={kind === k}
+                onClick={() => chooseKind(k)}
+                className={`rounded-lg py-2 text-sm ${kind === k ? "bg-accent font-medium text-white dark:text-black" : "text-muted"}`}
+              >
+                {f.kinds[k]}
+              </button>
+            ))}
+          </div>
+        </div>
         <TextField label={f.name} value={name} onChange={setName} required />
+        {kind === "fridge" && (
+        <>
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-muted">{f.brand}</span>
@@ -268,6 +312,8 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
             </a>
           </p>
         )}
+        </>
+        )}
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
@@ -327,7 +373,7 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
           {f.total(fridgeCapacity(shelves))}
           {spec && fridgeCapacity(shelves) !== spec.capacity ? f.perMakerShort(spec.capacity) : ""}
         </p>
-        <FridgePreview shelves={shelves} />
+        <FridgePreview shelves={shelves} cabinet={kind === "cabinet"} />
       </section>
 
       {error && (

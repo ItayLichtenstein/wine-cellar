@@ -327,7 +327,7 @@ export function AddBottlesForm({
             {fridges.map((f) => (
               <div key={f.id} className="flex flex-col gap-1">
                 {fridges.length > 1 && <h3 className="font-medium">{f.name}</h3>}
-                <FridgePreview shelves={f.shelves} onPick={pick} onUnpick={unpick} picked={picked} />
+                <FridgePreview shelves={f.shelves} cabinet={f.kind === "cabinet"} onPick={pick} onUnpick={unpick} picked={picked} />
               </div>
             ))}
           </>

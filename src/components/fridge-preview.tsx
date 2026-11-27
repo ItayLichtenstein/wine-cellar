@@ -85,6 +85,8 @@ type Props = {
   /** The bottle being moved, drawn highlighted. */
   activeBottleId?: string;
   view?: FridgeViewMode;
+  /** A cabinet or rack: a wooden frame instead of the dark fridge. */
+  cabinet?: boolean;
   /** Visitors: draw only the bottles, no empty places or empty shelves. */
   hideEmpty?: boolean;
 };
@@ -94,7 +96,7 @@ type Props = {
  * Bottles are neutral; only the small year badge carries the drink-window
  * color (never red frames – red reads as "bad wine").
  */
-export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottleClick, activeBottleId, view = "labels", hideEmpty = false }: Props) {
+export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottleClick, activeBottleId, view = "labels", hideEmpty = false, cabinet = false }: Props) {
   const t = useT();
   // Visitors (friends, a view link) care about the bottles, not the free
   // places: only shelves and rows that hold something, packed together.
@@ -104,7 +106,7 @@ export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottle
   if (shown.length === 0) return <p className="text-center text-sm text-muted">{t.fridge.empty}</p>;
   return (
     // w-fit: the fridge is as wide as its widest shelf, not the whole page.
-    <ol className="mx-auto flex w-fit min-w-72 max-w-full touch-manipulation flex-col gap-2 rounded-2xl bg-fridge p-3 select-none [-webkit-touch-callout:none]" aria-label={t.fridge.drawing}>
+    <ol className={`mx-auto flex w-fit min-w-72 max-w-full touch-manipulation flex-col gap-2 ${cabinet ? "rounded-md bg-cabinet" : "rounded-2xl bg-fridge"} p-3 select-none [-webkit-touch-callout:none]`} aria-label={t.fridge.drawing}>
       {shown.map(({ shelf, no }) => (
         <li key={no} className="wood flex items-start gap-2 rounded-lg p-2">
           <span className="w-5 shrink-0 pt-1 text-center text-xs text-on-fridge/60" aria-hidden="true">

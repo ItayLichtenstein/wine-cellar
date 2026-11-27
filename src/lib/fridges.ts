@@ -34,6 +34,8 @@ export type FridgeView = {
   name: string;
   brand: string | null;
   model: string | null;
+  /** A cabinet or shelf unit instead of a wine fridge: drawn in wood, no brand. */
+  kind: "fridge" | "cabinet";
   shelves: { id: string; zones: ZoneView[] }[];
 };
 
@@ -47,7 +49,7 @@ export async function getFridges(cellarId: string, db?: Db): Promise<FridgeView[
   const [fridgesRes, bottlesRes] = await Promise.all([
     supabase
       .from("fridges")
-      .select("id, name, brand, model, position, shelves(id, position, shelf_zones(id, position, kind, capacity, label))")
+      .select("id, name, brand, model, kind, position, shelves(id, position, shelf_zones(id, position, kind, capacity, label))")
       .eq("cellar_id", cellarId)
       .order("position")
       .order("created_at"), // ties (equal positions) keep a stable order
@@ -87,6 +89,7 @@ export async function getFridges(cellarId: string, db?: Db): Promise<FridgeView[
     name: f.name,
     brand: f.brand,
     model: f.model,
+    kind: f.kind === "cabinet" ? "cabinet" : "fridge",
     shelves: [...f.shelves]
       .sort((a, b) => a.position - b.position)
       .map((s) => ({
