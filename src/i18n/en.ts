@@ -114,7 +114,6 @@ export const en: Dictionary = {
       settings: ["Settings", "My name, language, export, privacy and account"],
       install: ["Install as an app", "On iPhone and Android, opens from the home screen"],
       guide: ["Beginner's guide", "Everything you need in five minutes"],
-      labels: ["Label photos", "Wines without a photo, and web photos to replace"],
     },
   },
   aiCard: {
@@ -362,7 +361,6 @@ export const en: Dictionary = {
       list: ["List", "All the bottles, with search and filters"],
       wish: ["Wishlist", "Wines you want to buy or taste"],
       stats: ["Stats", "What the cellar is worth, what's ready and what you like most"],
-      camera: ["Label photos", "Every wine without a photo in one place, and photos the AI found online to replace with your own (in \"More\")"],
       people: ["Friends & sharing", "Invite with a link: a partner runs the cellar with you, a friend only views. Open friends' fridges from \"My friends\" on the main screen, where you can also search for a bottle"],
       sparkle: ["Connect AI", "Ask \"what should we open tonight?\" or photograph the fridge, and the AI fills it in (always in \"More\")"],
       moon: ["Appearance", "Light, dark or automatic, in \"More\""],

@@ -364,7 +364,7 @@ function MoveDemo() {
 
 function MoreDemo() {
   const m = useT().guide.moreItems;
-  const icons: IconName[] = ["list", "wish", "stats", "camera", "people", "sparkle", "moon", "phone"];
+  const icons: IconName[] = ["list", "wish", "stats", "people", "sparkle", "moon", "phone"];
   const items: [IconName, string, string][] = icons.map((icon) => [icon, m[icon][0], m[icon][1]]);
   return (
     // A plain list, not cards: testers took boxed rows for buttons.
