@@ -408,6 +408,7 @@ export const he = {
       "מה לפתוח הערב לארוחה איטלקית עם חברים?",
       "מה כדאי לשתות בקרוב לפני שיעבור השיא?",
       "איזה יין שתינו בקיץ ואהבנו במיוחד?",
+      "תוסיף עוד מקום לבקבוק במדף 5",
     ],
     // Connecting: copy the address, the assistant's own steps, then approve here.
     pickAi: "איזה AI לחבר",
@@ -472,6 +473,10 @@ export const he = {
     changeDrink: "סימן כשתוי",
     changeMove: "הזיז",
     changeDelete: "מחק",
+    changeEdit: "עדכן פרטים",
+    changeWishlist: "הוסיף לרשימת המשאלות",
+    changeTaste: "רשם טעימה",
+    changeFridge: "שינה את סידור המקרר",
     undo: "ביטול",
     undone: "בוטל ✓",
     undoFailed: "אי אפשר לבטל, אולי הבקבוק כבר השתנה",

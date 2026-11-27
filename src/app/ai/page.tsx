@@ -73,12 +73,12 @@ async function WithData() {
       .limit(50),
   ]);
   const changes: AiChange[] = (changesRes.data ?? []).map((c) => {
-    const p = (c.payload ?? {}) as { winery?: string; name?: string; year?: number | null };
+    const p = (c.payload ?? {}) as { winery?: string; name?: string; year?: number | null; fridge?: string };
     const undo = (c.undo ?? {}) as { bottles?: unknown[] };
     return {
       id: c.id,
       kind: c.kind as AiChange["kind"],
-      title: `${p.winery ?? ""} – ${p.name ?? ""} ${p.year ?? ""}`.trim(),
+      title: c.kind === "fridge" ? (p.fridge ?? "") : `${p.winery ?? ""} – ${p.name ?? ""} ${p.year ?? ""}`.trim(),
       count: undo.bottles?.length ?? 1,
       when: c.decided_at ?? "",
     };

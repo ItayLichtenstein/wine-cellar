@@ -1,0 +1,278 @@
+// More MCP tools (ADR 0013): edit a wine's details, the wishlist, a drink
+// outside the cellar, and the fridge's layout. They change data only for an
+// AI the user lets make changes; one that only suggests is told so, and the
+// user makes the change on the site. Every change can be undone on /ai.
+
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+import { DRAFT_TYPES } from "../drafts";
+import { findBottle, pickFridge } from "../draft-places";
+import { applyFridgeEdit, fridgeJson } from "../fridge-edit";
+import { CHOOSABLE_PRESETS } from "../fridge-layout";
+import { getCellarBottles, getFridges, getLooseBottles, type Db } from "../fridges";
+
+export type ChangeKind = "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge";
+
+type Ctx = {
+  db: Db;
+  cellarId: string;
+  siteUrl: string;
+  canEdit: boolean;
+  logChange: (kind: ChangeKind, payload: object, undo: Record<string, unknown>) => Promise<void>;
+};
+
+const text = (t: string) => ({ content: [{ type: "text" as const, text: t }] });
+const write = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } as const;
+const ONE_CALL = "Put everything in ONE call (the list), never several calls in parallel.";
+const label = (o: { winery: string; name: string; year?: number | null }) => `${o.winery} – ${o.name}${o.year === undefined ? "" : ` ${o.year ?? "NV"}`}`;
+
+export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, canEdit, logChange }: Ctx) {
+  const suggestOnly = (what: string) =>
+    text(
+      `Not done: the user set you to suggest only, so you cannot ${what}. Tell them they can do it on the site, or tick "makes changes itself" for you on ${siteUrl}/ai (it applies at once, no need to reconnect) and ask again.`,
+    );
+  const done = (lines: string[]) =>
+    text(
+      [`Done at once (the user lets you make changes yourself). They can undo any of these on ${siteUrl}/ai.`, ...lines, lines.some((l) => l.includes("NOT")) ? "Tell the user which ones did not work and why." : ""]
+        .filter(Boolean)
+        .join("\n"),
+    );
+
+  const placeSchema = z.object({
+    fridge: z.string().optional().describe("Fridge name or number from fridge_layout"),
+    shelf: z.number().int().min(1),
+    zone: z.number().int().min(1).optional(),
+    slot: z.number().int().min(1).optional(),
+  });
+
+  server.registerTool(
+    "edit_wine",
+    {
+      title: "Fix a wine's details",
+      description:
+        "Change details of wines already in the cellar: drinking window, peak, grape, country, region, type, or the price paid. Window and wine details apply to every bottle of that wine and vintage; the price to every bottle of that vintage, or only the one at `at`. Only what you pass changes. Works only if the user lets you make changes yourself. " +
+        ONE_CALL,
+      inputSchema: {
+        wines: z
+          .array(
+            z.object({
+              winery: z.string().describe("Exactly as in search_cellar"),
+              name: z.string().describe("Exactly as in search_cellar"),
+              year: z.number().int().nullable().optional().describe("Vintage; null for NV"),
+              at: placeSchema.optional().describe("Only for a price of one bottle: where it is"),
+              drink_from: z.number().int().nullable().optional(),
+              drink_to: z.number().int().nullable().optional(),
+              peak_from: z.number().int().nullable().optional(),
+              peak_to: z.number().int().nullable().optional(),
+              price: z.number().min(0).nullable().optional().describe("Paid per bottle, in ₪"),
+              type: z.enum(DRAFT_TYPES).optional(),
+              grape: z.string().max(200).optional(),
+              country: z.string().max(100).optional(),
+              region: z.string().max(100).optional(),
+            }),
+          )
+          .min(1)
+          .max(30),
+      },
+      annotations: write,
+    },
+    async ({ wines }) => {
+      if (!canEdit) return suggestOnly("change wine details");
+      const lines: string[] = [];
+      for (const w of wines) {
+        const year = w.year ?? null;
+        const name = label({ ...w, year });
+        const all = (await getCellarBottles(cellarId, db)).filter(
+          (b) => b.winery.toLowerCase() === w.winery.toLowerCase() && b.name.toLowerCase() === w.name.toLowerCase() && (b.year ?? null) === year,
+        );
+        if (all.length === 0) {
+          lines.push(`${name}: NOT changed – not in the cellar (check the exact winery, name and vintage with search_cellar).`);
+          continue;
+        }
+        let bottleIds = all.map((b) => b.id);
+        if (w.at) {
+          const [fridges, loose] = await Promise.all([getFridges(cellarId, db), getLooseBottles(cellarId, db)]);
+          const one = findBottle(fridges, loose, { winery: w.winery, name: w.name, year, at: { fridge: w.at.fridge ?? "", shelf: w.at.shelf, zone: w.at.zone ?? 1, slot: w.at.slot ?? null } });
+          if (!one) {
+            lines.push(`${name}: NOT changed – no bottle of it at that place.`);
+            continue;
+          }
+          bottleIds = [one.id];
+        }
+        const changes = Object.fromEntries(
+          (["drink_from", "drink_to", "peak_from", "peak_to", "price", "type", "grape", "country", "region"] as const)
+            .filter((k) => w[k] !== undefined)
+            .map((k) => [k, w[k]]),
+        );
+        if (Object.keys(changes).length === 0) {
+          lines.push(`${name}: NOT changed – nothing to change was given.`);
+          continue;
+        }
+        const { data: undo, error } = await db.rpc("ai_edit_wine", { p_vintage_id: all[0].vintageId, p_bottle_ids: bottleIds, p_changes: changes });
+        if (error || !undo) {
+          lines.push(`${name}: NOT changed – the database refused it (check the values).`);
+          continue;
+        }
+        await logChange("edit", { winery: w.winery, name: w.name, year }, undo as Record<string, unknown>);
+        lines.push(`${name}: updated ${Object.keys(changes).join(", ")}${"price" in changes ? ` (${bottleIds.length} bottle(s))` : ""}.`);
+      }
+      return done(lines);
+    },
+  );
+
+  server.registerTool(
+    "wishlist",
+    {
+      title: "The wishlist",
+      description: "The wines the household wants to buy, with notes and where they saw them.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async () => {
+      const { data } = await db
+        .from("wishlist_items")
+        .select("year, note, source_note, link_url, wines(winery, name, type)")
+        .eq("cellar_id", cellarId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (!data?.length) return text("The wishlist is empty.");
+      return text(
+        data
+          .map((i) => {
+            const w = i.wines as { winery: string; name: string; type: string } | null;
+            return `- ${w ? `${w.winery} – ${w.name}` : "?"} ${i.year ?? "(any vintage)"}${i.note ? ` · ${i.note}` : ""}${i.source_note ? ` · ${i.source_note}` : ""}${i.link_url ? ` · ${i.link_url}` : ""}`;
+          })
+          .join("\n"),
+      );
+    },
+  );
+
+  server.registerTool(
+    "add_to_wishlist",
+    {
+      title: "Add to the wishlist",
+      description: `Add wines the user wants to buy (not bottles they have: those are suggest_bottles). Works only if the user lets you make changes yourself. ${ONE_CALL}`,
+      inputSchema: {
+        wines: z
+          .array(
+            z.object({
+              winery: z.string().min(1).max(100),
+              name: z.string().min(1).max(100),
+              type: z.enum(DRAFT_TYPES).optional(),
+              year: z.number().int().nullable().optional().describe("A specific vintage; omit for any vintage"),
+              note: z.string().max(500).optional(),
+              link: z.string().url().max(500).optional().describe("A shop or winery page"),
+            }),
+          )
+          .min(1)
+          .max(30),
+      },
+      annotations: write,
+    },
+    async ({ wines }) => {
+      if (!canEdit) return suggestOnly("add to the wishlist");
+      const lines: string[] = [];
+      for (const w of wines) {
+        const { data: item, error } = await db.rpc("add_to_wishlist", {
+          p_winery: w.winery,
+          p_name: w.name,
+          p_type: w.type ?? "red",
+          p_year: w.year ?? undefined,
+          p_note: w.note,
+          p_link: w.link,
+        });
+        if (error || !item) {
+          lines.push(`${label(w)}: NOT added – ${error?.hint === "cellar_full" ? "the wishlist is full" : "the database refused it"}.`);
+          continue;
+        }
+        await logChange("wishlist", { winery: w.winery, name: w.name, year: w.year ?? null }, { item });
+        lines.push(`${label(w)}: added to the wishlist.`);
+      }
+      return done(lines);
+    },
+  );
+
+  server.registerTool(
+    "log_tasting",
+    {
+      title: "A wine drunk outside the cellar",
+      description: `Record a wine the user drank that was NOT from their cellar (a restaurant, at friends), with date, place, notes and score. For a bottle from the cellar use suggest_drink. Works only if the user lets you make changes yourself. ${ONE_CALL}`,
+      inputSchema: {
+        wines: z
+          .array(
+            z.object({
+              winery: z.string().min(1).max(100),
+              name: z.string().min(1).max(100),
+              type: z.enum(DRAFT_TYPES).optional(),
+              year: z.number().int().nullable().optional(),
+              date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("YYYY-MM-DD, default today"),
+              place: z.string().max(200).optional().describe("e.g. the restaurant"),
+              notes: z.string().max(1000).optional().describe("Tasting notes in the user's words"),
+              score: z.number().min(1).max(5).optional().describe("The user's score, 1.0-5.0"),
+            }),
+          )
+          .min(1)
+          .max(30),
+      },
+      annotations: write,
+    },
+    async ({ wines }) => {
+      if (!canEdit) return suggestOnly("record tastings");
+      const lines: string[] = [];
+      for (const w of wines) {
+        const { data: tasting, error } = await db.rpc("log_tasting", {
+          p_winery: w.winery,
+          p_name: w.name,
+          p_type: w.type ?? "red",
+          p_year: w.year ?? undefined,
+          p_tasted_on: w.date,
+          p_place: w.place,
+          p_notes: w.notes,
+          p_score: w.score === undefined ? undefined : Math.round(w.score * 10) / 10,
+        });
+        if (error || !tasting) {
+          lines.push(`${label(w)}: NOT recorded – the database refused it.`);
+          continue;
+        }
+        await logChange("taste", { winery: w.winery, name: w.name, year: w.year ?? null }, { tasting });
+        lines.push(`${label(w)}: recorded in the history${w.place ? ` (${w.place})` : ""}.`);
+      }
+      return done(lines);
+    },
+  );
+
+  server.registerTool(
+    "edit_fridge",
+    {
+      title: "Change the fridge's layout",
+      description:
+        "Change a fridge's shelves as on the site's fridge settings: the number of bottles a zone holds (e.g. one more slot on shelf 5), new shelves at the bottom, removing an empty shelf, or its name. Call fridge_layout first for the numbers. A change that would take bottles out of the fridge is refused. Works only if the user lets you make changes yourself.",
+      inputSchema: {
+        fridge: z.string().optional().describe("Fridge name or number from fridge_layout; needed when there are several"),
+        resize: z
+          .array(z.object({ shelf: z.number().int().min(1), zone: z.number().int().min(1).optional().describe("Default 1"), capacity: z.number().int().min(1).max(50).describe("The new number of bottles") }))
+          .max(60)
+          .optional(),
+        add_shelves: z
+          .array(z.object({ arrangement: z.enum(CHOOSABLE_PRESETS as [string, ...string[]]).describe("twoRows, oneRow, doubleStack (a pile) or twoStacks"), size: z.number().int().min(1).max(50).describe("Bottles in the bottom row / layer") }))
+          .max(10)
+          .optional(),
+        remove_shelves: z.array(z.number().int().min(1)).max(10).optional().describe("Empty shelves to remove, by number"),
+        name: z.string().min(1).max(60).optional().describe("A new name for the fridge"),
+      },
+      annotations: write,
+    },
+    async ({ fridge, resize, add_shelves, remove_shelves, name }) => {
+      if (!canEdit) return suggestOnly("change the fridge");
+      const fridges = await getFridges(cellarId, db);
+      const f = pickFridge(fridges, fridge);
+      if (!f) return text(fridges.length ? `NOT changed – there is no fridge "${fridge}" (see fridge_layout).` : "NOT changed – there is no fridge yet; the user sets one up on the site.");
+      const r = applyFridgeEdit(f, { resize, add_shelves: add_shelves as never, remove_shelves, name });
+      if (!r.ok) return text(`NOT changed – ${r.error}.`);
+      const { error } = await db.rpc("update_fridge", { p_fridge_id: f.id, p_name: r.name, p_shelves: r.shelves, p_brand: f.brand ?? undefined, p_model: f.model ?? undefined });
+      if (error) return text("NOT changed – the database refused it (check the numbers with fridge_layout).");
+      await logChange("fridge", { fridge: r.name }, { fridge: f.id, name: f.name, brand: f.brand, model: f.model, shelves: fridgeJson(f) });
+      return done([`"${f.name}": ${r.summary.join("; ")}.`]);
+    },
+  );
+}

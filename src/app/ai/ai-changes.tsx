@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export type AiChange = {
   id: string;
-  kind: "add_bottles" | "drink" | "move" | "delete";
+  kind: "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge";
   title: string;
   count: number;
   when: string;

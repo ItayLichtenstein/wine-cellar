@@ -10,6 +10,7 @@ import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } fr
 import { tasteProfile } from "../stats";
 import { getStatsData } from "../stats-data";
 import { formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
+import { registerMoreTools, type ChangeKind } from "./more-tools";
 
 /**
  * The MCP server (stage 7, ADR 0001). A thin client of the same service
@@ -27,7 +28,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "Be an active, helpful cellar assistant, not a passive one.",
         "The first time the user mentions the cellar in a chat, answer and then offer, in one short list, what you can do:",
         "add bottles from a label photo, a receipt or just their words (into the exact place in the fridge); recommend what to open tonight;",
-        "find what should be drunk soon; mark a bottle as drunk; move or rearrange bottles. After each action, offer the natural next step.",
+        "find what should be drunk soon; mark a bottle as drunk; move or rearrange bottles; fix a wine's details; the wishlist; change the fridge's shelves. After each action, offer the natural next step.",
         "Adding bottles: fill in what the user did not say yourself. Use web search to look up the drinking window, grape, country, region and",
         "a typical price for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess:",
         "ask the user to turn on web search in this chat (the tools menu of the message box) so you can look it up, or to say they prefer to skip it.",
@@ -42,6 +43,8 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "whether they want to delete it or mark it as drunk, and delete only after they say delete.",
         "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot),",
         "so every bottle goes straight into its spot. Filling a whole fridge: go shelf by shelf (the fill_fridge prompt).",
+        "To fix a wine's details (window, price, grape) use edit_wine; the wishlist: wishlist / add_to_wishlist; a wine drunk outside the cellar: log_tasting;",
+        "the fridge's shelves (e.g. one more slot): edit_fridge.",
         "To mark bottles as drunk or move them, use suggest_drink / suggest_move. Every tool takes a list: several bottles go in ONE call, never in parallel calls. Answer the user in their language.",
       ].join(" "),
     },
@@ -52,7 +55,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
 
   // Edit mode: a change is logged as a draft that is already approved, with
   // what is needed to undo it (shown on the site's AI page).
-  const logChange = async (kind: "add_bottles" | "drink" | "move" | "delete", payload: object, undo: Record<string, unknown>) => {
+  const logChange = async (kind: ChangeKind, payload: object, undo: Record<string, unknown>) => {
     const id = crypto.randomUUID();
     const { error } = await db.from("drafts").insert({ id, cellar_id: cellarId, kind, payload: payload as never, source: "mcp" as const });
     if (error) return;
@@ -436,6 +439,8 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
       return replyFor(lines);
     },
   );
+
+  registerMoreTools(server, { db, cellarId, siteUrl, canEdit, logChange });
 
   server.registerPrompt(
     "scan_label",
