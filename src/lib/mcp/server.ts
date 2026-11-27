@@ -222,8 +222,9 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
             imageNotes.push(`${label}: label image NOT saved – ${img.reason}.`);
             return draft;
           }
+          // "web-": the nightly backup skips it; the source link (metadata) can fetch it again.
           const path = `${cellarId}/web-${crypto.randomUUID()}.webp`;
-          const { error: upError } = await db.storage.from(LABEL_BUCKET).upload(path, img.webp, { contentType: "image/webp" });
+          const { error: upError } = await db.storage.from(LABEL_BUCKET).upload(path, img.webp, { contentType: "image/webp", metadata: { source: link } });
           if (upError) {
             imageNotes.push(`${label}: label image NOT saved – storage error.`);
             return draft;

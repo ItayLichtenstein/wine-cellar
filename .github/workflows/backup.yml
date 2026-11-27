@@ -7,6 +7,8 @@
 #
 # Needs one secret (Settings → Secrets and variables → Actions):
 # SUPABASE_DB_PASSWORD. Until it is set, the job skips itself.
+# Label photos people took are added when SUPABASE_SERVICE_ROLE_KEY is set
+# too (photos an AI fetched from the web are skipped: they can be fetched again).
 name: Nightly database backup
 
 on:
@@ -22,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - name: Skip until the secret is set
         id: gate
@@ -46,6 +49,15 @@ jobs:
           supabase db dump --db-url "$url" -f out/schema.sql
           supabase db dump --db-url "$url" -f out/data.sql --use-copy --data-only
           test -s out/schema.sql && test -s out/data.sql
+      - if: steps.gate.outputs.run == 'true' && env.SUPABASE_SERVICE_ROLE_KEY != ''
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Label photos people took
+        if: steps.gate.outputs.run == 'true' && env.SUPABASE_SERVICE_ROLE_KEY != ''
+        env:
+          SUPABASE_URL: https://ethqfevmpulthrcnqgkc.supabase.co
+        run: node --experimental-strip-types scripts/backup-labels.ts out/labels
       - name: Encrypt
         if: steps.gate.outputs.run == 'true'
         run: |
