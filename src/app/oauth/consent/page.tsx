@@ -9,7 +9,7 @@ export const generateMetadata = pageTitle((t) => t.titles.consent);
 
 /**
  * The consent screen of our OAuth server (Supabase Auth's OAuth 2.1 server,
- * stage 7). An AI client (Claude, ChatGPT…) asks to act on the user's
+ * stage 7). An AI client (Claude, Gemini…) asks to act on the user's
  * behalf; the user approves here. Supabase handles the protocol; we only
  * show who is asking and pass the decision on.
  */

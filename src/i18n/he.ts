@@ -124,7 +124,7 @@ export const he = {
     connect: "חברו AI למרתף",
     emptyText: ["יש לכם כבר הרבה בקבוקים?", "צלמו את המקרר מדף אחרי מדף, וה־AI יכניס כל בקבוק למקום שלו"],
     fullText: ["צלמו תווית והבקבוקים יחכו כאן לאישור,", "או שאלו מה לפתוח הערב לפי מה שיש במקרר"],
-    withWhich: "עם Claude או ChatGPT",
+    withWhich: "עם Claude או Gemini",
     yourAi: "ה־AI שלכם",
     fill: ["מילוי המקרר", "מצלמים מדף אחרי מדף, וכל בקבוק נכנס למקום שלו"],
     scan: ["הוספה מצילום", "פותח את הצ׳אט, ואתם מצרפים צילום"],
@@ -320,7 +320,7 @@ export const he = {
     // Above every practice demo, so the sample bottles aren't mistaken for yours.
     sample: "מקרר לדוגמה לתרגול, שום דבר כאן לא נשמר",
     aiTitle: "את הייעוץ על היין נותן ה־AI שלכם",
-    aiText: "האפליקציה שומרת מה יש לכם ואיפה. כדי לדעת מתי לפתוח כל בקבוק ולקבל המלצות, מחברים את ה־AI שאתם כבר משתמשים בו, כמו Claude או ChatGPT",
+    aiText: "האפליקציה שומרת מה יש לכם ואיפה. כדי לדעת מתי לפתוח כל בקבוק ולקבל המלצות, מחברים את ה־AI שאתם כבר משתמשים בו, כמו Claude או Gemini",
     aiWhere: "הסבר מפורט וחיבור ב\"עוד\" ← \"ה־AI שלכם\"",
     tour: "סיור במרתף",
     stepsLabel: "שלבי הסיור",
@@ -415,28 +415,28 @@ export const he = {
     approveStep: "ייפתח חלון של האתר שלנו. אם צריך התחברו עם גוגל, ואז לחצו \"אישור\"",
     doneStep: (name: string) => `זהו! פתחו צ׳אט חדש ב־${name} ושאלו "מה יש לי במרתף?"`,
     cantFind: ["לא מוצאים את הכפתור? שמות התפריטים משתנים מדי פעם,", "אז חפשו בהגדרות את המילה Connectors או השתמשו בהעתקה הידנית למטה"],
+    recommended: "מומלץ",
+    connectorName: "מרתף יין",
     setup: {
       claude: {
-        who: "עובד בכל חשבון Claude, גם בחינמי",
-        linkLabel: "פתיחת דף החיבורים",
+        who: "עובד בכל חשבון Claude, גם בחינמי, ואחרי החיבור גם באפליקציה בטלפון",
+        linkLabel: "פתיחת החיבור ב־Claude",
         steps: [
-          "פתחו את דף החיבורים של Claude (ואם צריך, התחברו לחשבון)",
-          "לחצו על הכפתור + ואז על Add custom connector",
-          "בשדה Name כתבו \"מרתף יין\", בשדה URL הדביקו את הכתובת שהעתקתם, ולחצו Add",
+          "לחצו על הכפתור למטה. ייפתח Claude עם השם והכתובת כבר ממולאים (אם השדה URL ריק, הדביקו בו את הכתובת שהעתקתם)",
+          "לחצו Add",
           "ליד \"מרתף יין\" לחצו Connect",
         ],
       },
-      chatgpt: {
-        who: "עובד רק בחשבון ChatGPT של עבודה (Business או Enterprise), לא בחינמי או ב־Plus",
-        linkLabel: "פתיחת Plugins",
+      chatgpt: { who: "", linkLabel: "", steps: [] as string[] },
+      gemini: {
+        who: "עובד בחשבון גוגל אישי (לא של עבודה או לימודים), עם Keep Activity פעיל. החיבור נעשה פעם אחת במחשב, ואחר כך עובד גם בטלפון",
+        linkLabel: "פתיחת Gemini",
         steps: [
-          "פתחו במחשב את דף ה־Plugins של ChatGPT",
-          "לחצו על + ואז על Add custom MCP server",
-          "בשדה Name כתבו \"מרתף יין\", ובשדה URL הדביקו את הכתובת שהעתקתם",
-          "לחצו I understand and want to continue, ואחר כך Create as a plugin ו־Install",
+          "פתחו במחשב את Gemini באתר (ההגדרה עדיין באנגלית בלבד)",
+          "בהגדרות היכנסו ל־Connected Apps ואז ל־Custom apps",
+          "לחצו Add a custom app, הדביקו את הכתובת שהעתקתם ואשרו",
         ],
       },
-      gemini: { who: "בינתיים רק בארה\"ב", linkLabel: "Gemini", steps: [] as string[] },
     },
     // What the main screen's AI buttons open the chat with.
     requests: {
@@ -451,7 +451,7 @@ export const he = {
     tooManyDrafts: "יש כבר 50 טיוטות שמחכות, אשרו או דחו אותן קודם",
     saveFailed: "השמירה לא הצליחה, נסו שוב",
     manualTitle: "בלי חיבור, בהעתקה ידנית לכל צ׳אט",
-    manualWho: "לכל צ׳אט אחר, למשל Gemini או ChatGPT החינמי",
+    manualWho: "לכל צ׳אט אחר, למשל ChatGPT",
     manualIntro: ["כאן ה־AI לא מחובר למרתף, אז האתר מכין בשבילו הודעה", "עם רשימת הבקבוקים שלכם והוראות מדויקות.", "מדביקים אותה בצ׳אט, ואם ביקשתם להוסיף בקבוקים,", "מעתיקים לכאן את התשובה והיא הופכת לטיוטות"],
     step1: "1. העתקת ההודעה לצ׳אט",
     whatToAsk: "מה לבקש",
