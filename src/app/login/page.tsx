@@ -40,6 +40,10 @@ export default async function LoginPage() {
             <Link href="/privacy" className="underline underline-offset-2">
               {t.privacy}
             </Link>
+            {" · "}
+            <Link href="/terms" className="underline underline-offset-2">
+              {t.terms}
+            </Link>
           </span>
         </p>
       </div>

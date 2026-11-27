@@ -64,9 +64,14 @@ export default async function PrivacyPage() {
         </p>
       </Section>
 
-      <Link href="/" className="text-sm underline underline-offset-2">
-        {p.back}
-      </Link>
+      <div className="flex flex-wrap gap-4 text-sm">
+        <Link href="/terms" className="underline underline-offset-2">
+          {p.termsLink}
+        </Link>
+        <Link href="/" className="underline underline-offset-2">
+          {p.back}
+        </Link>
+      </div>
     </main>
   );
 }
