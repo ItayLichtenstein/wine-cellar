@@ -58,6 +58,9 @@ async function Settings() {
         <Link href="/privacy" className="text-sm text-muted underline underline-offset-2">
           {t.settings.privacy}
         </Link>
+        <Link href="/terms" className="text-sm text-muted underline underline-offset-2">
+          {t.settings.terms}
+        </Link>
       </section>
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">{t.settings.account}</h2>
