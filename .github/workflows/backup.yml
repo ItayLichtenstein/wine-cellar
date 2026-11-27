@@ -1,0 +1,63 @@
+# Nightly backup of the live database (docs/backup.md).
+#
+# The repo is public, so anyone can download a workflow's artifacts: the
+# dump is encrypted with age to the public key in backup/age-recipient.txt
+# before it is uploaded. Only the private key (kept by the owner, never in
+# git) can open it. Artifacts are kept 30 days.
+#
+# Needs one secret (Settings → Secrets and variables → Actions):
+# SUPABASE_DB_PASSWORD. Until it is set, the job skips itself.
+name: Nightly database backup
+
+on:
+  schedule:
+    - cron: "23 1 * * *" # every night, 01:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - name: Skip until the secret is set
+        id: gate
+        run: |
+          if [ -z "$DB_PASSWORD" ]; then echo "No SUPABASE_DB_PASSWORD yet, skipping"; echo "run=false" >> "$GITHUB_OUTPUT"; else echo "run=true" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - if: steps.gate.outputs.run == 'true'
+        uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1
+        with:
+          version: 3.3.0
+      - name: Dump roles, schema and data
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          # Session pooler (IPv4; the direct host is IPv6 only). The password
+          # is URL-encoded so any character works.
+          pw=$(python3 -c 'import os,urllib.parse;print(urllib.parse.quote(os.environ["DB_PASSWORD"],safe=""))')
+          echo "::add-mask::$pw"
+          url="postgresql://postgres.ethqfevmpulthrcnqgkc:${pw}@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
+          mkdir -p out
+          supabase db dump --db-url "$url" -f out/roles.sql --role-only
+          supabase db dump --db-url "$url" -f out/schema.sql
+          supabase db dump --db-url "$url" -f out/data.sql --use-copy --data-only
+          test -s out/schema.sql && test -s out/data.sql
+      - name: Encrypt
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          sudo apt-get install -y -qq age >/dev/null
+          name="wine-cellar-$(date -u +%Y-%m-%d)"
+          tar -czf - -C out . | age -R backup/age-recipient.txt -o "$name.tar.gz.age"
+          rm -rf out
+          echo "NAME=$name" >> "$GITHUB_ENV"
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ env.NAME }}
+          path: ${{ env.NAME }}.tar.gz.age
+          retention-days: 30
+          if-no-files-found: error
