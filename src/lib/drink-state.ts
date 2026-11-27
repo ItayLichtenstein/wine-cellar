@@ -32,15 +32,17 @@ export function drinkState(w: DrinkWindow, year: number): DrinkState {
  * Badge colors: one clearly different HUE per state, not shades of one
  * color (26 Nov 2026: two rounds of soft greens were still too hard to tell
  * apart on the fridge). No red/orange, which read as an error, and no
- * yellow for wine at its peak. Digits are always black (spec), so every
+ * yellow for wine at its peak. 28 Nov 2026: the peak states are all
+ * greens (deep → light → turquoise), and "next year" is a pale blue-gray,
+ * so a wine not yet in its window never looks like one that is. Digits are always black (spec), so every
  * color stays light enough for black text.
  */
 export const DRINK_STATES: Record<DrinkState, { label: string; color: string }> = {
   past:  { label: "עבר את השיא",              color: "#C49A74" }, // warm brown
-  now:   { label: "בשיא",                       color: "#45B862" }, // green
-  soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#3FC4C0" }, // turquoise
-  hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#B79AE8" }, // lavender
-  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#8DBDF5" }, // sky blue
+  now:   { label: "בשיא",                       color: "#2E9E4A" }, // deep green
+  soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#86D97A" }, // light green
+  hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#43C4A8" }, // green-turquoise
+  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#BCD0E2" }, // pale blue-gray
   young: { label: "עוד לא בשיא",              color: "#949BA8" }, // gray
   none:  { label: "בלי חלון שתייה",            color: "#E6E1DA" }, // neutral
 };
