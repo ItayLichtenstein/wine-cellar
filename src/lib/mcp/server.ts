@@ -4,7 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { buildRows, drinkNow, EMPTY_FILTERS } from "../bottle-list";
 import { DRAFT_FORMAT, DRAFT_TYPES, parseActionDraft, parseBottleDraft } from "../drafts";
-import { describeFridges, findBottle, resolvePlaces } from "../draft-places";
+import { bottlePlaces, describeFridges, findBottle, pickFridge, resolvePlaces } from "../draft-places";
 import { applyAdd, applyDrink, applyMove } from "../ai-apply";
 import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } from "../fridges";
 import { tasteProfile } from "../stats";
@@ -76,7 +76,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
       annotations: read,
     },
     async ({ query, type, ready_now }) => {
-      const bottles = await getCellarBottles(cellarId, db);
+      const [bottles, fridges] = await Promise.all([getCellarBottles(cellarId, db), getFridges(cellarId, db)]);
       const rows = buildRows(
         bottles,
         {
@@ -87,7 +87,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         },
         "state",
       );
-      return text(`${rows.length} vintages, ${rows.reduce((n, r) => n + r.bottles.length, 0)} bottles.\n${formatRows(rows)}`);
+      return text(`${rows.length} vintages, ${rows.reduce((n, r) => n + r.bottles.length, 0)} bottles.\n${formatRows(rows, 40, bottlePlaces(fridges))}`);
     },
   );
 
@@ -128,9 +128,9 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
       annotations: read,
     },
     async ({ query }) => {
-      const [bottles, history] = await Promise.all([getCellarBottles(cellarId, db), getHistory(cellarId, db)]);
+      const [bottles, history, fridges] = await Promise.all([getCellarBottles(cellarId, db), getHistory(cellarId, db), getFridges(cellarId, db)]);
       const rows = buildRows(bottles, { ...EMPTY_FILTERS, text: query }, "year");
-      return text(formatWineDetails(rows, history, query));
+      return text(formatWineDetails(rows, history, query, bottlePlaces(fridges)));
     },
   );
 
@@ -190,7 +190,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
               places: z
                 .array(
                   z.object({
-                    fridge: z.string().optional().describe("Fridge name; omit for the first fridge"),
+                    fridge: z.string().optional().describe("Fridge name or number from fridge_layout; needed when there are several fridges"),
                     shelf: z.number().int().min(1).describe("Shelf number from the top, as in fridge_layout"),
                     zone: z.number().int().min(1).optional().describe("Zone on the shelf (1 = back row / upper layer / only row), default 1"),
                     slot: z.number().int().min(1).optional().describe("Slot in a row; omit for a pile"),
@@ -243,7 +243,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
             continue;
           }
           await logChange("add_bottles", d, { bottles: r.bottleIds });
-          lines.push(`${d.winery} – ${d.name}: added ${r.bottleIds.length} bottle(s), ${r.placed} in the requested place(s)${r.placed < r.bottleIds.length ? ", the rest outside the fridge" : ""}.`);
+          lines.push(`${d.winery} – ${d.name}: added ${r.bottleIds.length} bottle(s), ${r.placed} in the requested place(s)${r.placed < r.bottleIds.length ? ", the rest outside the fridge" + (d.places.length > r.placed ? " (a place you gave does not exist, is taken, or names no fridge: check fridge_layout and move them with suggest_move)" : "") : ""}.`);
         }
         return text(
           [
@@ -294,7 +294,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
   // the AI's app (calls sent in parallel each ask, and some apps get stuck).
   // In edit mode they take effect at once; otherwise they become drafts.
   const placeSchema = z.object({
-    fridge: z.string().optional(),
+    fridge: z.string().optional().describe("Fridge name or number from fridge_layout; needed when there are several fridges"),
     shelf: z.number().int().min(1),
     zone: z.number().int().min(1).optional(),
     slot: z.number().int().min(1).optional(),
@@ -303,7 +303,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     winery: z.string().describe("Exactly as in search_cellar"),
     name: z.string().describe("Exactly as in search_cellar"),
     year: z.number().int().nullable().optional().describe("Vintage; null for NV"),
-    at: placeSchema.optional().describe("Where the bottle is, if there are several (see fridge_layout)"),
+    at: placeSchema.optional().describe("Where the bottle is, as search_cellar shows it; needed when the same wine is in several places"),
   };
   const ONE_CALL = "Put all the bottles in ONE call (the list), never several calls in parallel.";
   const label = (o: { winery: string; name: string; year?: number | null }) => `${o.winery} – ${o.name} ${o.year ?? "NV"}`;
@@ -329,7 +329,10 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     if (r.action.kind === "drink") res = await applyDrink(db, bottle.id, r.action);
     else {
       const target = resolvePlaces(fridges, [r.action.to])[0];
-      if (!target) return `${name}: NOT moved – that place does not exist or is taken (see fridge_layout).`;
+      if (!target) {
+        const why = r.action.to.fridge && !pickFridge(fridges, r.action.to.fridge) ? `there is no fridge "${r.action.to.fridge}"` : "that place does not exist or is taken";
+        return `${name}: NOT moved – ${why} (see fridge_layout).`;
+      }
       res = await applyMove(db, bottle.id, target);
     }
     if (!res.ok) return `${name}: NOT done – the bottle or the place changed meanwhile.`;

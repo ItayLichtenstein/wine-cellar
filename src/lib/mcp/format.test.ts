@@ -26,6 +26,11 @@ describe("formatRows", () => {
     expect(out.split("\n")).toHaveLength(3);
     expect(out).toContain("3 more");
   });
+  it("with exact places, lists where every bottle is", () => {
+    const bottles = [bottle({ id: "1" }), bottle({ id: "2" }), bottle({ id: "3" }), bottle({ id: "4", status: "unplaced" })];
+    const places = new Map([["1", "shelf 1 slot 2"], ["2", "shelf 3 slot 1"], ["3", "shelf 3 slot 1"]]);
+    expect(formatRows([{ key: "k", bottles, first: bottles[0] }], 40, places)).toContain("shelf 1 slot 2; shelf 3 slot 1 (×2); outside the fridge");
+  });
   it("says so when nothing matches", () => {
     expect(formatRows([])).toBe("No bottles match.");
   });

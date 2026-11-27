@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeFridges, findBottle, placeText, placesSummary, resolvePlaces } from "./draft-places";
+import { bottlePlaces, describeFridges, findBottle, pickFridge, placeText, placesSummary, resolvePlaces } from "./draft-places";
 import { parseActionDraft, parseBottleDraft, parsePlace } from "./drafts";
 
 const fridge = {
@@ -112,5 +112,38 @@ describe("placeText in English", () => {
     const fridges = [{ name: "Main", shelves: [{ zones: [{ id: "z", kind: "row" as const, capacity: 3, label: "קדמי", bottles: [] }] }] }];
     expect(placeText(fridges, { fridge: "", shelf: 1, zone: 1, slot: 2 }, "en")).toBe("Shelf 1, Front, Place 2");
     expect(placeText(fridges, { fridge: "", shelf: 1, zone: 1, slot: 2 })).toBe("מדף 1, קדמי, מקום 2");
+  });
+});
+
+describe("several fridges", () => {
+  const row = (id: string, bottles: { slot: number; id?: string; title?: string; year?: number }[] = []) => ({ zones: [{ id, kind: "row" as const, capacity: 4, label: "", bottles }] });
+  const kitchen = { name: "Kitchen", shelves: [row("k1", [{ slot: 1, id: "a", title: "Yatir – Forest", year: 2019 }])] };
+  const cellar = { name: "מקרר יין גדול", shelves: [row("c1"), row("c2", [{ slot: 2, id: "b", title: "Yatir – Forest", year: 2019 }])] };
+  const both = [kitchen, cellar];
+
+  it("picks a fridge by name in any case, or by its number", () => {
+    expect(pickFridge(both, "kitchen ")).toBe(kitchen);
+    expect(pickFridge(both, "2")).toBe(cellar);
+    expect(pickFridge(both, "Fridge 2")).toBe(cellar);
+    expect(pickFridge(both, "מקרר 1")).toBe(kitchen);
+    expect(pickFridge(both, undefined)).toBe(kitchen);
+  });
+  it("never guesses a fridge that was named wrong, unless there is only one", () => {
+    expect(pickFridge(both, "garage")).toBeUndefined();
+    expect(pickFridge(both, "3")).toBeUndefined();
+    expect(pickFridge([kitchen], "garage")).toBe(kitchen);
+    expect(resolvePlaces(both, [{ fridge: "garage", shelf: 1, zone: 1, slot: 2 }])).toEqual([]);
+    expect(resolvePlaces(both, [{ fridge: "2", shelf: 2, zone: 1, slot: 1 }])).toEqual([{ zoneId: "c2", slot: 1 }]);
+  });
+  it("finds the bottle in the fridge that was named", () => {
+    const ref = { winery: "Yatir", name: "Forest", year: 2019 };
+    expect(findBottle(both, [], { ...ref, at: { fridge: "מקרר יין גדול", shelf: 2, zone: 1, slot: 2 } })?.id).toBe("b");
+    expect(findBottle(both, [], { ...ref, at: { fridge: "Kitchen", shelf: 2, zone: 1, slot: 2 } })).toBeNull();
+  });
+  it("tells the AI each bottle's exact place, with the fridge's name", () => {
+    expect(bottlePlaces(both)).toEqual(new Map([["a", 'fridge "Kitchen" shelf 1 slot 1'], ["b", 'fridge "מקרר יין גדול" shelf 2 slot 2']]));
+    expect(bottlePlaces([kitchen]).get("a")).toBe("shelf 1 slot 1");
+    expect(describeFridges(both)).toContain("always pass `fridge`");
+    expect(describeFridges([kitchen])).not.toContain("always pass");
   });
 });
