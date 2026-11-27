@@ -33,6 +33,7 @@ const DEFAULT_SIZE: Record<PresetKey, number> = {
   twoRows: 5,
   oneRow: 5,
   doubleStack: 8,
+  twoStacks: 6,
   stacksAndRow: 8,
 };
 
@@ -43,7 +44,7 @@ function makeShelf(preset: PresetKey): FormShelf {
 /** Which dropdown entry a catalog shelf matches. */
 function presetOf(shelf: Shelf): PresetKey {
   const zones = withoutFront(shelf.zones); // the front row is an extra, not part of the arrangement
-  if (zones.every((z) => z.kind === "stack")) return "doubleStack";
+  if (zones.every((z) => z.kind === "stack")) return zones[0]?.label === "ערימה אחורית" ? "twoStacks" : "doubleStack";
   if (zones.some((z) => z.kind === "stack")) return "stacksAndRow";
   return zones.length === 2 ? "twoRows" : "oneRow";
 }

@@ -92,8 +92,14 @@ describe("staggeredZone", () => {
 });
 
 describe("CHOOSABLE_PRESETS", () => {
-  it("offers rows and the pile, not the old stacks-and-row", () => {
-    expect(CHOOSABLE_PRESETS).toEqual(["twoRows", "oneRow", "doubleStack"]);
+  it("offers rows, the pile and two piles, not the old stacks-and-row", () => {
+    expect(CHOOSABLE_PRESETS).toEqual(["twoRows", "oneRow", "doubleStack", "twoStacks"]);
+  });
+  it("two piles: a back pile and a front pile, each its own pile", () => {
+    expect(SHELF_PRESETS.twoStacks.make(6).zones).toEqual([
+      { kind: "stack", capacity: 6, label: "ערימה אחורית" },
+      { kind: "stack", capacity: 6, label: "ערימה קדמית" },
+    ]);
   });
 });
 
