@@ -8,7 +8,7 @@ import type { LookupFunction } from "node:net";
 import sharp from "sharp";
 import { checkImageUrl, isPublicAddress } from "./web-address";
 import { findPageImage } from "./page-image";
-import { MAX_SIDE } from "./label-image";
+import { labelWindow, MAX_SIDE } from "./label-image";
 
 const MAX_BYTES = 5_000_000;
 const TIMEOUT_MS = 8000;
@@ -129,8 +129,12 @@ export async function fetchLabelImage(link: string): Promise<WebImage> {
       // drops all metadata (EXIF), like photos taken in the app.
       const meta = await sharp(got.body, { limitInputPixels: 40_000_000 }).metadata();
       if (!["jpeg", "png", "webp"].includes(meta.format ?? "")) return { ok: false, reason: "not a JPEG/PNG/WebP image" };
-      const webp = await sharp(got.body, { limitInputPixels: 40_000_000 })
-        .rotate()
+      // A shop photo of the whole bottle: trim the plain background, then
+      // keep only the label (see labelWindow).
+      const upright = await sharp(got.body, { limitInputPixels: 40_000_000 }).rotate().toBuffer({ resolveWithObject: true });
+      const base = (await sharp(upright.data).trim({ threshold: 20 }).toBuffer({ resolveWithObject: true }).catch(() => null)) ?? upright;
+      const window = labelWindow(base.info.width, base.info.height);
+      const webp = await (window ? sharp(base.data).extract(window) : sharp(base.data))
         .resize({ width: MAX_SIDE, height: MAX_SIDE, fit: "inside", withoutEnlargement: true })
         .webp({ quality: 82 })
         .toBuffer();
