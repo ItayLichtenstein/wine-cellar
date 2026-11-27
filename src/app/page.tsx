@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getLocale, getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import { drinkNow } from "@/lib/bottle-list";
 import { cellarTitle } from "@/lib/cellar-title";
 import { getConnectedAis } from "@/lib/ai-grants";
+import { GUIDE_SEEN_COOKIE, shouldOpenGuide } from "@/lib/guide-first";
 import { getFriendList } from "@/lib/friend-list";
 import { FriendsPicker } from "@/components/friends-picker";
 import { createClient } from "@/lib/supabase/server";
@@ -30,7 +33,9 @@ export default async function Home() {
 }
 
 async function Header() {
-  const [user, supabase, t, locale] = await Promise.all([getCurrentUser(), createClient(), getT(), getLocale()]);
+  const [user, supabase, t, locale, jar] = await Promise.all([getCurrentUser(), createClient(), getT(), getLocale(), cookies()]);
+  // First visit: the guide comes before anything else.
+  if (shouldOpenGuide(user.onboarded, jar.get(GUIDE_SEEN_COOKIE)?.value)) redirect("/guide");
   // Full members only, in joining order.
   const { data: members } = await supabase
     .from("cellar_members")

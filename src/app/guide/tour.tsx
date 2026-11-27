@@ -2,7 +2,8 @@
 
 import { LineIcon, type IconName } from "@/components/line-icon";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { GUIDE_SEEN_COOKIE } from "@/lib/guide-first";
 import { useT } from "@/i18n/provider";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
 import { ScoreInput } from "@/components/score-input";
@@ -88,6 +89,10 @@ export function GuideTour() {
   ];
 
   const [i, setI] = useState(0);
+  // Seen on this device: the home page stops opening it by itself.
+  useEffect(() => {
+    document.cookie = `${GUIDE_SEEN_COOKIE}=1; path=/; max-age=31536000; samesite=lax`;
+  }, []);
   const step = steps[i];
   const last = i === steps.length - 1;
 
