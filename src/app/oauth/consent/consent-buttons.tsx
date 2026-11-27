@@ -41,11 +41,14 @@ export function ConsentButtons({ authorizationId, clientId }: { authorizationId:
     window.location.assign(data.redirect_url);
   }
 
-  const option = (value: boolean, title: string, text: string) => (
+  const option = (value: boolean, title: string, text: string, badge?: string) => (
     <label className={`flex cursor-pointer gap-3 rounded-xl border-2 p-3 text-start ${editSelf === value ? "border-accent" : "border-muted/30"}`}>
       <input type="radio" name="mode" checked={editSelf === value} onChange={() => setEditSelf(value)} className="mt-1 accent-[var(--accent)]" />
       <span className="flex flex-col">
-        <span className="font-medium">{title}</span>
+        <span className="flex flex-wrap items-center gap-2 font-medium">
+          {title}
+          {badge && <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs text-accent">{badge}</span>}
+        </span>
         <span className="text-sm text-muted">{text}</span>
       </span>
     </label>
@@ -55,8 +58,12 @@ export function ConsentButtons({ authorizationId, clientId }: { authorizationId:
     <div className="flex w-full flex-col gap-4">
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 font-semibold">{c.howTitle}</legend>
-        {option(true, c.editSelf, c.editSelfText)}
-        {option(false, c.suggestOnly, c.suggestOnlyText)}
+        {option(true, c.editSelf, c.editSelfText, c.recommended)}
+        {/* Most people just continue; the stricter choice is one tap away for whoever cares. */}
+        <details className="text-start">
+          <summary className="py-1 text-sm text-muted underline-offset-2 hover:underline">{c.moreChoice}</summary>
+          <div className="mt-2">{option(false, c.suggestOnly, c.suggestOnlyText)}</div>
+        </details>
       </fieldset>
       <div className="flex flex-col gap-2">
         <button
