@@ -50,14 +50,16 @@ export const SHELF_PRESETS = {
       ],
     }),
   },
-  // Two piles, one behind the other (deep shelves). Each is its own pile,
-  // with no numbered places, like the single pile above.
+  // Two piles, one behind the other (deep shelves): each is a pile with
+  // two layers like the one above, so four zones, back pile first.
   twoStacks: {
     title: "שתי ערימות",
     make: (n: number): Shelf => ({
       zones: [
-        { kind: "stack", capacity: n, label: "ערימה אחורית" },
-        { kind: "stack", capacity: n, label: "ערימה קדמית" },
+        { kind: "stack", capacity: Math.max(1, n - 1), label: "אחורית עליונה" },
+        { kind: "stack", capacity: n, label: "אחורית תחתונה" },
+        { kind: "stack", capacity: Math.max(1, n - 1), label: "קדמית עליונה" },
+        { kind: "stack", capacity: n, label: "קדמית תחתונה" },
       ],
     }),
   },

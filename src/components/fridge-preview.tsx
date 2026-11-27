@@ -47,6 +47,24 @@ function isPile(zones: { kind: string }[]): boolean {
   return zones.length >= 2 && zones[0].kind === "stack" && zones[1].kind === "stack";
 }
 
+/**
+ * The layer a zone is in a pile shelf: piles come in pairs of stack zones
+ * (upper, lower). Two piles (back and front) are four zones. Null = not a layer.
+ */
+export function pileLayer(zones: { kind: string }[], j: number): "upper" | "lower" | null {
+  let n = 0;
+  while (n < zones.length && zones[n].kind === "stack") n++;
+  const paired = n - (n % 2);
+  return j < paired ? (j % 2 === 0 ? "upper" : "lower") : null;
+}
+
+/** Whether zone j is the shifted layer (pairs of a pile are staggered on their own). */
+function isShifted(zones: { kind: string; capacity: number }[], j: number): boolean {
+  if (!pileLayer(zones, j)) return staggeredZone(zones) === j;
+  const start = j - (j % 2);
+  return staggeredZone(zones.slice(start, start + 2)) === j % 2;
+}
+
 // Slot size per view. On a phone labels are 3rem wide so 5 slots still fit
 // a row; from the sm breakpoint (640px) there is room for bigger slots.
 const SLOT_SHAPE: Record<FridgeViewMode, string> = {
@@ -99,9 +117,10 @@ export function FridgePreview({ shelves, onPick, picked = [], onUnpick, onBottle
                 key={zone.id ?? j}
                 zone={zone}
                 hideEmpty={hideEmpty}
-                shifted={!hideEmpty && staggeredZone(shelf.zones) === j}
+                shifted={!hideEmpty && isShifted(shelf.zones, j)}
                 // A pile: the upper layer is shifted half a bottle and sits close above the lower one.
-                layer={isPile(shelf.zones) && j < 2 ? (j === 0 ? "upper" : "lower") : undefined}
+                layer={pileLayer(shelf.zones, j) ?? undefined}
+                secondPile={j === 2 && pileLayer(shelf.zones, 2) === "upper"}
                 front={frontZone(shelf.zones) === zone}
                 shelfNo={no}
                 onPick={onPick}
@@ -126,6 +145,7 @@ function ZoneLine({
   zone,
   shifted = false,
   layer,
+  secondPile = false,
   front = false,
   shelfNo,
   onPick,
@@ -140,6 +160,8 @@ function ZoneLine({
   hideEmpty?: boolean;
   shifted?: boolean;
   layer?: "upper" | "lower";
+  /** The front pile's first layer: a line sets it apart from the back pile. */
+  secondPile?: boolean;
   /** Bottles lying across the front of the shelf: set apart by a dashed line. */
   front?: boolean;
   shelfNo: number;
@@ -170,7 +192,7 @@ function ZoneLine({
     ? `${zoneName || t.fridge.pile}, ${t.fridge.shelf(shelfNo)}`
     : [t.fridge.shelf(shelfNo), zoneName, t.fridge.place].filter(Boolean).join(", ");
   const layerClass =
-    layer === "lower" ? "-mt-1" : front ? "mt-0.5 border-t border-dashed border-on-fridge/30 pt-1.5" : "";
+    layer === "lower" ? "-mt-1" : front || secondPile ? "mt-0.5 border-t border-dashed border-on-fridge/30 pt-1.5" : "";
 
   return (
     <div
