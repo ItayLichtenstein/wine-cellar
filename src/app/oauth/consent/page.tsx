@@ -39,19 +39,13 @@ async function Consent({ searchParams }: { searchParams: PageProps<"/oauth/conse
 
   return (
     <>
-      <h1 className="text-2xl font-bold">
-        <span className="inline-block" dir="auto">{data.client.name || c.anApp}</span>{" "}
-        <span className="inline-block">{c.asks}</span>
-      </h1>
+      <h1 className="text-2xl font-bold">{c.asks(data.client.name || c.anApp)}</h1>
       <ul className="flex flex-col gap-1 text-start text-sm">
         <li>{c.canRead}</li>
         <li>{c.canSuggest}</li>
         <li>{c.cannot}</li>
       </ul>
-      <p className="text-xs text-muted">
-        <span className="inline-block">{c.disconnect}</span>{" "}
-        <span className="inline-block" dir="ltr">{new URL(data.redirect_uri).host}</span>
-      </p>
+      <p className="text-xs text-muted">{c.disconnect}</p>
       <ConsentButtons authorizationId={data.authorization_id} />
     </>
   );

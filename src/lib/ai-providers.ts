@@ -22,6 +22,11 @@ export type AiProvider = {
    * dictionaries under `ai.setup`, in both languages.
    */
   setupUrl: ((mcpUrl: string, name: string) => string) | null;
+  /**
+   * The setup page arrives with our address already typed in, so the steps
+   * start with its button and copying is only a fallback for an empty field.
+   */
+  prefilled: boolean;
   /** Opens a new chat; with the request typed in when the app supports it. */
   chatUrl: (request: string) => string;
   prefills: boolean;
@@ -37,6 +42,7 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
     name: "Claude",
     connectable: true,
     recommended: true,
+    prefilled: true,
     // Claude's own install link: opens "add custom connector" already filled in.
     setupUrl: (url, name) =>
       `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=${encodeURIComponent(name)}&connectorUrl=${encodeURIComponent(url)}`,
@@ -47,6 +53,7 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
     name: "ChatGPT",
     connectable: false,
     recommended: false,
+    prefilled: false,
     setupUrl: null,
     chatUrl: (q) => `https://chatgpt.com/?q=${encodeURIComponent(q)}`,
     prefills: true,
@@ -55,6 +62,7 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
     name: "Gemini",
     connectable: true,
     recommended: false,
+    prefilled: false,
     setupUrl: () => "https://gemini.google.com/app",
     chatUrl: () => "https://gemini.google.com/app",
     prefills: false,
