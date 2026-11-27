@@ -64,13 +64,13 @@ async function WithData() {
     // What an AI changed by itself in the last 30 days and was not undone.
     supabase
       .from("drafts")
-      .select("id, kind, payload, undo")
+      .select("id, kind, payload, undo, decided_at")
       .eq("cellar_id", user.cellarId)
       .eq("applied_by_ai", true)
       .is("undone_at", null)
       .gte("decided_at", since)
       .order("decided_at", { ascending: false })
-      .limit(20),
+      .limit(50),
   ]);
   const changes: AiChange[] = (changesRes.data ?? []).map((c) => {
     const p = (c.payload ?? {}) as { winery?: string; name?: string; year?: number | null };
@@ -80,6 +80,7 @@ async function WithData() {
       kind: c.kind as AiChange["kind"],
       title: `${p.winery ?? ""} – ${p.name ?? ""} ${p.year ?? ""}`.trim(),
       count: undo.bottles?.length ?? 1,
+      when: c.decided_at ?? "",
     };
   });
 

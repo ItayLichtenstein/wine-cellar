@@ -457,6 +457,8 @@ export const en: Dictionary = {
     connectedSince: (date: string) => `Connected since ${date}`,
     editSelfSwitch: "Makes changes itself",
     changesTitle: "What the AI changed",
+    changesMore: (n: number) => (n === 1 ? "1 more change" : `${n} more changes`),
+    changesKept: "You can undo an AI change for 30 days, then it leaves this list",
     changeAdd: (n: number) => (n === 1 ? "Added a bottle" : `Added ${n} bottles`),
     changeDrink: "Marked as drunk",
     changeMove: "Moved",
