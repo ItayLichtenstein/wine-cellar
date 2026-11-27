@@ -155,3 +155,22 @@ p, li {
 @media (prefers-reduced-motion: reduce) {
   .cheer-pop, .cheer-spark { animation: none; }
 }
+
+/* On a computer, everything clickable shows the hand cursor (Tailwind v4
+   leaves buttons with the plain arrow). Links already have it. */
+button:not(:disabled),
+[role="button"],
+[role="radio"],
+[role="tab"],
+[role="checkbox"],
+[role="switch"],
+summary,
+select,
+label:has(input[type="file"]),
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]),
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"] {
+  cursor: pointer;
+}

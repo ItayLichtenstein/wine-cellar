@@ -35,6 +35,8 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "Shelf photos: the user can send a photo of a whole shelf (or several, one per shelf). Call fridge_layout first, identify every bottle and where it sits",
         "(zone and slot, slot 1 = rightmost as the user looks at it), and add them in ONE suggest_bottles call with `places`, so the shelf goes in exactly as it is.",
         "If a label or a position is unclear, ask the user rather than guess. A whole fridge: shelf by shelf (the fill_fridge prompt).",
+        "Not only wine: whisky, arak, liqueurs or any other bottle can be kept too. Use type 'other', the maker as winery, no drinking window,",
+        "and year only if the label has one (otherwise null). Do not refuse or warn that the app is for wine.",
         // Details from the web.
         "Adding bottles: fill in what the user did not say. Use web search to look up the drinking window, grape, country, region and a typical price",
         "for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess: ask the user to turn on web search in this chat",
@@ -190,7 +192,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
             z.object({
               winery: z.string().describe("Producer"),
               name: z.string().describe("Wine name, without the producer"),
-              type: z.enum(DRAFT_TYPES).optional(),
+              type: z.enum(DRAFT_TYPES).optional().describe("Anything that is not wine (whisky, arak, a liqueur, a soft drink) is 'other'"),
               year: z.number().int().nullable().optional().describe("Vintage; null for NV"),
               quantity: z.number().int().min(1).max(48).optional(),
               price: z.number().nullable().optional().describe("Per bottle, in ₪"),
