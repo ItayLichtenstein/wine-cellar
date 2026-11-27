@@ -88,3 +88,18 @@ export async function makeThumb(image: Blob): Promise<string> {
   const jpeg = canvas.toDataURL("image/jpeg", 0.8);
   return jpeg.length <= THUMB_MAX_CHARS ? jpeg : canvas.toDataURL("image/jpeg", 0.6);
 }
+
+/**
+ * Where the label is in a product photo of a whole bottle (pure, tested).
+ * Shops show the full bottle, tall and narrow, with the label on its lower
+ * body; the fridge thumbnail (3:4, cut from the middle) would show the neck.
+ * For a tall photo (after trimming the background) this is a 3:4 window
+ * across the bottle's width, centred at 68% of its height. Otherwise null:
+ * the photo is already of the label.
+ */
+export function labelWindow(width: number, height: number): { left: number; top: number; width: number; height: number } | null {
+  if (width <= 0 || height / width < 1.8) return null;
+  const h = Math.min(height, Math.round((width * 4) / 3));
+  const top = Math.max(0, Math.min(height - h, Math.round(height * 0.68 - h / 2)));
+  return { left: 0, top, width, height: h };
+}
