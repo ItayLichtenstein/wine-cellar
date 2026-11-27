@@ -45,6 +45,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="he" dir="rtl" suppressHydrationWarning className={`${heebo.variable} h-full antialiased`}>
+      <head>
+        {/* Blocking on purpose: the saved look must be set before the first paint. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/theme.js" />
+      </head>
       {/* pb-20 keeps the last content above the fixed bottom navigation. */}
       <body className="min-h-full flex flex-col pb-20">
         <Suspense fallback={null}>
