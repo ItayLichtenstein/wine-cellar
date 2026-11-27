@@ -367,9 +367,10 @@ function MoreDemo() {
   const icons: IconName[] = ["list", "wish", "stats", "people", "sparkle", "moon", "phone"];
   const items: [IconName, string, string][] = icons.map((icon) => [icon, m[icon][0], m[icon][1]]);
   return (
-    <ul className="flex flex-col gap-2">
+    // A plain list, not cards: testers took boxed rows for buttons.
+    <ul className="flex flex-col divide-y divide-muted/20">
       {items.map(([icon, name, text]) => (
-        <li key={name} className="flex items-start gap-3 rounded-xl bg-background px-3 py-2.5">
+        <li key={name} className="flex items-start gap-3 py-2.5">
           <span className="pt-0.5 text-accent">
             <LineIcon name={icon} className="size-5" />
           </span>
