@@ -5,15 +5,6 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useT } from "@/i18n/provider";
 import { LineIcon } from "./line-icon";
 
-/** Applies the look saved on this device. Mounted on every signed-in page (with the nav). */
-export function SavedTheme() {
-  useEffect(() => {
-    const saved = readTheme();
-    if (saved !== "dark") document.documentElement.dataset.theme = saved;
-  }, []);
-  return null;
-}
-
 type Theme = "system" | "light" | "dark";
 
 // What "More" holds, grouped. Each row opens its own page (spec: "More" and its pages).
