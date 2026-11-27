@@ -233,4 +233,6 @@ export const CATALOG: Brand[] = [
       { model: "JC-430WD", capacity: 163, shelves: 14, source: `${B}מקרר-יין-אינטגרלי-163-בקבוקים-winebar-9254301631010`, note: "שני אזורי טמפרטורה" },
     ],
   },
+  // No models yet (the user types theirs); listed so the brand can be picked.
+  { brand: "יורוקייב", models: [] },
 ];
