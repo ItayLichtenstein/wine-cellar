@@ -128,6 +128,7 @@ export const en: Dictionary = {
     scan: ["Add from a photo", "Opens the chat, you attach a photo"],
     drink: ["What to open tonight?", "Opens the chat, you add the occasion"],
     dismiss: "Hide this suggestion",
+    closeForVisit: "Close until next visit",
     later: {
       title: "You can connect an AI later",
       text: "It's always waiting here",

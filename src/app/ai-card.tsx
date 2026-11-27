@@ -3,6 +3,7 @@ import { AI_PROVIDERS, type AiKey } from "@/lib/ai-providers";
 import { AiLogo, AiLogoStack } from "@/components/ai-logos";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { getT } from "@/i18n/server";
+import { AiCardClose } from "./ai-card-close";
 import { AiCardGate } from "./ai-card-gate";
 import { OpenChat } from "./open-chat";
 
@@ -16,8 +17,11 @@ import { OpenChat } from "./open-chat";
 export async function AiCard({ connected, pendingDrafts, nearlyEmpty }: { connected: AiKey | null; pendingDrafts: number; nearlyEmpty: boolean }) {
   const t = await getT();
   // Not connected: an invitation that shows twice and can be closed (AiCardGate).
+  // Connected: on every visit, with an X that hides it until the next one.
   const card = connected ? (
-    <Connected ai={connected} nearlyEmpty={nearlyEmpty} t={t} />
+    <AiCardClose>
+      <Connected ai={connected} nearlyEmpty={nearlyEmpty} t={t} />
+    </AiCardClose>
   ) : (
     <AiCardGate>
       <NotConnected nearlyEmpty={nearlyEmpty} t={t} />
