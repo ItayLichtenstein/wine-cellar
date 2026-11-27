@@ -250,6 +250,10 @@ export function NewFridgeForm({ existing }: { existing?: FridgeView }) {
             <TextField label={f.modelOptional} value={model} onChange={setModel} />
           </div>
         )}
+        {/* A listed brand without catalog models: the model is typed. */}
+        {brandChoice && brandChoice !== OTHER && groups.length === 0 && (
+          <TextField label={f.modelOptional} value={model} onChange={setModel} />
+        )}
         {spec && (
           <p className="rounded-lg bg-surface px-3 py-2 text-sm text-muted">
             <span className="inline-block">
