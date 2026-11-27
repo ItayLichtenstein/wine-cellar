@@ -395,7 +395,7 @@ export const en: Dictionary = {
     connectTitle: "Connect an AI to the cellar",
     connectIntro: ["Connect once, then just send it a photo of a label or a receipt", "or ask what to open tonight"],
     connectAnother: "Connect another AI",
-    examplesFor: (name: string) => `Things you can ask ${name}`,
+    examplesFor: (name: string) => `From now on just open a new chat in ${name} and ask, it reaches your cellar by itself (no need to mention this site or connect again)`,
     examples: [
       "I photographed the top shelf of the fridge, put every bottle in its place",
       "I photographed this label, add it to the cellar",
@@ -409,7 +409,7 @@ export const en: Dictionary = {
     copy: "Copy",
     copied: "Copied ✓",
     approveStep: "A window of our site opens. Sign in with Google if needed, then tap \"Approve\"",
-    doneStep: (name: string) => `That's it! Open a new chat in ${name} and ask "What's in my cellar?"`,
+    doneStep: (name: string) => `That's it! From now on, in any new chat in ${name} just ask, for example "What's in my cellar?", and it reaches your cellar by itself`,
     troubleshoot: ["Sign-in stuck? Allow pop-ups,", "and if the AI doesn't know your cellar, start a new chat"],
     cantFind: ["Can't find the button? Menu names change from time to time,", "so search the settings for \"Connectors\" or use the manual copy below"],
     recommended: "Recommended",
