@@ -1,3 +1,5 @@
+import { fetchLabelImage } from "@/lib/web-image";
+import { LABEL_BUCKET } from "@/lib/label-image";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { buildRows, drinkNow, EMPTY_FILTERS } from "../bottle-list";
@@ -29,6 +31,8 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
         "a typical price for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess:",
         "ask the user to turn on web search in this chat (the tools menu of the message box) so you can look it up, or to say they prefer to skip it.",
         "Afterwards tell the user, in one line, which details you found and which you could not, so they can fill those in on the site.",
+        "Label photos: when you can find one, pass image_url, a direct https link to the image file of that exact wine (a producer or shop product photo).",
+        "Never say a photo was added unless the tool reply says \"label image saved\" for that bottle; if it says NOT saved, tell the user why.",
         "Use search_cellar to see what they have, wine_details for everything about one wine, what_to_drink for a recommendation, history for what they drank.",
         "To add bottles (from a label photo, a receipt, or the user's words) call suggest_bottles. It only creates",
         "drafts; the user approves them on the site (one by one, or all at once). Never claim a bottle was added – say it awaits approval.",
@@ -159,6 +163,12 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
               drink_from: z.number().int().nullable().optional(),
               drink_to: z.number().int().nullable().optional(),
               note: z.string().optional(),
+              image_url: z
+                .string()
+                .optional()
+                .describe(
+                  "A direct https link to a photo of this wine's label or bottle on a public website (the image file itself: JPEG, PNG or WebP, up to 5MB; not a web page, not a Google Images result page). The server downloads it; the reply says for each bottle whether it was saved.",
+                ),
               places: z
                 .array(
                   z.object({
@@ -180,8 +190,30 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
     async ({ bottles }) => {
       const year = new Date().getFullYear();
       const parsed = bottles.map((b, i) => ({ i, r: parseBottleDraft(b, year) }));
-      const good = parsed.flatMap(({ r }) => (r.ok ? [r.draft] : []));
       const errors = parsed.flatMap(({ i, r }) => (r.ok ? [] : [`Bottle ${i + 1}: ${r.error}`]));
+      // Label photos from links: fetched and stored before the drafts, so a
+      // draft only ever points at a photo that really exists.
+      const imageNotes: string[] = [];
+      const good = await Promise.all(
+        parsed.flatMap(({ i, r }) => (r.ok ? [{ i, draft: r.draft }] : [])).map(async ({ i, draft }) => {
+          const link = bottles[i].image_url?.trim();
+          if (!link) return draft;
+          const label = `Bottle ${i + 1} (${draft.winery} – ${draft.name})`;
+          const img = await fetchLabelImage(link);
+          if (!img.ok) {
+            imageNotes.push(`${label}: label image NOT saved – ${img.reason}.`);
+            return draft;
+          }
+          const path = `${cellarId}/web-${crypto.randomUUID()}.webp`;
+          const { error: upError } = await db.storage.from(LABEL_BUCKET).upload(path, img.webp, { contentType: "image/webp" });
+          if (upError) {
+            imageNotes.push(`${label}: label image NOT saved – storage error.`);
+            return draft;
+          }
+          imageNotes.push(`${label}: label image saved.`);
+          return { ...draft, image: path };
+        }),
+      );
       if (good.length > 0) {
         const { error } = await db
           .from("drafts")
@@ -196,6 +228,10 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
       return text(
         [
           good.length ? `${good.length} draft(s) are waiting for the user's approval at ${siteUrl}/ai.` : "No drafts were created.",
+          ...imageNotes,
+          imageNotes.some((n) => n.includes("NOT saved"))
+            ? "Tell the user which label images were not saved and why; they can try another direct image link from you, or take a photo on the site after approving."
+            : "",
           ...errors,
           errors.length ? `Fix and call again. Expected shape:\n${DRAFT_FORMAT}` : "",
         ]

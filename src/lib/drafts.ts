@@ -5,6 +5,7 @@
 
 import { dictionaries } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/locales";
+import { WEB_IMAGE_PATH } from "./draft-image";
 
 export const DRAFT_TYPES = ["red", "white", "rose", "orange", "sparkling", "dessert", "fortified", "other"] as const;
 export type DraftWineType = (typeof DRAFT_TYPES)[number];
@@ -25,6 +26,8 @@ export type BottleDraft = {
   note: string;
   /** Where the AI saw / suggests each bottle (at most `quantity`); the rest go "out of the fridge". */
   places: DraftPlace[];
+  /** A label photo the server fetched from a link the AI found (stored path), or "". */
+  image: string;
 };
 
 /**
@@ -102,6 +105,8 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
       drinkTo,
       note: text(pick(o, "note", "notes", "הערה"), 300),
       places,
+      // Only a path our server wrote (web-image.ts); anything else is dropped.
+      image: typeof o.image === "string" && WEB_IMAGE_PATH.test(o.image) ? o.image : "",
     },
   };
 }
