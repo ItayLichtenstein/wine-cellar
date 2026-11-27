@@ -17,7 +17,7 @@ const STATE_EN: Record<DrinkState, string> = {
 };
 
 /** One line per vintage: "Yatir – Forest 2019 ×2 · at its peak · shelf 3 · ₪180". */
-export function formatRows(rows: ListRow[], limit = 40): string {
+export function formatRows(rows: ListRow[], limit = 40, places?: Map<string, string>): string {
   if (rows.length === 0) return "No bottles match.";
   const lines = rows.slice(0, limit).map((r) => {
     const b = r.first;
@@ -26,13 +26,21 @@ export function formatRows(rows: ListRow[], limit = 40): string {
       b.type,
       STATE_EN[b.state],
       b.drinkBy ? `drink by ${b.drinkBy}` : "",
-      b.where,
+      places ? whereAll(r, places) : b.where,
       b.price !== null ? `₪${b.price}` : "",
     ];
     return `- ${parts.filter(Boolean).join(" · ")}`;
   });
   const more = rows.length > limit ? `\n…and ${rows.length - limit} more. Narrow the search.` : "";
   return lines.join("\n") + more;
+}
+
+/** Where each bottle of a vintage is, exactly (fridge, shelf, zone, slot): the AI needs it to name one of them. */
+function whereAll(r: ListRow, places: Map<string, string>): string {
+  const all = r.bottles.map((b) => places.get(b.id) ?? (b.status === "in_transit" ? "on the way" : "outside the fridge"));
+  const counted = new Map<string, number>();
+  for (const w of all) counted.set(w, (counted.get(w) ?? 0) + 1);
+  return [...counted].map(([w, n]) => (n > 1 ? `${w} (×${n})` : w)).join("; ");
 }
 
 export function formatHistory(entries: HistoryEntry[], limit: number): string {
@@ -48,13 +56,13 @@ export function formatHistory(entries: HistoryEntry[], limit: number): string {
  * bottles (where, readiness, price) and what the household said when they
  * drank it. For "what do we know about X?" questions.
  */
-export function formatWineDetails(rows: ListRow[], history: HistoryEntry[], query: string): string {
+export function formatWineDetails(rows: ListRow[], history: HistoryEntry[], query: string, places?: Map<string, string>): string {
   const q = query.trim().toLowerCase();
   const drank = history.filter((h) => h.title.toLowerCase().includes(q));
   if (rows.length === 0 && drank.length === 0) return `Nothing in the cellar or the history matches "${query}". Try search_cellar with fewer words.`;
   const lines: string[] = [];
   if (rows.length) {
-    lines.push("In the cellar:", formatRows(rows, 15));
+    lines.push("In the cellar:", formatRows(rows, 15, places));
   }
   if (drank.length) {
     lines.push("", "Drunk before:", formatHistory(drank, 10));

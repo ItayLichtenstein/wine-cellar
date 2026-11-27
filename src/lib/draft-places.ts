@@ -11,6 +11,39 @@ type Fridge = { name: string; shelves: { zones: Zone[] }[] };
 export type ResolvedPlace = { zoneId: string; slot: number | null };
 
 /**
+ * The fridge an AI named: by name (any case), or by number ("2", "Fridge 2",
+ * as fridge_layout numbers them). No name = the first fridge. A name that
+ * matches nothing is undefined, never a guess: with two fridges, a wrong
+ * name must not put a bottle in the other one.
+ */
+export function pickFridge<F extends { name: string }>(fridges: F[], name: string | undefined | null): F | undefined {
+  const n = (name ?? "").trim().toLowerCase();
+  if (!n) return fridges[0];
+  const byName = fridges.find((f) => f.name.trim().toLowerCase() === n);
+  if (byName) return byName;
+  const num = n.match(/^(?:fridge|מקרר)?\s*#?(\d+)$/);
+  if (num) return fridges[Number(num[1]) - 1];
+  return fridges.length === 1 ? fridges[0] : undefined; // one fridge: the name cannot be wrong
+}
+
+/** Every stored bottle's exact place, in the words fridge_layout uses (for the AI). */
+export function bottlePlaces(fridges: Fridge[]): Map<string, string> {
+  const out = new Map<string, string>();
+  const multi = fridges.length > 1;
+  for (const f of fridges) {
+    for (const [si, shelf] of f.shelves.entries()) {
+      for (const [zi, z] of shelf.zones.entries()) {
+        for (const b of z.bottles) {
+          if (!b.id) continue;
+          out.set(b.id, [multi ? `fridge "${f.name}"` : "", `shelf ${si + 1}`, shelf.zones.length > 1 ? `zone ${zi + 1}` : "", b.slot ? `slot ${b.slot}` : ""].filter(Boolean).join(" "));
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/**
  * Resolves each place to a free spot. A place that does not exist, or is
  * taken (by a bottle already there, or by an earlier place in this batch),
  * is skipped: that bottle goes "out of the fridge" instead of failing.
@@ -19,8 +52,7 @@ export type ResolvedPlace = { zoneId: string; slot: number | null };
 export function resolvePlaces(fridges: Fridge[], places: DraftPlace[], taken: Set<string> = new Set()): ResolvedPlace[] {
   const out: ResolvedPlace[] = [];
   for (const p of places) {
-    const fridge = (p.fridge && fridges.find((f) => f.name.trim() === p.fridge.trim())) || fridges[0];
-    const zone = fridge?.shelves[p.shelf - 1]?.zones[p.zone - 1];
+    const zone = pickFridge(fridges, p.fridge)?.shelves[p.shelf - 1]?.zones[p.zone - 1];
     if (!zone) continue;
     if (zone.kind === "stack") {
       const used = zone.bottles.length + [...taken].filter((k) => k.startsWith(`${zone.id}:stack`)).length;
@@ -53,7 +85,8 @@ export function describeFridges(fridges: Fridge[]): string {
       });
       return [`Fridge ${i + 1}: "${f.name}"`, ...shelves].join("\n");
     })
-    .join("\n");
+    .join("\n")
+    .concat(fridges.length > 1 ? `\n${fridges.length} fridges: always pass \`fridge\` (its name, or its number as above) in every place.` : "");
 }
 
 /** "מדף 1 (מקומות 1, 2) · מדף 2 (3 בקבוקים)": where a draft's bottles go, short. */
@@ -88,13 +121,13 @@ export function findBottle(
   const title = `${ref.winery} – ${ref.name}`.toLowerCase();
   const same = (b: { title?: string; year?: number | null }) => b.title?.toLowerCase() === title && (b.year ?? null) === ref.year;
   const multi = fridges.length > 1;
-  for (const [fi, f] of fridges.entries()) {
+  for (const f of fridges) {
     for (const [si, shelf] of f.shelves.entries()) {
       for (const [zi, z] of shelf.zones.entries()) {
         for (const b of z.bottles) {
           if (!b.id || !same(b)) continue;
           if (ref.at) {
-            const fridgeOk = !ref.at.fridge || f.name.trim() === ref.at.fridge.trim() || (!multi && fi === 0);
+            const fridgeOk = !ref.at.fridge || pickFridge(fridges, ref.at.fridge) === f;
             if (!fridgeOk || ref.at.shelf !== si + 1 || ref.at.zone !== zi + 1 || (ref.at.slot !== null && b.slot !== ref.at.slot)) continue;
           }
           return { id: b.id, where: `${multi ? `${f.name}, ` : ""}מדף ${si + 1}${b.slot ? `, מקום ${b.slot}` : ""}` };
@@ -109,7 +142,7 @@ export function findBottle(
 
 /** "מדף 1, קדמי, מקום 1": one place in words, with the zone's own name from the fridge. */
 export function placeText(fridges: Fridge[], p: DraftPlace, locale: Locale = "he"): string {
-  const fridge = (p.fridge && fridges.find((f) => f.name.trim() === p.fridge.trim())) || fridges[0];
+  const fridge = pickFridge(fridges, p.fridge);
   const zone = fridge?.shelves[p.shelf - 1]?.zones[p.zone - 1];
   const en = locale === "en";
   return [
