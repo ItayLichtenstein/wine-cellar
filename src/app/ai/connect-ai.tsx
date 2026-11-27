@@ -52,22 +52,29 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
       </span>
     ),
   };
+  const linkButton = (href: string, label: string) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-accent/50 px-4 py-2 text-sm font-medium text-accent"
+    >
+      {label} ↗
+    </a>
+  );
   const aiSteps = setup.steps.map((text, i) => ({
     text,
-    extra: i === 0 && p.setupUrl && (
-      <a
-        href={p.setupUrl(url, a.connectorName)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-accent/50 px-4 py-2 text-sm font-medium text-accent"
-      >
-        {setup.linkLabel} ↗
-      </a>
-    ),
+    extra:
+      i === 0 && p.setupUrl
+        ? linkButton(p.setupUrl(url, a.connectorName), setup.linkLabel)
+        : p.stepUrls[i] && setup.stepLinks[i]
+          ? linkButton(p.stepUrls[i], setup.stepLinks[i])
+          : null,
   }));
   const steps = [
     ...(p.prefilled ? [aiSteps[0], copyStep, ...aiSteps.slice(1)] : [copyStep, ...aiSteps]),
     { text: a.approveStep, extra: null },
+    ...setup.afterApprove.map((text) => ({ text, extra: null })),
     { text: a.doneStep(p.name), extra: null },
   ];
 
@@ -110,6 +117,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
           </li>
         ))}
       </ol>
+      {setup.tip && <p className="text-sm text-muted">{setup.tip}</p>}
       <p className="text-xs text-muted">
         <span className="inline-block">{a.troubleshoot[0]}</span>{" "}
         <span className="inline-block">{a.troubleshoot[1]}</span>
