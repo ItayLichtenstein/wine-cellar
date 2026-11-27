@@ -112,9 +112,10 @@ p, li {
   direction: ltr;
 }
 
-/* Wooden shelf boards. The grain is a real photo of an oak floor
-   (public/textures/shelf-wood.webp, 36KB), with its glare flattened and
-   tinted to --shelf. A generated noise texture looked artificial. Each shelf
+/* Wooden shelf boards. The grain is a real photo of oak veneer
+   (public/textures/shelf-wood.webp: Poly Haven "oak_veneer_01", CC0),
+   turned to run along the board and tinted to --shelf. It is 2048px wide,
+   so it stays sharp on phone screens (3 pixels per CSS pixel). A generated noise texture looked artificial. Each shelf
    shows a different part of the photo, so no two boards repeat. Positions
    are percentages and the photo is never smaller than the board, so the
    photo never runs out and repeats (a visible seam). Over it: light at the
