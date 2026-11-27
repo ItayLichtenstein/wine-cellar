@@ -36,10 +36,7 @@ const BASE_METADATA: Metadata = {
 
 // The browser bar and the installed app's status bar match the page.
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6ecea" },
-    { media: "(prefers-color-scheme: dark)", color: "#2a0b12" },
-  ],
+  themeColor: "#2a0b12", // the dark theme is the default
 };
 
 // <html> is the static shell, drawn before the language cookie is read, so it
