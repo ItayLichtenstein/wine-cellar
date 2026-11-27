@@ -6,8 +6,10 @@ export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
 /** Longest side after resizing: sharp on a phone, ~100–200 KB as WebP. */
 export const MAX_SIDE = 1200;
 
-/** The fridge thumbnail: portrait like a label, 2× the slot for sharp phones. WebP, or JPEG on Safari. */
-export const THUMB = { width: 96, height: 128 } as const;
+/** The fridge thumbnail: portrait like a label, 3× the phone slot so the label is readable. WebP, or JPEG on Safari. */
+export const THUMB = { width: 144, height: 192 } as const;
+/** The database refuses longer thumbnails (wines_label_thumb_check). */
+export const THUMB_MAX_CHARS = 40000;
 
 /**
  * The part of a (width × height) image that fills a (w × h) box without
@@ -69,7 +71,7 @@ async function encode(canvas: HTMLCanvasElement, quality: number): Promise<Blob>
 }
 
 /**
- * A ~4KB WebP thumbnail as a data: URL, kept on the wine row (label_thumb)
+ * A ~10KB WebP thumbnail as a data: URL, kept on the wine row (label_thumb)
  * so the fridge shows every label without loading the full photos.
  */
 export async function makeThumb(image: Blob): Promise<string> {
@@ -80,6 +82,9 @@ export async function makeThumb(image: Blob): Promise<string> {
   canvas.height = THUMB.height;
   canvas.getContext("2d")!.drawImage(bitmap, sx, sy, sw, sh, 0, 0, THUMB.width, THUMB.height);
   bitmap.close();
-  const webp = canvas.toDataURL("image/webp", 0.7);
-  return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.75); // Safari, see encode()
+  const webp = canvas.toDataURL("image/webp", 0.8);
+  if (webp.startsWith("data:image/webp") && webp.length <= THUMB_MAX_CHARS) return webp;
+  // Safari (see encode()), or a very busy photo: JPEG, smaller if needed.
+  const jpeg = canvas.toDataURL("image/jpeg", 0.8);
+  return jpeg.length <= THUMB_MAX_CHARS ? jpeg : canvas.toDataURL("image/jpeg", 0.6);
 }
