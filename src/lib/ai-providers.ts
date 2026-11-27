@@ -22,6 +22,8 @@ export type AiProvider = {
    * dictionaries under `ai.setup`, in both languages.
    */
   setupUrl: ((mcpUrl: string, name: string) => string) | null;
+  /** Buttons under later steps, by step index (labels in `ai.setup[key].stepLinks`). */
+  stepUrls: Record<number, string>;
   /**
    * The setup page arrives with our address already typed in, so the steps
    * start with its button and copying is only a fallback for an empty field.
@@ -46,6 +48,7 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
     // Claude's own install link: opens "add custom connector" already filled in.
     setupUrl: (url, name) =>
       `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=${encodeURIComponent(name)}&connectorUrl=${encodeURIComponent(url)}`,
+    stepUrls: {},
     chatUrl: (q) => `https://claude.ai/new?q=${encodeURIComponent(q)}`,
     prefills: true,
   },
@@ -55,6 +58,7 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
     recommended: false,
     prefilled: false,
     setupUrl: null,
+    stepUrls: {},
     chatUrl: (q) => `https://chatgpt.com/?q=${encodeURIComponent(q)}`,
     prefills: true,
   },
@@ -63,7 +67,10 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
     connectable: true,
     recommended: false,
     prefilled: false,
-    setupUrl: () => "https://gemini.google.com/app",
+    // Checked live 27 Nov 2026: "Developer Mode" (custom MCP servers) shows
+    // only when the Google account language is English.
+    setupUrl: () => "https://myaccount.google.com/language",
+    stepUrls: { 1: "https://gemini.google.com/app" },
     chatUrl: () => "https://gemini.google.com/app",
     prefills: false,
   },
