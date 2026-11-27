@@ -127,7 +127,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
       title: "The wishlist",
       description: "The wines the household wants to buy, with notes and where they saw them.",
       inputSchema: {},
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async () => {
       const { data } = await db

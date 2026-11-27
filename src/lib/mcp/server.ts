@@ -20,7 +20,7 @@ import { registerMoreTools, type ChangeKind } from "./more-tools";
  */
 export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db: Db; cellarId: string; siteUrl: string; canEdit?: boolean }): McpServer {
   const server = new McpServer(
-    { name: "wine-cellar", version: "1.0.0" },
+    { name: "wine-cellar", title: "Wine Cellar (מרתף יין)", version: "1.0.0" },
     {
       instructions: [
         "This is the user's home wine cellar (Hebrew-first app; wine names are usually in their original language). Answer in the user's language.",
@@ -63,7 +63,9 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     },
   );
 
-  const read = { readOnlyHint: true, openWorldHint: false } as const;
+  // destructiveHint must be explicit: the MCP default is true, and Gemini
+  // then marks every read as "Destructive" and asks before each one.
+  const read = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } as const;
   const text = (t: string) => ({ content: [{ type: "text" as const, text: t }] });
 
   // Edit mode: a change is logged as a draft that is already approved, with
@@ -83,7 +85,8 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     "search_cellar",
     {
       title: "Search the cellar",
-      description: "List the bottles in the cellar, one line per vintage, with readiness, where it is and price. All filters are optional.",
+      description:
+        "The user's own wine cellar app (מרתף יין / Wine Cellar): the source of truth for the wine, whisky and other bottles they have at home and where each one is. Use it, not notes or spreadsheets, whenever they ask about their cellar, wine fridge or bottles. Lists the bottles, one line per vintage, with readiness, where it is and price. All filters are optional.",
       inputSchema: {
         query: z.string().max(100).optional().describe("Words from the winery, wine or country, e.g. 'barolo' or 'Yatir'"),
         type: z.enum(DRAFT_TYPES).optional().describe("Wine type"),
