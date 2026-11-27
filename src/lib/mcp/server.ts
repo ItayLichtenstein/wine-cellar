@@ -4,8 +4,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { buildRows, drinkNow, EMPTY_FILTERS } from "../bottle-list";
 import { DRAFT_FORMAT, DRAFT_TYPES, parseActionDraft, parseBottleDraft } from "../drafts";
-import { describeFridges } from "../draft-places";
-import { getCellarBottles, getFridges, getHistory, type Db } from "../fridges";
+import { describeFridges, findBottle, resolvePlaces } from "../draft-places";
+import { applyAdd, applyDrink, applyMove } from "../ai-apply";
+import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } from "../fridges";
 import { tasteProfile } from "../stats";
 import { getStatsData } from "../stats-data";
 import { formatHistory, formatRows, formatWineDetails } from "./format";
@@ -17,7 +18,7 @@ import { formatHistory, formatRows, formatWineDetails } from "./format";
  * and add drafts (ADR 0009). Few, task-shaped tools, flat schemas, short
  * answers, errors that say how to fix (spec: robust for weaker models).
  */
-export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: string; siteUrl: string }): McpServer {
+export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db: Db; cellarId: string; siteUrl: string; canEdit?: boolean }): McpServer {
   const server = new McpServer(
     { name: "wine-cellar", version: "1.0.0" },
     {
@@ -34,18 +35,42 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
         "Label photos: when you can find one, pass image_url, a direct https link to the image file of that exact wine (a producer or shop product photo).",
         "Never say a photo was added unless the tool reply says \"label image saved\" for that bottle; if it says NOT saved, tell the user why.",
         "Use search_cellar to see what they have, wine_details for everything about one wine, what_to_drink for a recommendation, history for what they drank.",
-        "To add bottles (from a label photo, a receipt, or the user's words) call suggest_bottles. It only creates",
-        "drafts; the user approves them on the site (one by one, or all at once). Never claim a bottle was added – say it awaits approval.",
+        ...(canEdit
+          ? [
+              "The user let you make changes yourself: suggest_bottles, suggest_drink and suggest_move take effect at once, and the user can undo any of them on the site.",
+              "delete_bottle removes a bottle entered by mistake. A deleted bottle is not a drunk one: before deleting, always ask the user",
+              "whether they want to delete it or mark it as drunk, and delete only after they say delete.",
+            ]
+          : [
+              "To add bottles (from a label photo, a receipt, or the user's words) call suggest_bottles. It only creates",
+              "drafts; the user approves them on the site (one by one, or all at once). Never claim a bottle was added – say it awaits approval.",
+              "You cannot delete bottles. If the user asks, tell them they can delete it on the site, or let you make changes yourself on the site's AI page.",
+            ]),
         "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot) –",
         "then approving puts every bottle straight into its spot. Filling a whole fridge: go shelf by shelf (the fill_fridge prompt).",
-        "To mark a bottle as drunk or move it, use suggest_drink / suggest_move: they too are drafts the user approves.",
-        "You cannot change, move or delete anything yourself. Answer the user in their language.",
+        canEdit
+          ? "To mark a bottle as drunk or move it, use suggest_drink / suggest_move. Answer the user in their language."
+          : "To mark a bottle as drunk or move it, use suggest_drink / suggest_move: they too are drafts the user approves. Answer the user in their language.",
       ].join(" "),
     },
   );
 
   const read = { readOnlyHint: true, openWorldHint: false } as const;
   const text = (t: string) => ({ content: [{ type: "text" as const, text: t }] });
+  const fail = (t: string) => ({ isError: true, content: [{ type: "text" as const, text: t }] });
+
+  // Edit mode: a change is logged as a draft that is already approved, with
+  // what is needed to undo it (shown on the site's AI page).
+  const logChange = async (kind: "add_bottles" | "drink" | "move" | "delete", payload: object, undo: Record<string, unknown>) => {
+    const id = crypto.randomUUID();
+    const { error } = await db.from("drafts").insert({ id, cellar_id: cellarId, kind, payload: payload as never, source: "mcp" as const });
+    if (error) return;
+    await db
+      .from("drafts")
+      .update({ status: "approved", decided_at: new Date().toISOString(), applied_by_ai: true, undo: undo as never })
+      .eq("id", id)
+      .eq("cellar_id", cellarId);
+  };
 
   server.registerTool(
     "search_cellar",
@@ -146,7 +171,10 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
     {
       title: "Suggest bottles to add",
       description:
-        "Creates DRAFTS for bottles to add (from a label photo, a receipt or the user's words). Nothing is added until the user approves it on the site. Before calling, look up missing details (drinking window, grape, region, typical price) with web search; leave out only what you could not verify, and tell the user which.",
+        (canEdit
+          ? "Adds bottles to the cellar at once (from a label photo, a receipt or the user's words); the user can undo it on the site. Before calling,"
+          : "Creates DRAFTS for bottles to add (from a label photo, a receipt or the user's words). Nothing is added until the user approves it on the site. Before calling,") +
+        " look up missing details (drinking window, grape, region, typical price) with web search; leave out only what you could not verify, and tell the user which.",
       inputSchema: {
         bottles: z
           .array(
@@ -214,6 +242,25 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
           return { ...draft, image: path };
         }),
       );
+      if (canEdit && good.length > 0) {
+        const fridges = await getFridges(cellarId, db);
+        const taken = new Set<string>();
+        const lines: string[] = [];
+        for (const d of good) {
+          const r = await applyAdd(db, cellarId, fridges, d, taken);
+          if (!r.ok) {
+            lines.push(`${d.winery} – ${d.name}: NOT added (the database refused it).`);
+            continue;
+          }
+          await logChange("add_bottles", d, { bottles: r.bottleIds });
+          lines.push(`${d.winery} – ${d.name}: added ${r.bottleIds.length} bottle(s), ${r.placed} in the requested place(s)${r.placed < r.bottleIds.length ? ", the rest outside the fridge" : ""}.`);
+        }
+        return text(
+          [...lines, `The user can undo any of these on ${siteUrl}/ai.`, ...imageNotes, ...errors, errors.length ? `Fix and call again. Expected shape:\n${DRAFT_FORMAT}` : ""]
+            .filter(Boolean)
+            .join("\n"),
+        );
+      }
       if (good.length > 0) {
         const { error } = await db
           .from("drafts")
@@ -257,7 +304,22 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
   };
   const saveAction = async (kind: "drink" | "move", payload: Record<string, unknown>, done: string) => {
     const r = parseActionDraft(kind, payload);
-    if (!r.ok) return { isError: true, content: [{ type: "text" as const, text: r.error }] };
+    if (!r.ok) return fail(r.error);
+    if (canEdit) {
+      const [fridges, loose] = await Promise.all([getFridges(cellarId, db), getLooseBottles(cellarId, db)]);
+      const bottle = findBottle(fridges, loose, r.action);
+      if (!bottle) return fail("No such bottle in the cellar. Check the exact winery, name and vintage with search_cellar.");
+      let res;
+      if (r.action.kind === "drink") res = await applyDrink(db, bottle.id, r.action);
+      else {
+        const target = resolvePlaces(fridges, [r.action.to])[0];
+        if (!target) return fail("That place does not exist or is taken. Check fridge_layout for free places.");
+        res = await applyMove(db, bottle.id, target);
+      }
+      if (!res.ok) return fail("It did not work (the bottle or the place may have changed). Nothing was changed.");
+      await logChange(kind, r.action, res.undo);
+      return text(`Done: ${kind === "drink" ? "marked as drunk" : "moved"}. The user can undo it on ${siteUrl}/ai.`);
+    }
     const { error } = await db.from("drafts").insert({ cellar_id: cellarId, kind, payload: r.action, source: "mcp" as const });
     if (error) {
       return {
@@ -272,7 +334,7 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
     "suggest_drink",
     {
       title: "Suggest marking a bottle as drunk",
-      description: "When the user says they opened / drank a bottle from the cellar. Creates a draft; the user approves it on the site. Optional score 1.0-5.0 and tasting notes.",
+      description: `When the user says they opened / drank a bottle from the cellar. ${canEdit ? "Takes effect at once; the user can undo it on the site." : "Creates a draft; the user approves it on the site."} Optional score 1.0-5.0 and tasting notes.`,
       inputSchema: {
         ...bottleRef,
         date: z.string().optional().describe("YYYY-MM-DD, default today"),
@@ -288,12 +350,36 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
     "suggest_move",
     {
       title: "Suggest moving a bottle",
-      description: "Move a bottle to another place in the fridge (see fridge_layout for free slots). Creates a draft; the user approves it on the site.",
+      description: `Move a bottle to another place in the fridge (see fridge_layout for free slots). ${canEdit ? "Takes effect at once; the user can undo it on the site." : "Creates a draft; the user approves it on the site."}`,
       inputSchema: { ...bottleRef, to: placeSchema.describe("The new place") },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async (args) => saveAction("move", args, "The move suggestion is saved."),
   );
+
+  // Only for an AI the user let make changes itself.
+  if (canEdit) {
+    server.registerTool(
+      "delete_bottle",
+      {
+        title: "Delete a bottle entered by mistake",
+        description:
+          "Removes a bottle that should not be in the cellar (entered by mistake, a duplicate). NOT for a bottle they drank: use suggest_drink. Ask the user first whether to delete it or mark it as drunk, and call this only after they say delete. The user can undo it on the site.",
+        inputSchema: { ...bottleRef, user_confirmed_delete: z.literal(true).describe("The user said to delete it (not that they drank it)") },
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+      },
+      async (args) => {
+        const [fridges, loose] = await Promise.all([getFridges(cellarId, db), getLooseBottles(cellarId, db)]);
+        const ref = { winery: args.winery, name: args.name, year: args.year ?? null, at: args.at ? { fridge: args.at.fridge ?? "", shelf: args.at.shelf, zone: args.at.zone ?? 1, slot: args.at.slot ?? null } : null };
+        const bottle = findBottle(fridges, loose, ref);
+        if (!bottle) return fail("No such bottle in the cellar. Check the exact winery, name and vintage with search_cellar.");
+        const { data: snapshot, error } = await db.rpc("ai_delete_bottle", { p_bottle_id: bottle.id });
+        if (error || !snapshot) return fail("It did not work. Nothing was deleted.");
+        await logChange("delete", { winery: args.winery, name: args.name, year: ref.year }, snapshot as Record<string, unknown>);
+        return text(`Deleted. The user can undo it on ${siteUrl}/ai.`);
+      },
+    );
+  }
 
   server.registerPrompt(
     "scan_label",

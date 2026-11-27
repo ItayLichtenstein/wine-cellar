@@ -37,7 +37,14 @@ async function handle(request: Request): Promise<Response> {
   const { data: cellarId } = await db.rpc("my_cellar_id");
   if (!cellarId) return unauthorized();
 
-  const server = buildMcpServer({ db, cellarId, siteUrl: origin });
+  // Edit mode: the user chose "make changes itself" for this AI (ADR 0013).
+  // The database guard checks the same row on every write.
+  const clientId = typeof claims.claims.client_id === "string" ? claims.claims.client_id : null;
+  const { data: grant } = clientId
+    ? await db.from("ai_edit_grants").select("client_id").eq("client_id", clientId).maybeSingle()
+    : { data: null };
+
+  const server = buildMcpServer({ db, cellarId, siteUrl: origin, canEdit: grant !== null });
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
   await server.connect(transport);
   return transport.handleRequest(request);
