@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { staggeredZone } from "@/components/fridge-preview";
+import { pileLayer, staggeredZone } from "@/components/fridge-preview";
 import { CHOOSABLE_PRESETS, FRONT_LABEL, LIMITS, frontZone, withoutFront, SHELF_PRESETS, bottlesLeaving, clamp, fridgeCapacity, shelfCapacity } from "./fridge-layout";
 
 describe("shelf presets", () => {
@@ -95,10 +95,17 @@ describe("CHOOSABLE_PRESETS", () => {
   it("offers rows, the pile and two piles, not the old stacks-and-row", () => {
     expect(CHOOSABLE_PRESETS).toEqual(["twoRows", "oneRow", "doubleStack", "twoStacks"]);
   });
-  it("two piles: a back pile and a front pile, each its own pile", () => {
-    expect(SHELF_PRESETS.twoStacks.make(6).zones).toEqual([
-      { kind: "stack", capacity: 6, label: "ערימה אחורית" },
-      { kind: "stack", capacity: 6, label: "ערימה קדמית" },
+  it("draws two piles as two pairs of layers, and a row in front stays a row", () => {
+    const zones = [...SHELF_PRESETS.twoStacks.make(5).zones, { kind: "row", capacity: 3, label: FRONT_LABEL }];
+    expect(zones.map((_, j) => pileLayer(zones, j))).toEqual(["upper", "lower", "upper", "lower", null]);
+    expect(pileLayer(SHELF_PRESETS.twoRows.make(5).zones, 0)).toBeNull();
+  });
+  it("two piles: a back pile and a front pile, each with a top and a bottom layer", () => {
+    expect(SHELF_PRESETS.twoStacks.make(5).zones).toEqual([
+      { kind: "stack", capacity: 4, label: "אחורית עליונה" },
+      { kind: "stack", capacity: 5, label: "אחורית תחתונה" },
+      { kind: "stack", capacity: 4, label: "קדמית עליונה" },
+      { kind: "stack", capacity: 5, label: "קדמית תחתונה" },
     ]);
   });
 });
