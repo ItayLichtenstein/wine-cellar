@@ -42,14 +42,13 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "whether they want to delete it or mark it as drunk, and delete only after they say delete.",
         "When the user tells you or shows you WHERE bottles are in the fridge, call fridge_layout first and pass `places` (shelf, zone, slot),",
         "so every bottle goes straight into its spot. Filling a whole fridge: go shelf by shelf (the fill_fridge prompt).",
-        "To mark a bottle as drunk or move it, use suggest_drink / suggest_move. Answer the user in their language.",
+        "To mark bottles as drunk or move them, use suggest_drink / suggest_move. Every tool takes a list: several bottles go in ONE call, never in parallel calls. Answer the user in their language.",
       ].join(" "),
     },
   );
 
   const read = { readOnlyHint: true, openWorldHint: false } as const;
   const text = (t: string) => ({ content: [{ type: "text" as const, text: t }] });
-  const fail = (t: string) => ({ isError: true, content: [{ type: "text" as const, text: t }] });
 
   // Edit mode: a change is logged as a draft that is already approved, with
   // what is needed to undo it (shown on the site's AI page).
@@ -290,8 +289,10 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     },
   );
 
-  // Suggesting changes to bottles already in the cellar: drafts the user
-  // approves one by one on the site (never done directly).
+  // Changes to bottles already in the cellar. Each tool takes a list, so
+  // "drink / move / delete these three" is one call and one confirmation in
+  // the AI's app (calls sent in parallel each ask, and some apps get stuck).
+  // In edit mode they take effect at once; otherwise they become drafts.
   const placeSchema = z.object({
     fridge: z.string().optional(),
     shelf: z.number().int().min(1),
@@ -304,90 +305,134 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     year: z.number().int().nullable().optional().describe("Vintage; null for NV"),
     at: placeSchema.optional().describe("Where the bottle is, if there are several (see fridge_layout)"),
   };
-  const saveAction = async (kind: "drink" | "move", payload: Record<string, unknown>, done: string) => {
+  const ONE_CALL = "Put all the bottles in ONE call (the list), never several calls in parallel.";
+  const label = (o: { winery: string; name: string; year?: number | null }) => `${o.winery} – ${o.name} ${o.year ?? "NV"}`;
+  const notFound = "not found in the cellar (check the exact winery, name and vintage with search_cellar)";
+  const tooMany = (error: { hint?: string } | null) => error?.hint === "too_many_drafts";
+
+  /** One drink or move: done at once in edit mode, else saved as a draft. A line for the reply. */
+  const oneAction = async (kind: "drink" | "move", payload: Record<string, unknown>): Promise<string> => {
     const r = parseActionDraft(kind, payload);
-    if (!r.ok) return fail(r.error);
-    if (canEdit) {
-      const [fridges, loose] = await Promise.all([getFridges(cellarId, db), getLooseBottles(cellarId, db)]);
-      const bottle = findBottle(fridges, loose, r.action);
-      if (!bottle) return fail("No such bottle in the cellar. Check the exact winery, name and vintage with search_cellar.");
-      let res;
-      if (r.action.kind === "drink") res = await applyDrink(db, bottle.id, r.action);
-      else {
-        const target = resolvePlaces(fridges, [r.action.to])[0];
-        if (!target) return fail("That place does not exist or is taken. Check fridge_layout for free places.");
-        res = await applyMove(db, bottle.id, target);
-      }
-      if (!res.ok) return fail("It did not work (the bottle or the place may have changed). Nothing was changed.");
-      await logChange(kind, r.action, res.undo);
-      return text(`Done at once (the user lets you make changes yourself): ${kind === "drink" ? "marked as drunk" : "moved"}. The user can undo it on ${siteUrl}/ai.`);
+    const name = typeof payload.winery === "string" ? label(payload as { winery: string; name: string; year?: number | null }) : "?";
+    if (!r.ok) return `${name}: NOT done – ${r.error}`;
+    if (!canEdit) {
+      const { error } = await db.from("drafts").insert({ cellar_id: cellarId, kind, payload: r.action, source: "mcp" as const });
+      if (error) return `${name}: NOT saved – ${tooMany(error) ? "50 drafts are already waiting; ask the user to approve or reject them first" : "try again"}.`;
+      return `${name}: waiting for the user's approval.`;
     }
-    const { error } = await db.from("drafts").insert({ cellar_id: cellarId, kind, payload: r.action, source: "mcp" as const });
-    if (error) {
-      return {
-        isError: true,
-        content: [{ type: "text" as const, text: error.hint === "too_many_drafts" ? "50 drafts are already waiting. Ask the user to approve or reject them first." : "Could not save the suggestion. Try again." }],
-      };
+    // Looked up again for each bottle, so two identical bottles in one list
+    // are two different bottles.
+    const [fridges, loose] = await Promise.all([getFridges(cellarId, db), getLooseBottles(cellarId, db)]);
+    const bottle = findBottle(fridges, loose, r.action);
+    if (!bottle) return `${name}: NOT done – ${notFound}.`;
+    let res;
+    if (r.action.kind === "drink") res = await applyDrink(db, bottle.id, r.action);
+    else {
+      const target = resolvePlaces(fridges, [r.action.to])[0];
+      if (!target) return `${name}: NOT moved – that place does not exist or is taken (see fridge_layout).`;
+      res = await applyMove(db, bottle.id, target);
     }
-    return text(`${done} Not done yet: the user set you to suggest only, so it waits for their approval at ${siteUrl}/ai.`);
+    if (!res.ok) return `${name}: NOT done – the bottle or the place changed meanwhile.`;
+    await logChange(kind, r.action, res.undo);
+    return `${name}: ${kind === "drink" ? "marked as drunk" : "moved"}.`;
   };
+
+  const replyFor = (lines: string[]) =>
+    text(
+      [
+        canEdit
+          ? `Done at once (the user lets you make changes yourself). They can undo any of these on ${siteUrl}/ai.`
+          : `Not done yet: the user set you to suggest only, so these wait for their approval at ${siteUrl}/ai. Say so; never claim they were done.`,
+        ...lines,
+        lines.some((l) => l.includes("NOT")) ? "Tell the user which ones did not work and why." : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
 
   server.registerTool(
     "suggest_drink",
     {
-      title: "Suggest marking a bottle as drunk",
-      description: `When the user says they opened / drank a bottle from the cellar. At once or as a draft, by the user's setting; the reply says which. Optional score 1.0-5.0 and tasting notes.`,
+      title: "Mark bottles as drunk",
+      description: `When the user says they opened / drank bottles from the cellar. At once or as drafts, by the user's setting; the reply says which. Optional score 1.0-5.0 and tasting notes per bottle. ${ONE_CALL}`,
       inputSchema: {
-        ...bottleRef,
-        date: z.string().optional().describe("YYYY-MM-DD, default today"),
-        notes: z.string().max(1000).optional().describe("Tasting notes in the user's words"),
-        score: z.number().min(1).max(5).optional().describe("The user's score, 1.0-5.0"),
+        bottles: z
+          .array(
+            z.object({
+              ...bottleRef,
+              date: z.string().optional().describe("YYYY-MM-DD, default today"),
+              notes: z.string().max(1000).optional().describe("Tasting notes in the user's words"),
+              score: z.number().min(1).max(5).optional().describe("The user's score, 1.0-5.0"),
+            }),
+          )
+          .min(1)
+          .max(30),
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
-    async (args) => saveAction("drink", args, "The drink suggestion is saved."),
+    async ({ bottles }) => {
+      const lines: string[] = [];
+      for (const b of bottles) lines.push(await oneAction("drink", b));
+      return replyFor(lines);
+    },
   );
 
   server.registerTool(
     "suggest_move",
     {
-      title: "Suggest moving a bottle",
-      description: `Move a bottle to another place in the fridge (see fridge_layout for free slots). At once or as a draft, by the user's setting; the reply says which.`,
-      inputSchema: { ...bottleRef, to: placeSchema.describe("The new place") },
+      title: "Move bottles",
+      description: `Move bottles to other places in the fridge (see fridge_layout for free slots). At once or as drafts, by the user's setting; the reply says which. ${ONE_CALL} Moves run in list order, so a swap is: A to a free slot, B to A's old place, A to B's old place.`,
+      inputSchema: { bottles: z.array(z.object({ ...bottleRef, to: placeSchema.describe("The new place") })).min(1).max(30) },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
-    async (args) => saveAction("move", args, "The move suggestion is saved."),
+    async ({ bottles }) => {
+      const lines: string[] = [];
+      for (const b of bottles) lines.push(await oneAction("move", b));
+      return replyFor(lines);
+    },
   );
 
   // Listed in both modes, so switching mode on the site works without
   // reconnecting (clients keep the tool list they got when connecting).
-  {
-    server.registerTool(
-      "delete_bottle",
-      {
-        title: "Delete a bottle entered by mistake",
-        description:
-          "Removes a bottle that should not be in the cellar (entered by mistake, a duplicate). NOT for a bottle they drank: use suggest_drink. Ask the user first whether to delete it or mark it as drunk, and call this only after they say delete. Works only if the user lets you make changes yourself (the reply says); the user can undo it on the site.",
-        inputSchema: { ...bottleRef, user_confirmed_delete: z.literal(true).describe("The user said to delete it (not that they drank it)") },
-        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+  // Not marked destructive: every delete can be undone on the site, and apps
+  // like Gemini otherwise ask again on every call, even after "always allow".
+  server.registerTool(
+    "delete_bottle",
+    {
+      title: "Delete bottles entered by mistake",
+      description: `Removes bottles that should not be in the cellar (entered by mistake, duplicates). NOT for bottles they drank: use suggest_drink. Ask the user first whether to delete or mark as drunk, and call this only after they say delete. Works only if the user lets you make changes yourself (the reply says); the user can undo each one on the site. ${ONE_CALL}`,
+      inputSchema: {
+        bottles: z.array(z.object(bottleRef)).min(1).max(30),
+        user_confirmed_delete: z.literal(true).describe("The user said to delete them (not that they drank them)"),
       },
-      async (args) => {
-        if (!canEdit) {
-          return text(
-            `Not deleted: the user set you to suggest only. Tell them they can delete it on the site, or tick "makes changes itself" for you on ${siteUrl}/ai (it applies at once, no need to reconnect) and ask again.`,
-          );
-        }
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async ({ bottles }) => {
+      if (!canEdit) {
+        return text(
+          `Not deleted: the user set you to suggest only. Tell them they can delete bottles on the site, or tick "makes changes itself" for you on ${siteUrl}/ai (it applies at once, no need to reconnect) and ask again.`,
+        );
+      }
+      const lines: string[] = [];
+      for (const b of bottles) {
         const [fridges, loose] = await Promise.all([getFridges(cellarId, db), getLooseBottles(cellarId, db)]);
-        const ref = { winery: args.winery, name: args.name, year: args.year ?? null, at: args.at ? { fridge: args.at.fridge ?? "", shelf: args.at.shelf, zone: args.at.zone ?? 1, slot: args.at.slot ?? null } : null };
+        const ref = { winery: b.winery, name: b.name, year: b.year ?? null, at: b.at ? { fridge: b.at.fridge ?? "", shelf: b.at.shelf, zone: b.at.zone ?? 1, slot: b.at.slot ?? null } : null };
         const bottle = findBottle(fridges, loose, ref);
-        if (!bottle) return fail("No such bottle in the cellar. Check the exact winery, name and vintage with search_cellar.");
+        if (!bottle) {
+          lines.push(`${label(b)}: NOT deleted – ${notFound}.`);
+          continue;
+        }
         const { data: snapshot, error } = await db.rpc("ai_delete_bottle", { p_bottle_id: bottle.id });
-        if (error || !snapshot) return fail("It did not work. Nothing was deleted.");
-        await logChange("delete", { winery: args.winery, name: args.name, year: ref.year }, snapshot as Record<string, unknown>);
-        return text(`Deleted at once. The user can undo it on ${siteUrl}/ai.`);
-      },
-    );
-  }
+        if (error || !snapshot) {
+          lines.push(`${label(b)}: NOT deleted – it did not work.`);
+          continue;
+        }
+        await logChange("delete", { winery: b.winery, name: b.name, year: ref.year }, snapshot as Record<string, unknown>);
+        lines.push(`${label(b)}: deleted.`);
+      }
+      return replyFor(lines);
+    },
+  );
 
   server.registerPrompt(
     "scan_label",
