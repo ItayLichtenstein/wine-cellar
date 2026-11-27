@@ -23,16 +23,16 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --background: #2a0b12;
-    --foreground: #f4e4c1;
-    --muted: #c4ad8a;
+    --foreground: #f0d49a;
+    --muted: #c9a96b;
     --surface: #3a131c;
     --accent: #f2b8c2;
   }
 }
 :root[data-theme="dark"] {
   --background: #2a0b12;
-  --foreground: #f4e4c1;
-  --muted: #c4ad8a;
+  --foreground: #f0d49a;
+  --muted: #c9a96b;
   --surface: #3a131c;
   --accent: #f2b8c2;
 }
