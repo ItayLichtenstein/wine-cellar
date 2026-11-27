@@ -409,6 +409,7 @@ export const en: Dictionary = {
     copied: "Copied ✓",
     approveStep: "A window of our site opens. Sign in with Google if needed, then tap \"Approve\"",
     doneStep: (name: string) => `That's it! Open a new chat in ${name} and ask "What's in my cellar?"`,
+    troubleshoot: ["Sign-in stuck? Allow pop-ups,", "and if the AI doesn't know your cellar, start a new chat"],
     cantFind: ["Can't find the button? Menu names change from time to time,", "so search the settings for \"Connectors\" or use the manual copy below"],
     recommended: "Recommended",
     connectorName: "Wine Cellar",

@@ -108,6 +108,10 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
         ))}
       </ol>
       <p className="text-xs text-muted">
+        <span className="inline-block">{a.troubleshoot[0]}</span>{" "}
+        <span className="inline-block">{a.troubleshoot[1]}</span>
+      </p>
+      <p className="text-xs text-muted">
         <span className="inline-block">{a.cantFind[0]}</span>{" "}
         <span className="inline-block">{a.cantFind[1]}</span>
       </p>
