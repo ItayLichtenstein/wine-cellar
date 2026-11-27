@@ -30,7 +30,7 @@ const label = (o: { winery: string; name: string; year?: number | null }) => `${
 export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, canEdit, logChange }: Ctx) {
   const suggestOnly = (what: string) =>
     text(
-      `Not done: the user set you to suggest only, so you cannot ${what}. Tell them they can do it on the site, or tick "makes changes itself" for you on ${siteUrl}/ai (it applies at once, no need to reconnect) and ask again.`,
+      `Not done: the user set you to suggest only, so you cannot ${what}. Tell them they can do it on the site, or turn on "helps manage the cellar" (in Hebrew: עוזר בניהול המרתף) for you on ${siteUrl}/ai (it applies at once, no need to reconnect) and ask again.`,
     );
   const done = (lines: string[]) =>
     text(

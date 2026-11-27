@@ -18,7 +18,7 @@ export function ConnectedAis({ ais }: { ais: ConnectedAi[] }) {
   const dateFormat = new Intl.DateTimeFormat(intlTag(useLocale()), { day: "numeric", month: "long", year: "numeric" });
   const [failed, setFailed] = useState(false);
 
-  // "Makes changes itself" on or off: a row the database guard reads.
+  // "Helps manage the cellar" on or off: a row the database guard reads.
   async function setEdit(clientId: string, on: boolean) {
     setFailed(false);
     const grants = createClient().from("ai_edit_grants");

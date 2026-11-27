@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 
 /**
  * The user's answer: approve (and choose what the AI may change, ADR 0013)
- * or not now. "Makes changes itself" is a row in ai_edit_grants, which the
+ * or not now. "Helps manage the cellar" is a row in ai_edit_grants, which the
  * database guard reads; "only suggests" removes it.
  */
 export function ConsentButtons({ authorizationId, clientId }: { authorizationId: string; clientId: string }) {
