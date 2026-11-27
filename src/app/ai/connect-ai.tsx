@@ -37,33 +37,36 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
 
   // Copy first, then the AI's own steps, then the approval here. Written so
   // anyone can follow it: one action per step, a button for every page.
+  // When the AI's page comes already filled in (Claude), its button goes
+  // first and copying is only needed if the field turns up empty.
+  const copyStep = {
+    text: p.prefilled ? a.copyIfEmpty : a.copyAddress,
+    extra: (
+      <span className="mt-2 flex items-center gap-2">
+        <code dir="ltr" className="min-w-0 flex-1 truncate rounded-lg bg-background px-3 py-2 text-sm">
+          {url}
+        </code>
+        <button type="button" onClick={copy} className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white dark:text-black">
+          {copied ? a.copied : a.copy}
+        </button>
+      </span>
+    ),
+  };
+  const aiSteps = setup.steps.map((text, i) => ({
+    text,
+    extra: i === 0 && p.setupUrl && (
+      <a
+        href={p.setupUrl(url, a.connectorName)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-accent/50 px-4 py-2 text-sm font-medium text-accent"
+      >
+        {setup.linkLabel} ↗
+      </a>
+    ),
+  }));
   const steps = [
-    {
-      text: a.copyAddress,
-      extra: (
-        <span className="mt-2 flex items-center gap-2">
-          <code dir="ltr" className="min-w-0 flex-1 truncate rounded-lg bg-background px-3 py-2 text-sm">
-            {url}
-          </code>
-          <button type="button" onClick={copy} className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white dark:text-black">
-            {copied ? a.copied : a.copy}
-          </button>
-        </span>
-      ),
-    },
-    ...setup.steps.map((text, i) => ({
-      text,
-      extra: i === 0 && p.setupUrl && (
-        <a
-          href={p.setupUrl(url, a.connectorName)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-accent/50 px-4 py-2 text-sm font-medium text-accent"
-        >
-          {setup.linkLabel} ↗
-        </a>
-      ),
-    })),
+    ...(p.prefilled ? [aiSteps[0], copyStep, ...aiSteps.slice(1)] : [copyStep, ...aiSteps]),
     { text: a.approveStep, extra: null },
     { text: a.doneStep(p.name), extra: null },
   ];

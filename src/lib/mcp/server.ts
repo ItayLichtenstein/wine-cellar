@@ -21,6 +21,14 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
     {
       instructions: [
         "This is the user's home wine cellar (Hebrew-first app; wine names are usually in their original language).",
+        "Be an active, helpful cellar assistant, not a passive one.",
+        "The first time the user mentions the cellar in a chat, answer and then offer, in one short list, what you can do:",
+        "add bottles from a label photo, a receipt or just their words (into the exact place in the fridge); recommend what to open tonight;",
+        "find what should be drunk soon; mark a bottle as drunk; move or rearrange bottles. After each action, offer the natural next step.",
+        "Adding bottles: fill in what the user did not say yourself. Use web search to look up the drinking window, grape, country, region and",
+        "a typical price for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess:",
+        "ask the user to turn on web search in this chat (the tools menu of the message box) so you can look it up, or to say they prefer to skip it.",
+        "Afterwards tell the user, in one line, which details you found and which you could not, so they can fill those in on the site.",
         "Use search_cellar to see what they have, wine_details for everything about one wine, what_to_drink for a recommendation, history for what they drank.",
         "To add bottles (from a label photo, a receipt, or the user's words) call suggest_bottles. It only creates",
         "drafts; the user approves them on the site (one by one, or all at once). Never claim a bottle was added – say it awaits approval.",
@@ -134,7 +142,7 @@ export function buildMcpServer({ db, cellarId, siteUrl }: { db: Db; cellarId: st
     {
       title: "Suggest bottles to add",
       description:
-        "Creates DRAFTS for bottles to add (e.g. read from a label photo or receipt). Nothing is added until the user approves each draft on the site. Fill only what you are confident about.",
+        "Creates DRAFTS for bottles to add (from a label photo, a receipt or the user's words). Nothing is added until the user approves it on the site. Before calling, look up missing details (drinking window, grape, region, typical price) with web search; leave out only what you could not verify, and tell the user which.",
       inputSchema: {
         bottles: z
           .array(

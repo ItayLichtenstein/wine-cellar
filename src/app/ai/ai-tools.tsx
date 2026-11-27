@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { buildPrompt, parseAiAnswer, type BottleDraft, type CellarLine } from "@/lib/drafts";
-import { placesSummary } from "@/lib/draft-places";
+import { placeText, placesSummary } from "@/lib/draft-places";
 import type { FridgeView } from "@/lib/fridges";
 import { createClient } from "@/lib/supabase/client";
 import { approveAll, type ApproveResult } from "./approve-all";
@@ -183,6 +183,7 @@ export function ManualTools({ cellar, cellarId, layout }: { cellar: CellarLine[]
 export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDraft[]; fridges: FridgeView[]; cellarId: string }) {
   const router = useRouter();
   const a = useT().ai;
+  const locale = useLocale();
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<ApproveResult | null>(null);
   const bottleCount = drafts.reduce((n, d) => n + d.draft.quantity, 0);
@@ -242,7 +243,7 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
               </span>
               <span className="text-xs text-muted">
                 {[
-                  d.places.length ? `📍 ${placesSummary(d.places)}` : "",
+                  d.places.length ? `📍 ${d.places.length === 1 ? placeText(fridges, d.places[0], locale) : placesSummary(d.places)}` : "",
                   d.grape,
                   d.country,
                   d.price ? `₪${d.price}` : "",
