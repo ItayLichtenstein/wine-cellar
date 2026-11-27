@@ -28,9 +28,9 @@ jobs:
         run: |
           if [ -z "$DB_PASSWORD" ]; then echo "No SUPABASE_DB_PASSWORD yet, skipping"; echo "run=false" >> "$GITHUB_OUTPUT"; else echo "run=true" >> "$GITHUB_OUTPUT"; fi
       - if: steps.gate.outputs.run == 'true'
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - if: steps.gate.outputs.run == 'true'
-        uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v1
         with:
           version: 3.3.0
       - name: Dump roles, schema and data
@@ -55,7 +55,7 @@ jobs:
           rm -rf out
           echo "NAME=$name" >> "$GITHUB_ENV"
       - if: steps.gate.outputs.run == 'true'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.NAME }}
           path: ${{ env.NAME }}.tar.gz.age
