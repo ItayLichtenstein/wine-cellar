@@ -115,7 +115,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
     {
       title: "What to drink",
       description:
-        "The bottles that most need drinking, plus what the household likes. Use it with the occasion the user describes to recommend 1–3 bottles from the cellar.",
+        "What to open from the user's own cellar (מרתף יין / Wine Cellar): the bottles that most need drinking, plus what the household likes. Call it whenever they ask what to open, drink or pair with a meal or occasion, even if they only say \"my fridge\" or \"tonight\" (in Hebrew: מה לפתוח, מהמקרר, מהמרתף). Recommend 1–3 bottles they actually have, not wines in general.",
       inputSchema: {},
       annotations: read,
     },
