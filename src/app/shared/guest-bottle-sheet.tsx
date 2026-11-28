@@ -24,6 +24,7 @@ export function GuestBottleSheet({ bottle: b, showPrice, onClose }: { bottle: Sh
     [t.guest.type, t.wineType[b.type as keyof typeof t.wineType] ?? ""],
     [t.bottle.grape, b.grape, "auto"],
     [t.bottle.origin, [b.region, b.country].filter(Boolean).join(", "), "auto"],
+    [t.bottle.body, b.body ? t.body[b.body] : ""],
     [t.bottle.peak, range(b.peakFrom, b.peakTo), "ltr"],
     [t.bottle.critics, criticSummary(b.critics, t) ?? "", "auto"],
     [t.bottle.alcohol, b.alcohol ? `${b.alcohol}%` : ""],

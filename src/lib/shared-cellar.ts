@@ -6,7 +6,7 @@ import { drinkState } from "./drink-state";
 import type { ZoneKind } from "./fridge-layout";
 import type { FridgeView, LooseBottle, PlacedBottle } from "./fridges";
 
-/** What shared_cellar(token) returns (see migrations 0021, 0027, 0030). No notes, ratings or history. */
+/** What shared_cellar(token) returns (see migrations 0021, 0027, 0030, 0049). No notes, ratings or history. */
 export type SharedCellarJson = {
   names: string[];
   hide_prices: boolean;
@@ -14,7 +14,7 @@ export type SharedCellarJson = {
     id: string;
     name: string;
     brand: string | null;
-    kind?: string; // not sent by the share-link function yet: drawn as a fridge
+    kind?: string; // since migration 0049; older answers are drawn as a fridge
     model: string | null;
     shelves: { id: string; zones: { id: string; kind: string; capacity: number; label: string | null }[] }[];
   }[];
@@ -39,6 +39,7 @@ export type SharedCellarJson = {
     grape: string | null;
     region: string | null;
     alcohol: number | null;
+    body?: ListBottle["body"]; // since migration 0049
     critics: CriticScore[];
     price: number | null;
   }[];
@@ -96,7 +97,7 @@ export function fromSharedCellar(json: SharedCellarJson, year: number, locale: L
       country: b.country ?? "",
       kosher: b.kosher,
       shape: b.shape,
-      body: null,
+      body: b.body ?? null,
       state,
       drinkBy: b.peak_to ?? b.drink_to,
       price: b.price,

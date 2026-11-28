@@ -1009,7 +1009,7 @@ export const en: Dictionary = {
     intro: ["Take a photo of each wine's label,", "and it shows on the bottle in the fridge"],
     missing: (n: number) => (n === 1 ? "1 wine without a photo" : `${n} wines without a photo`),
     fromWeb: (n: number) => (n === 1 ? "1 photo from the web" : `${n} photos from the web`),
-    fromWebHint: "The AI found these online, and sometimes it's another vintage or a similar label, so you can replace them with your own",
+    fromWebHint: "The AI found these online, so if one doesn't look right you can replace it with your own photo",
     allDone: "Every wine in the cellar has a photo",
     empty: "No wines in the cellar yet",
   },

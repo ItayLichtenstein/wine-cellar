@@ -10,8 +10,8 @@ export const generateMetadata = pageTitle((t) => t.titles.labels);
 
 /**
  * Label photos in one place: every wine in the cellar without a photo (one
- * tap each to take it), then the photos an AI found on the web, which may be
- * another vintage, so the user can replace them with their own.
+ * tap each to take it), then the photos an AI found on the web, so the user
+ * can replace one that doesn't look right with their own.
  */
 export default async function LabelsPage() {
   const t = await getT();
