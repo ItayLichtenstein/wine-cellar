@@ -22,6 +22,7 @@ const Bottle = z.object({
   country: text(60),
   region: text(120),
   kosher: z.enum(["yes", "no"]).optional(),
+  body: z.enum(["light", "medium", "medium_full", "full"]).optional(),
   alcohol: z.number().min(0).max(25).optional(),
   drink_from: year,
   drink_to: year,

@@ -2,6 +2,7 @@
 // Pure functions only (no React, no database), so they are unit-tested.
 
 import { DRINK_STATE_ORDER, type DrinkState } from "./drink-state";
+import type { Body } from "./wine-extra";
 
 export type ListBottle = {
   id: string;
@@ -14,6 +15,8 @@ export type ListBottle = {
   country: string;
   kosher: "yes" | "no" | "unknown";
   shape: "standard" | "burgundy";
+  /** Null when not known (and in a shared cellar, which does not show it). */
+  body: Body | null;
   state: DrinkState;
   /** Last good year: end of the peak, or of the window. Null if unknown. */
   drinkBy: number | null;
@@ -37,6 +40,7 @@ export type Filters = {
   kosherOnly: boolean;
   country: string; // "" = all
   shape: "" | "standard" | "burgundy";
+  body: "" | Body;
   priceMin: number | null;
   priceMax: number | null;
 };
@@ -48,6 +52,7 @@ export const EMPTY_FILTERS: Filters = {
   kosherOnly: false,
   country: "",
   shape: "",
+  body: "",
   priceMin: null,
   priceMax: null,
 };
@@ -62,6 +67,7 @@ export function matches(b: ListBottle, f: Filters): boolean {
   if (f.kosherOnly && b.kosher !== "yes") return false;
   if (f.country && b.country !== f.country) return false;
   if (f.shape && b.shape !== f.shape) return false;
+  if (f.body && b.body !== f.body) return false;
   // A price filter hides bottles without a price: we can't say they match.
   if (f.priceMin !== null && (b.price === null || b.price < f.priceMin)) return false;
   if (f.priceMax !== null && (b.price === null || b.price > f.priceMax)) return false;

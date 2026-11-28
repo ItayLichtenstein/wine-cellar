@@ -2,6 +2,7 @@ import { DRINK_WINDOW_SOURCES } from "../drink-window-sources";
 import { countMissing, formatLabelPhotos, imageMatchSchema, missingNote, savedNote, saveWebLabel } from "./label-photos";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { BODIES } from "../wine-extra";
 import { buildRows, drinkNow, EMPTY_FILTERS } from "../bottle-list";
 import { DRAFT_FORMAT, DRAFT_TYPES, parseActionDraft, parseBottleDraft } from "../drafts";
 import { bottlePlaces, describeFridges, findBottle, pickFridge, resolvePlaces } from "../draft-places";
@@ -39,7 +40,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "Not only wine: whisky, arak, liqueurs or any other bottle can be kept too. Use type 'other', the maker as winery, no drinking window,",
         "and year only if the label has one (otherwise null). Do not refuse or warn that the app is for wine.",
         // Details from the web.
-        "Adding bottles: fill in what the user did not say. Use web search to look up the drinking window, grape, country, region and a typical price",
+        "Adding bottles: fill in what the user did not say. Use web search to look up the drinking window, grape, body, country, region and a typical price",
         "for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess: ask the user to turn on web search in this chat",
         "(the tools menu of the message box), or to say they prefer to skip it. Afterwards tell the user, in one line, which details you found and which you could not.",
         DRINK_WINDOW_SOURCES,
@@ -203,6 +204,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
               quantity: z.number().int().min(1).max(48).optional(),
               price: z.number().nullable().optional().describe("Per bottle, in ₪"),
               grape: z.string().optional(),
+              body: z.enum(BODIES).optional().describe("How full the wine feels in the mouth, from critics' notes, the winery or shops; leave out if unknown"),
               country: z.string().optional(),
               region: z.string().optional(),
               drink_from: z.number().int().nullable().optional().describe(DRINK_WINDOW_SOURCES),

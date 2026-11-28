@@ -20,7 +20,7 @@ export function ExportButton({ cellarId }: { cellarId: string }) {
     const { data, error } = await createClient()
       .from("bottles")
       .select(
-        "status, added_on, consumed_on, note, link_url, bottle_prices(paid, regular, is_gift), wine_vintages(year, drink_from, drink_to, peak_from, peak_to, alcohol, wines(winery, name, type, grape, country, region, kosher))",
+        "status, added_on, consumed_on, note, link_url, bottle_prices(paid, regular, is_gift), wine_vintages(year, drink_from, drink_to, peak_from, peak_to, alcohol, wines(winery, name, type, grape, country, region, kosher, body))",
       )
       .eq("cellar_id", cellarId)
       .order("added_on");
@@ -43,6 +43,7 @@ export function ExportButton({ cellarId }: { cellarId: string }) {
         v?.drink_from ?? null, v?.drink_to ?? null, v?.peak_from ?? null, v?.peak_to ?? null,
         p?.paid ?? null, p?.regular ?? null, p?.is_gift ? t.account.yes : "",
         w?.kosher === "yes" ? t.account.yes : w?.kosher === "no" ? t.account.no : "",
+        w?.body ? t.body[w.body] : "",
         b.added_on, b.consumed_on ?? "", b.note ?? "", b.link_url ?? "",
       ];
     });
