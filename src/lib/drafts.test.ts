@@ -70,3 +70,15 @@ describe("buildPrompt with the fridge layout", () => {
     expect(buildPrompt("add", [], "")).not.toContain("add `places`");
   });
 });
+
+describe("bottles on their way", () => {
+  it("keeps on_the_way and drops places, which they cannot have yet", () => {
+    const r = parseBottleDraft({ winery: "Tzora", name: "Shoresh", quantity: 2, on_the_way: true, places: [{ shelf: 1, slot: 1 }] }, 2026);
+    expect(r.ok && r.draft.onTheWay).toBe(true);
+    expect(r.ok && r.draft.places).toEqual([]);
+  });
+  it("is left out otherwise", () => {
+    const r = parseBottleDraft({ winery: "Tzora", name: "Shoresh" }, 2026);
+    expect(r.ok && "onTheWay" in r.draft).toBe(false);
+  });
+});

@@ -1,5 +1,5 @@
 // More MCP tools (ADR 0013): edit a wine's details, the wishlist, a drink
-// outside the cellar, and the fridge's layout. They change data only for an
+// outside the cellar or a past one, and the fridges (new or changed; never deleted). They change data only for an
 // AI the user lets make changes; a label photo too; one that only suggests is told so, and the
 // user makes the change on the site. Every change can be undone on /ai.
 
@@ -11,7 +11,7 @@ import { findBottle, pickFridge } from "../draft-places";
 import { applyFridgeEdit, buildNewFridge, fridgeJson } from "../fridge-edit";
 import { CATALOG } from "../fridge-catalog";
 import { CHOOSABLE_PRESETS } from "../fridge-layout";
-import { getCellarBottles, getFridges, getLooseBottles, type Db } from "../fridges";
+import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } from "../fridges";
 import { imageMatchSchema, labelsPage, savedNote, saveWebLabel } from "./label-photos";
 
 export type ChangeKind = "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge" | "label";
@@ -53,7 +53,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
     {
       title: "Fix a wine's details",
       description:
-        "Change details of wines already in the cellar: drinking window, peak, grape, country, region, type, or the price paid. Window and wine details apply to every bottle of that wine and vintage; the price to every bottle of that vintage, or only the one at `at`. Only what you pass changes. Works only if the user lets you make changes yourself. " +
+        "Change details of wines already in the cellar: drinking window, peak, grape, country, region, type, kosher, bottle shape, alcohol, the price paid, or the user's note on the bottles. Window, alcohol and wine details apply to every bottle of that wine and vintage; the price and the note to every bottle of that vintage, or only the one at `at`. Only what you pass changes. Works only if the user lets you make changes yourself. " +
         ONE_CALL,
       inputSchema: {
         wines: z
@@ -62,7 +62,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
               winery: z.string().describe("Exactly as in search_cellar"),
               name: z.string().describe("Exactly as in search_cellar"),
               year: z.number().int().nullable().optional().describe("Vintage; null for NV"),
-              at: placeSchema.optional().describe("Only for a price of one bottle: where it is"),
+              at: placeSchema.optional().describe("Only for the price or note of one bottle: where it is"),
               drink_from: z.number().int().nullable().optional().describe(DRINK_WINDOW_SOURCES),
               drink_to: z.number().int().nullable().optional(),
               peak_from: z.number().int().nullable().optional(),
@@ -72,6 +72,10 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
               grape: z.string().max(200).optional(),
               country: z.string().max(100).optional(),
               region: z.string().max(100).optional(),
+              kosher: z.enum(["yes", "no", "unknown"]).optional(),
+              shape: z.enum(["standard", "burgundy"]).optional().describe("burgundy = the wide, sloping bottle (Pinot Noir, Chardonnay); it takes more room"),
+              alcohol: z.number().min(0).max(25).nullable().optional().describe("% ABV, as on the label"),
+              note: z.string().max(1000).optional().describe("The user's own note on the bottles (replaces the note there); empty to clear"),
             }),
           )
           .min(1)
@@ -103,7 +107,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
           bottleIds = [one.id];
         }
         const changes = Object.fromEntries(
-          (["drink_from", "drink_to", "peak_from", "peak_to", "price", "type", "grape", "country", "region"] as const)
+          (["drink_from", "drink_to", "peak_from", "peak_to", "price", "type", "grape", "country", "region", "kosher", "shape", "alcohol", "note"] as const)
             .filter((k) => w[k] !== undefined)
             .map((k) => [k, w[k]]),
         );
@@ -117,7 +121,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
           continue;
         }
         await logChange("edit", { winery: w.winery, name: w.name, year }, undo as Record<string, unknown>);
-        lines.push(`${name}: updated ${Object.keys(changes).join(", ")}${"price" in changes ? ` (${bottleIds.length} bottle(s))` : ""}.`);
+        lines.push(`${name}: updated ${Object.keys(changes).join(", ")}${"price" in changes || "note" in changes ? ` (${bottleIds.length} bottle(s))` : ""}.`);
       }
       return done(lines);
     },
@@ -196,6 +200,54 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
   );
 
   server.registerTool(
+    "remove_from_wishlist",
+    {
+      title: "Remove from the wishlist",
+      description:
+        "Takes wines off the wishlist: the user bought them, or no longer wants them. If they bought it, also add the bottles with suggest_bottles (ask how many and where). " +
+        `Works only if the user lets you make changes yourself. ${ONE_CALL}`,
+      inputSchema: {
+        wines: z
+          .array(
+            z.object({
+              winery: z.string().describe("Exactly as in wishlist"),
+              name: z.string().describe("Exactly as in wishlist"),
+              year: z.number().int().nullable().optional().describe("The vintage as in wishlist; omit if it says any vintage"),
+            }),
+          )
+          .min(1)
+          .max(30),
+      },
+      annotations: write,
+    },
+    async ({ wines }) => {
+      if (!canEdit) return suggestOnly("change the wishlist");
+      const { data: items } = await db.from("wishlist_items").select("id, year, wines(winery, name)").eq("cellar_id", cellarId);
+      const lines: string[] = [];
+      for (const w of wines) {
+        const year = w.year ?? null;
+        const same = (items ?? []).filter((i) => {
+          const x = i.wines as { winery: string; name: string } | null;
+          return x && x.winery.toLowerCase() === w.winery.toLowerCase() && x.name.toLowerCase() === w.name.toLowerCase();
+        });
+        const item = same.find((i) => i.year === year) ?? (w.year === undefined && same.length === 1 ? same[0] : undefined);
+        if (!item) {
+          lines.push(`${label({ ...w, year })}: NOT removed – not on the wishlist (check the exact names and vintage with wishlist).`);
+          continue;
+        }
+        const { data: removed, error } = await db.rpc("ai_remove_wishlist_item", { p_item: item.id });
+        if (error || !removed) {
+          lines.push(`${label({ ...w, year })}: NOT removed – the database refused it.`);
+          continue;
+        }
+        await logChange("wishlist", { winery: w.winery, name: w.name, year: item.year, removed: true }, { removed });
+        lines.push(`${label({ ...w, year: item.year })}: removed from the wishlist.`);
+      }
+      return done(lines);
+    },
+  );
+
+  server.registerTool(
     "log_tasting",
     {
       title: "A wine drunk outside the cellar",
@@ -239,6 +291,64 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
         }
         await logChange("taste", { winery: w.winery, name: w.name, year: w.year ?? null }, { tasting });
         lines.push(`${label(w)}: recorded in the history${w.place ? ` (${w.place})` : ""}.`);
+      }
+      return done(lines);
+    },
+  );
+
+  server.registerTool(
+    "edit_tasting",
+    {
+      title: "Correct a past tasting",
+      description:
+        "Changes a wine the household already drank, as the history shows it: its score (1.0-5.0, the household's score for that wine and vintage), tasting notes, place or date. " +
+        "Call history first. Only what you pass changes; notes replace the old ones, so to add to them pass the old notes with the addition. " +
+        `Works only if the user lets you make changes yourself. ${ONE_CALL}`,
+      inputSchema: {
+        tastings: z
+          .array(
+            z.object({
+              winery: z.string().describe("Exactly as in history"),
+              name: z.string().describe("Exactly as in history"),
+              year: z.number().int().nullable().optional().describe("Vintage as in history; null for NV"),
+              date: z.string().optional().describe("YYYY-MM-DD as in history; needed when it was drunk more than once"),
+              score: z.number().min(1).max(5).optional(),
+              notes: z.string().max(1000).optional(),
+              place: z.string().max(120).optional(),
+              new_date: z.string().optional().describe("YYYY-MM-DD, only to correct the date"),
+            }),
+          )
+          .min(1)
+          .max(30),
+      },
+      annotations: write,
+    },
+    async ({ tastings }) => {
+      if (!canEdit) return suggestOnly("change the history");
+      const history = await getHistory(cellarId, db);
+      const lines: string[] = [];
+      for (const t of tastings) {
+        const name = label(t);
+        const title = `${t.winery} – ${t.name}`.toLowerCase();
+        const same = history.filter((h) => h.title.toLowerCase() === title && (t.year === undefined || h.year === (t.year ?? null)) && (!t.date || h.tastedOn === t.date));
+        if (same.length !== 1) {
+          lines.push(`${name}: NOT changed – ${same.length ? `drunk ${same.length} times: pass the date (${same.map((h) => h.tastedOn).join(", ")})` : "not in the history (check with history)"}.`);
+          continue;
+        }
+        const changes = Object.fromEntries(
+          ([["score", t.score], ["notes", t.notes], ["place", t.place], ["tasted_on", t.new_date]] as const).filter(([, v]) => v !== undefined),
+        );
+        if (Object.keys(changes).length === 0) {
+          lines.push(`${name}: NOT changed – nothing to change was given.`);
+          continue;
+        }
+        const { data: edited, error } = await db.rpc("ai_edit_tasting", { p_tasting: same[0].id, p_changes: changes });
+        if (error || !edited) {
+          lines.push(`${name}: NOT changed – the database refused it (a date cannot be in the future).`);
+          continue;
+        }
+        await logChange("taste", { winery: t.winery, name: t.name, year: same[0].year, edited: true }, { edited });
+        lines.push(`${name} (${same[0].tastedOn}): updated ${Object.keys(changes).join(", ")}.`);
       }
       return done(lines);
     },

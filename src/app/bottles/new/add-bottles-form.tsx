@@ -39,6 +39,8 @@ export type Prefill = {
   image?: string;
   /** Places to start with picked (an AI draft that says where the bottles are). */
   places?: Place[];
+  /** An AI draft of bottles ordered that have not arrived yet. */
+  onTheWay?: boolean;
 };
 
 export function AddBottlesForm({
@@ -75,7 +77,7 @@ export function AddBottlesForm({
   const [isGift, setIsGift] = useState(false);
   const [drinkFrom, setDrinkFrom] = useState(prefill?.drinkFrom ? String(prefill.drinkFrom) : "");
   const [drinkTo, setDrinkTo] = useState(prefill?.drinkTo ? String(prefill.drinkTo) : "");
-  const [destination, setDestination] = useState<Destination>(fridges.length ? "fridge" : "unplaced");
+  const [destination, setDestination] = useState<Destination>(prefill?.onTheWay ? "in_transit" : fridges.length ? "fridge" : "unplaced");
   const [picked, setPicked] = useState<Place[]>(prefill?.places?.length ? prefill.places : initialPlace ? [initialPlace] : []);
   const [extra, setExtra] = useState({ ...EMPTY_EXTRA, ...prefill?.extra });
   const [saving, setSaving] = useState(false);
