@@ -21,6 +21,15 @@ describe("formatRows", () => {
       "- Yatir – Forest NV · red · no drinking window recorded · מדף 3",
     );
   });
+  it("shows a note shared by the whole vintage once", () => {
+    expect(formatRows([row(2, { note: "מתנה מדן" })])).toContain(' · note: "מתנה מדן"');
+  });
+  it("a note on only some bottles says where that bottle is", () => {
+    const bottles = [bottle({ id: "1", note: "מחיר רגיל באתר" }), bottle({ id: "2" })];
+    const out = formatRows([{ key: "k", bottles, first: bottles[0] }], 40, new Map([["1", "shelf 2 slot 4"], ["2", "shelf 2 slot 5"]]));
+    expect(out).toContain('note (shelf 2 slot 4): "מחיר רגיל באתר"');
+    expect(out.match(/note/g)).toHaveLength(1);
+  });
   it("caps long answers and says how many were left out", () => {
     const out = formatRows(Array.from({ length: 5 }, () => row(1)), 2);
     expect(out.split("\n")).toHaveLength(3);

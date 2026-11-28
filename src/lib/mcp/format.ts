@@ -29,11 +29,24 @@ export function formatRows(rows: ListRow[], limit = 40, places?: Map<string, str
       b.drinkBy ? `drink by ${b.drinkBy}` : "",
       places ? whereAll(r, places) : b.where,
       b.price !== null ? `₪${b.price}` : "",
+      notesOf(r, places),
     ];
     return `- ${parts.filter(Boolean).join(" · ")}`;
   });
   const more = rows.length > limit ? `\n…and ${rows.length - limit} more. Narrow the search.` : "";
   return lines.join("\n") + more;
+}
+
+/**
+ * The user's notes on a vintage's bottles. One note shared by all of them is
+ * shown once; otherwise each note says where its bottle is, so the AI can
+ * change just that one (edit_wine with `at`).
+ */
+function notesOf(r: ListRow, places?: Map<string, string>): string {
+  const noted = r.bottles.filter((b) => b.note);
+  if (noted.length === 0) return "";
+  if (noted.length === r.bottles.length && new Set(noted.map((b) => b.note)).size === 1) return `note: "${noted[0].note}"`;
+  return noted.map((b) => `note (${places?.get(b.id) ?? b.where}): "${b.note}"`).join(" · ");
 }
 
 /** Where each bottle of a vintage is, exactly (fridge, shelf, zone, slot): the AI needs it to name one of them. */

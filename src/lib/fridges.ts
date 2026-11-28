@@ -155,7 +155,7 @@ export async function getCellarBottles(cellarId: string, db?: Db, locale: Locale
   const { data, error } = await supabase
     .from("bottles")
     .select(
-      "id, status, bottle_prices(paid, regular), shelf_zones(shelves(position)), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, wines(winery, name, type, country, kosher, shape, body))",
+      "id, status, note, bottle_prices(paid, regular), shelf_zones(shelves(position)), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, wines(winery, name, type, country, kosher, shape, body))",
     )
     .eq("cellar_id", cellarId)
     .neq("status", "consumed");
@@ -189,6 +189,7 @@ export async function getCellarBottles(cellarId: string, db?: Db, locale: Locale
         drinkBy: v.peak_to ?? v.drink_to,
         price: price?.regular ?? price?.paid ?? null,
         where: whereLabel(status, shelf?.position, locale),
+        note: b.note ?? "",
       },
     ];
   });

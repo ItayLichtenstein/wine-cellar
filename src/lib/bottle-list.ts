@@ -24,6 +24,8 @@ export type ListBottle = {
   price: number | null;
   /** "מדף 3", "מחוץ למקרר", "בדרך אלינו". */
   where: string;
+  /** The user's own note on this bottle; only the AI tools read it. */
+  note?: string;
 };
 
 /** A row in the list: all bottles of one vintage. */
