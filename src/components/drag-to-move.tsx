@@ -162,6 +162,9 @@ export function useDragToMove(container: RefObject<HTMLElement | null>, enabled:
     const onContextMenu = (e: Event) => {
       if ((e.target as Element).closest("[data-bottle]")) e.preventDefault();
     };
+    // The browser's own drag of an image or link (a faded copy of the label)
+    // would take over the gesture and cancel ours.
+    const onNativeDrag = (e: DragEvent) => e.preventDefault();
     const onUp = () => {
       const wasDragging = !!drag;
       end(true);
@@ -177,7 +180,9 @@ export function useDragToMove(container: RefObject<HTMLElement | null>, enabled:
     document.addEventListener("touchmove", onTouchMove, { passive: false });
     root.addEventListener("click", onClick, true);
     root.addEventListener("contextmenu", onContextMenu);
+    root.addEventListener("dragstart", onNativeDrag);
     return () => {
+      root.removeEventListener("dragstart", onNativeDrag);
       end(false);
       root.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);
