@@ -304,7 +304,7 @@ export const he = {
     scoreOf: (name: string) => `ציון של ${name}`,
     separate: "ציונים נפרדים לכל אחד",
     forVintage: (y: number) => `לבציר ${y}`,
-    forWine: "ליין בכלל",
+    forWine: "לכל בציר",
     buyAgain: "לקנות שוב (מוסיף ל־Wishlist)",
     cheers: "לחיים!",
   },

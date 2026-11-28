@@ -300,7 +300,7 @@ export const en: Dictionary = {
     scoreOf: (name: string) => `${name}'s score`,
     separate: "Separate scores for each of us",
     forVintage: (y: number) => `For the ${y} vintage`,
-    forWine: "For the wine in general",
+    forWine: "For every vintage",
     buyAgain: "Buy again (adds to Wishlist)",
     cheers: "Cheers!",
   },
