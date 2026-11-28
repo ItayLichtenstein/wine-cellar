@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyFridgeEdit, fridgeJson } from "./fridge-edit";
+import { applyFridgeEdit, buildNewFridge, fridgeJson } from "./fridge-edit";
 
 const fridge = {
   name: "Kitchen",
@@ -34,5 +34,29 @@ describe("applyFridgeEdit", () => {
   });
   it("keeps the layout as it was, for the undo", () => {
     expect(fridgeJson(fridge)[0]).toEqual({ id: "s1", zones: [{ id: "z1", kind: "row", capacity: 5, label: "אחורי" }] });
+  });
+});
+
+describe("buildNewFridge", () => {
+  const catalog = [{ brand: "לנדרס", models: [{ model: "JC43", capacity: 15, shelves: 5, source: "" }] }];
+  it("builds the shelves the AI counted, top first", () => {
+    const r = buildNewFridge({ name: " Kitchen ", shelves: [{ arrangement: "twoRows", size: 6 }, { arrangement: "doubleStack", size: 4 }] }, catalog, []);
+    expect(r.ok && r.name).toBe("Kitchen");
+    expect(r.ok && r.shelves.map((s) => s.zones.map((z) => z.capacity))).toEqual([[6, 6], [3, 4]]);
+    expect(r.ok && r.summary).toContain("2 shelves, 19 bottles");
+  });
+  it("a known model gets the site's layout, under the brand's name in the app", () => {
+    const r = buildNewFridge({ name: "Salon", brand: "Landers", model: "jc-43" }, catalog, []);
+    expect(r).toMatchObject({ ok: true, brand: "לנדרס", model: "jc-43", fromCatalog: true });
+    expect(r.ok && r.shelves.flatMap((s) => s.zones).reduce((n, z) => n + z.capacity, 0)).toBe(15);
+  });
+  it("an unknown model needs the shelves", () => {
+    const r = buildNewFridge({ name: "Salon", brand: "Acme", model: "X1" }, catalog, []);
+    expect(!r.ok && r.error).toContain("not in the app's model list");
+  });
+  it("a cabinet has no brand, and a name already used is refused", () => {
+    const r = buildNewFridge({ name: "Rack", kind: "cabinet", brand: "Landers", shelves: [{ arrangement: "oneRow", size: 5 }] }, catalog, []);
+    expect(r).toMatchObject({ ok: true, kind: "cabinet", brand: null, model: null });
+    expect(buildNewFridge({ name: "kitchen", shelves: [{ arrangement: "oneRow", size: 5 }] }, catalog, ["Kitchen"])).toMatchObject({ ok: false });
   });
 });
