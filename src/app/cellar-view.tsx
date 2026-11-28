@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
+import { useDragToMove } from "@/components/drag-to-move";
 import type { ListRow } from "@/lib/bottle-list";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { fridgeCapacity } from "@/lib/fridge-layout";
@@ -53,11 +54,11 @@ export function CellarView({
     router.refresh();
   }
 
-  async function moveTo(place: Place | null) {
-    if (!movingId) return;
+  async function moveTo(place: Place | null, bottleId = movingId) {
+    if (!bottleId) return;
     setError(null);
     const { error: rpcError } = await createClient().rpc("move_bottle", {
-      p_bottle_id: movingId,
+      p_bottle_id: bottleId,
       p_zone_id: place?.zoneId as string, // null = out of the fridge
       p_slot: place?.slot ?? undefined,
     });
@@ -67,6 +68,10 @@ export function CellarView({
     }
     refresh();
   }
+
+  // Long-press a bottle and drag it to another place (drag-to-move.tsx).
+  const fridgesRef = useRef<HTMLDivElement>(null);
+  useDragToMove(fridgesRef, canEdit && !movingId && !sheet, (bottleId, place) => void moveTo(place, bottleId));
 
   const unplaced = loose.filter((b) => b.status === "unplaced");
   const hasBottles =
@@ -136,6 +141,7 @@ export function CellarView({
         </div>
       )}
 
+      <div ref={fridgesRef} className="flex flex-col gap-6">
       {shown.map((fridge) => (
         <article key={fridge.id} className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-2">
@@ -172,6 +178,7 @@ export function CellarView({
           />
         </article>
       ))}
+      </div>
 
       <LooseList title={t.cellar.outside} bottles={unplaced} onOpen={setOpenId} />
       <LooseList title={t.cellar.inTransit} bottles={inTransit} onOpen={setOpenId} />
