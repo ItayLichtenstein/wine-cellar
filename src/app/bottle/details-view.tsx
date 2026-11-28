@@ -46,13 +46,14 @@ export function DetailsView({
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
         <dt className="text-muted">{t.bottle.ripeness}</dt>
-        <dd className="flex items-center gap-2">
-          <span className="size-3 rounded-sm" style={{ backgroundColor: DRINK_STATES[state].color }} aria-hidden="true" />
-          {t.drinkState[state]}
+        <dd className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="size-3 shrink-0 rounded-sm" style={{ backgroundColor: DRINK_STATES[state].color }} aria-hidden="true" />
+          <span>{t.drinkState[state]}</span>
           {(d.drinkFrom || d.drinkTo) && (
             // dir="ltr": inside Hebrew text the browser would show "2019–2025"
             // as "2025–2019" (number ranges are a classic RTL trap).
-            <span className="text-muted" dir="ltr">
+            // nowrap: the years stay together, on the next line when the state is long.
+            <span className="whitespace-nowrap text-muted" dir="ltr">
               ({d.drinkFrom ?? "?"}–{d.drinkTo ?? "?"})
             </span>
           )}
