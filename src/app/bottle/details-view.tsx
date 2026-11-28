@@ -16,6 +16,7 @@ export function DetailsView({
   onEdit,
   onClose,
   onDeleted,
+  onWinePage,
 }: {
   details: BottleDetails;
   onDrink: () => void;
@@ -23,6 +24,7 @@ export function DetailsView({
   onEdit: () => void;
   onClose: () => void;
   onDeleted: () => void;
+  onWinePage?: boolean;
 }) {
   const t = useT();
   // Same inputs as the fridge badge (including the peak), so both always agree.
@@ -124,7 +126,7 @@ export function DetailsView({
       <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm">
         {d.isFriend ? (
           <AddToMyWishlist wineId={d.wineId} year={d.year} />
-        ) : (
+        ) : onWinePage ? null : (
           <Link href={`/wines/${d.wineId}`} className="underline underline-offset-2">
             {t.bottle.winePage}
           </Link>

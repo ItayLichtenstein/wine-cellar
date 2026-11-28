@@ -14,10 +14,12 @@ type Props = {
   onMove?: () => void;
   /** Called after a change, so the page reloads its data. */
   onChanged: () => void;
+  /** Opened from the wine page itself: no link back to the same page. */
+  onWinePage?: boolean;
 };
 
 /** The card that opens from the bottom when you tap a bottle. */
-export function BottleSheet({ bottleId, onClose, onMove, onChanged }: Props) {
+export function BottleSheet({ bottleId, onClose, onMove, onChanged, onWinePage }: Props) {
   const t = useT();
   const [details, setDetails] = useState<BottleDetails | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -59,6 +61,7 @@ export function BottleSheet({ bottleId, onClose, onMove, onChanged }: Props) {
             details={details}
             onDrink={() => setStep("drink")}
             onMove={onMove}
+            onWinePage={onWinePage}
             onEdit={() => setStep("edit")}
             onClose={onClose}
             onDeleted={onChanged}

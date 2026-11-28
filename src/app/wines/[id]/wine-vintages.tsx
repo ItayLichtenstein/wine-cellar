@@ -33,11 +33,14 @@ export function WineVintages({ vintages }: { vintages: WinePage["vintages"] }) {
               <span className="flex min-w-0 flex-1 flex-col text-sm">
                 <span>
                   {t.drinkState[v.state]}
+                  {/* The space stays outside the ltr span, or in Hebrew it lands on the wrong side. */}
                   {(v.drinkFrom || v.drinkTo) && (
-                    <span className="text-muted" dir="ltr">
+                    <>
                       {" "}
-                      ({v.drinkFrom ?? "?"}–{v.drinkTo ?? "?"})
-                    </span>
+                      <span className="text-muted" dir="ltr">
+                        ({v.drinkFrom ?? "?"}–{v.drinkTo ?? "?"})
+                      </span>
+                    </>
                   )}
                 </span>
                 <span className="text-xs text-muted">
@@ -52,6 +55,7 @@ export function WineVintages({ vintages }: { vintages: WinePage["vintages"] }) {
       {openId && (
         <BottleSheet
           bottleId={openId}
+          onWinePage
           onClose={() => setOpenId(null)}
           onChanged={() => {
             setOpenId(null);

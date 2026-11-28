@@ -47,4 +47,11 @@ describe("fromSharedCellar", () => {
     expect([b.drinkFrom, b.drinkTo, b.peakFrom, b.peakTo]).toEqual([2022, 2030, 2024, 2027]);
   });
 
+  it("draws a cabinet as a cabinet and passes the body, and older answers still work", () => {
+    const withKind = fromSharedCellar({ ...json, fridges: [{ ...json.fridges[0], kind: "cabinet" }], bottles: [bottle({ body: "full" })] }, 2026);
+    expect(withKind.fridges[0].kind).toBe("cabinet");
+    expect(withKind.bottles[0].body).toBe("full");
+    expect([c.fridges[0].kind, c.bottles[0].body]).toEqual(["fridge", null]);
+  });
+
 });
