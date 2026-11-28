@@ -41,6 +41,7 @@ export type Prefill = {
   places?: Place[];
   /** An AI draft of bottles ordered that have not arrived yet. */
   onTheWay?: boolean;
+  note?: string;
 };
 
 export function AddBottlesForm({
@@ -80,6 +81,7 @@ export function AddBottlesForm({
   const [destination, setDestination] = useState<Destination>(prefill?.onTheWay ? "in_transit" : fridges.length ? "fridge" : "unplaced");
   const [picked, setPicked] = useState<Place[]>(prefill?.places?.length ? prefill.places : initialPlace ? [initialPlace] : []);
   const [extra, setExtra] = useState({ ...EMPTY_EXTRA, ...prefill?.extra });
+  const [note, setNote] = useState(prefill?.note ?? "");
   const [saving, setSaving] = useState(false);
   const [savedNoAi, setSavedNoAi] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,10 +165,13 @@ export function AddBottlesForm({
       return;
     }
     // Extra details only if something was filled in (same wine + vintage for all new bottles).
-    if (JSON.stringify(extra) !== JSON.stringify(EMPTY_EXTRA) && ids?.length) {
+    const hasExtra = JSON.stringify(extra) !== JSON.stringify(EMPTY_EXTRA);
+    if ((hasExtra || note.trim()) && ids?.length) {
       const { data: v } = await supabase.from("bottles").select("vintage_id, wine_vintages(wine_id)").eq("id", ids[0]).single();
-      const ok = v?.wine_vintages && (await saveExtra(v.wine_vintages.wine_id, v.vintage_id, ids, extra));
-      if (!ok) {
+      const extraOk = !hasExtra || (v?.wine_vintages && (await saveExtra(v.wine_vintages.wine_id, v.vintage_id, ids, extra)));
+      // The note goes on each new bottle, the way the AI's changes save it.
+      const noteOk = !note.trim() || (v && !(await supabase.rpc("ai_edit_wine", { p_vintage_id: v.vintage_id, p_bottle_ids: ids, p_changes: { note: note.trim() } })).error);
+      if (!extraOk || !noteOk) {
         setSaving(false);
         setError(t.bottleForm.addExtraFailed);
         return;
@@ -298,6 +303,9 @@ export function AddBottlesForm({
             <input value={drinkTo} onChange={(e) => setDrinkTo(e.target.value)} inputMode="numeric" maxLength={4} className={`${inputClass} w-24`} />
           </Field>
         </div>
+        <Field label={t.bottleForm.note}>
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} dir="auto" rows={2} maxLength={1000} className={inputClass} />
+        </Field>
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">

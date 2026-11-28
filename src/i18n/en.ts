@@ -191,7 +191,6 @@ export const en: Dictionary = {
       take: "Photograph the label",
       badType: "Only JPEG, PNG or WebP can be uploaded",
       failed: "Uploading didn't work, please try again",
-      fromWeb: "A photo from the web (maybe another vintage), you can replace it with your own",
     },
   },
   bottleForm: {

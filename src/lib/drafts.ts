@@ -23,6 +23,12 @@ export type BottleDraft = {
   grape: string;
   /** light | medium | medium_full | full, or null when not known. */
   body?: Body | null;
+  /** As on the site's "more details": left out when not known. */
+  kosher?: "yes" | "no";
+  shape?: "burgundy";
+  alcohol?: number;
+  peakFrom?: number;
+  peakTo?: number;
   country: string;
   region: string;
   drinkFrom: number | null;
@@ -97,6 +103,14 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
   const onTheWay = pick(o, "on_the_way", "in_transit", "בדרך") === true;
   const rawBody = String(pick(o, "body", "גוף") ?? "").toLowerCase().replace(/[\s-]+/g, "_");
   const body = (BODIES as readonly string[]).includes(rawBody) ? (rawBody as Body) : null;
+  const rawKosher = String(pick(o, "kosher", "כשר") ?? "").toLowerCase();
+  const kosher = rawKosher === "yes" || rawKosher === "true" || rawKosher === "כשר" ? "yes" : rawKosher === "no" || rawKosher === "false" ? "no" : undefined;
+  const shape = String(pick(o, "shape", "bottle_shape") ?? "").toLowerCase() === "burgundy" ? "burgundy" : undefined;
+  const rawAlcohol = Number(String(pick(o, "alcohol", "abv") ?? "").replace(/[^\d.]/g, ""));
+  const alcohol = Number.isFinite(rawAlcohol) && rawAlcohol > 0 && rawAlcohol <= 25 ? Math.round(rawAlcohol * 10) / 10 : undefined;
+  const peakFrom = int(pick(o, "peak_from", "peakFrom")) ?? undefined;
+  const peakTo = int(pick(o, "peak_to", "peakTo")) ?? undefined;
+  const badPeak = [peakFrom, peakTo].some((y) => y !== undefined && (y < 1900 || y > 2100)) || (peakFrom !== undefined && peakTo !== undefined && peakTo < peakFrom);
   const places = onTheWay ? [] : (Array.isArray(rawPlaces) ? rawPlaces : rawPlaces ? [rawPlaces] : []).flatMap(parsePlace).slice(0, quantity);
   return {
     ok: true,
@@ -109,6 +123,11 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
       price: price !== null && price <= 100000 ? price : null,
       grape: text(pick(o, "grape", "grapes", "variety", "זן"), 100),
       ...(body && { body }),
+      ...(kosher && { kosher }),
+      ...(shape && { shape }),
+      ...(alcohol !== undefined && { alcohol }),
+      ...(!badPeak && peakFrom !== undefined && { peakFrom }),
+      ...(!badPeak && peakTo !== undefined && { peakTo }),
       country: text(pick(o, "country", "ארץ"), 60),
       region: text(pick(o, "region", "אזור"), 80),
       drinkFrom,
@@ -176,6 +195,10 @@ export const DRAFT_FORMAT = `[
     "grape": "", "country": "", "region": "",
     "body": "light | medium | medium_full | full",   // or null if you do not know
     "drink_from": 2024, "drink_to": 2030,   // drinking window if you know it, else null
+    "peak_from": 2026, "peak_to": 2028,     // optional: its best years inside the window
+    "kosher": "yes | no",                   // optional: leave out if you do not know
+    "alcohol": 13.5,                        // optional: % on the label
+    "shape": "standard | burgundy",         // optional: burgundy = the wide, sloping bottle
     "note": "",
     "places": [{ "shelf": 3, "zone": 1, "slot": 2 }]   // optional: where each bottle is (see the fridge layout); omit if unknown
   }

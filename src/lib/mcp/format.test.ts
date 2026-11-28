@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ListBottle, ListRow } from "../bottle-list";
-import { formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
+import { formatHistory, formatRows, formatWineDetails, reportGaps, optionalLeft } from "./format";
 
 const bottle = (over: Partial<ListBottle> = {}): ListBottle => ({
   id: "b", status: "stored", vintageId: "v", winery: "Yatir", name: "Forest", type: "red", year: 2019,
@@ -63,7 +63,7 @@ describe("body", () => {
 });
 
 describe("reportGaps", () => {
-  const full = { winery: "Galil", name: "Alon", price: 65, grape: "Cabernet", body: "full", country: "Israel", region: "", drinkFrom: 2024, drinkTo: 2028, image: "c/web-1.webp" };
+  const full = { winery: "Galil", name: "Alon", price: 65, grape: "Cabernet", body: "full", country: "Israel", region: "", drinkFrom: 2024, drinkTo: 2028, image: "c/web-1.webp", kosher: "yes", alcohol: 14 };
 
   it("says nothing is empty for a complete bottle", () => {
     const out = reportGaps([full]);
@@ -72,12 +72,19 @@ describe("reportGaps", () => {
   });
 
   it("lists each empty detail and a missing photo", () => {
-    const out = reportGaps([{ ...full, price: null, drinkFrom: null, drinkTo: null, image: "", country: "", grape: "", body: null }]);
-    expect(out[0]).toBe("Galil – Alon: still empty – drinking window, price, grape, body, country/region, label photo.");
+    const out = reportGaps([{ ...full, price: null, drinkFrom: null, drinkTo: null, image: "", country: "", grape: "", body: null, kosher: undefined, alcohol: undefined }]);
+    expect(out[0]).toBe("Galil – Alon: still empty – drinking window, price, grape, body, country/region, kosher, alcohol %, label photo.");
     expect(out.join(" ")).toContain("estimates");
   });
 
   it("counts a window with only one end as filled", () => {
     expect(reportGaps([{ ...full, drinkFrom: null }])[0]).not.toContain("drinking window");
+  });
+});
+
+describe("optionalLeft", () => {
+  it("names what is still empty, and says nothing when all is filled", () => {
+    expect(optionalLeft("Kitchen", ["model"])).toContain("Kitchen: optional and still empty – model.");
+    expect(optionalLeft("Kitchen", [])).toBe("");
   });
 });

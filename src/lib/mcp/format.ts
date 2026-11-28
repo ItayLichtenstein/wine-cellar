@@ -71,7 +71,30 @@ export function formatWineDetails(rows: ListRow[], history: HistoryEntry[], quer
   return lines.join("\n");
 }
 
-type DraftGaps = { winery: string; name: string; price: number | null; grape: string; body?: string | null; country: string; region: string; drinkFrom: number | null; drinkTo: number | null; image: string };
+type DraftGaps = {
+  winery: string;
+  name: string;
+  price: number | null;
+  grape: string;
+  body?: string | null;
+  country: string;
+  region: string;
+  drinkFrom: number | null;
+  drinkTo: number | null;
+  image: string;
+  kosher?: string;
+  alcohol?: number;
+};
+
+/**
+ * The optional details a user left out of something the AI just added
+ * (a fridge's model, a wish's link…), so the AI tells them what else they
+ * can fill in. Leaving them empty is fine: the AI offers, it does not press.
+ */
+export function optionalLeft(what: string, missing: string[]): string {
+  if (missing.length === 0) return "";
+  return `${what}: optional and still empty – ${missing.join(", ")}. Tell the user in one short line that they can add these if they want (tell you now, or on the site later); leaving them empty is fine.`;
+}
 
 /**
  * What is still empty in bottles the AI just added or suggested, so it has
@@ -86,6 +109,8 @@ export function reportGaps(drafts: DraftGaps[]): string[] {
       d.grape ? "" : "grape",
       d.body ? "" : "body",
       d.country || d.region ? "" : "country/region",
+      d.kosher ? "" : "kosher",
+      d.alcohol ? "" : "alcohol %",
       d.image ? "" : "label photo",
     ].filter(Boolean);
     return missing.length ? [`${d.winery} – ${d.name}: still empty – ${missing.join(", ")}.`] : [];
@@ -94,5 +119,9 @@ export function reportGaps(drafts: DraftGaps[]): string[] {
     ...lines,
     "Now tell the user, in one or two short lines: which details you looked up on the web, which you filled from your own knowledge (say they are estimates),",
     lines.length ? "and which are still empty (listed above), so they can fill them in on the site or ask you to search again." : "and that everything was filled in.",
+    "They can also add their own note, the best years (peak) or the bottle shape, if they want.",
+    ...(drafts.some((d) => d.price === null)
+      ? ["For the missing prices, do not just say they are missing: ask the user whether they will tell you the prices, want you to look up a typical price on the web (Israeli shops first, in ₪), or will name the shop they bought from so you look there. Save prices with edit_wine."]
+      : []),
   ];
 }

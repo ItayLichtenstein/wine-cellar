@@ -41,29 +41,25 @@ export async function applyAdd(db: Db, cellarId: string, fridges: FridgeView[], 
   }
   if (res.error || !res.data?.length) return { ok: false };
 
-  if (!existing?.length && (d.grape || d.country || d.region || d.body)) {
-    const { data: v } = await db.from("bottles").select("vintage_id, wine_vintages(wine_id)").eq("id", res.data[0]).single();
-    if (v?.wine_vintages) {
-      await db.rpc("update_wine_details", {
-        p_wine_id: v.wine_vintages.wine_id,
-        p_vintage_id: v.vintage_id,
-        p_grape: d.grape,
-        p_country: d.country,
-        p_region: d.region,
-        p_kosher: "unknown",
-        p_shape: "standard",
-        // The generated types don't mark these as nullable; the function accepts null.
-        p_alcohol: null as unknown as number,
-        p_peak_from: null as unknown as number,
-        p_peak_to: null as unknown as number,
-        p_window_source: null as unknown as "critic",
-        p_critics: [],
-        p_body: d.body ?? undefined,
-      });
-    }
+  // The rest of the details, the same way edit_wine saves them. Wine
+  // details only for a wine new to the cellar (nothing the user entered is
+  // overwritten); the vintage's details and the note as the AI gave them.
+  const changes = draftDetails(d, !existing?.length);
+  if (Object.keys(changes).length > 0) {
+    const { data: v } = await db.from("bottles").select("vintage_id").eq("id", res.data[0]).single();
+    if (v) await db.rpc("ai_edit_wine", { p_vintage_id: v.vintage_id, p_bottle_ids: res.data, p_changes: changes });
   }
   await attachDraftImage(db, res.data[0], d.image);
   return { ok: true, bottleIds: res.data, placed };
+}
+
+/** A draft's details beyond what add_bottles takes, as ai_edit_wine's changes. */
+export function draftDetails(d: BottleDraft, newWine: boolean): Record<string, string | number> {
+  const wine = newWine
+    ? { grape: d.grape, country: d.country, region: d.region, body: d.body ?? "", kosher: d.kosher ?? "", shape: d.shape ?? "" }
+    : {};
+  const rest = { peak_from: d.peakFrom ?? "", peak_to: d.peakTo ?? "", alcohol: d.alcohol ?? "", note: d.note };
+  return Object.fromEntries(Object.entries({ ...wine, ...rest }).filter(([, v]) => v !== ""));
 }
 
 /** What a bottle looked like before a change: enough to put it back. */

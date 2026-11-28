@@ -4,8 +4,8 @@ import { formatLabelPhotos, labelKind, missingNote, savedNote } from "./label-ph
 const site = "https://cellar.example";
 
 describe("savedNote", () => {
-  it("an exact match is just saved", () => {
-    expect(savedNote("Yatir – Forest", "exact", site)).toBe("Yatir – Forest: label image saved.");
+  it("an exact match is saved, and the AI says it came from the web", () => {
+    expect(savedNote("Yatir – Forest", "exact", site)).toContain("Yatir – Forest: label image saved (tell the user it is a photo from the web");
   });
   it("another vintage tells the AI what to say and where to replace it", () => {
     const n = savedNote("Yatir – Forest", "other_vintage", site);

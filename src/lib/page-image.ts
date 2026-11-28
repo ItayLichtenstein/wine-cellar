@@ -37,7 +37,10 @@ export function findPageImage(html: string, pageUrl: string): string | null {
     const a = attributes(m[0]);
     if ((a.rel ?? "").toLowerCase() === "image_src" && a.href && !found.has("image_src")) found.set("image_src", a.href);
   }
-  for (const key of [...KEYS, "image_src"]) {
+  // Many shops (and Vivino) mark the product only in schema.org data.
+  const ld = ldImage(head);
+  if (ld && !found.has("image_src")) found.set("ld", ld);
+  for (const key of [...KEYS, "image_src", "ld"]) {
     const raw = found.get(key);
     if (!raw) continue;
     try {
@@ -48,4 +51,31 @@ export function findPageImage(html: string, pageUrl: string): string | null {
     }
   }
   return null;
+}
+
+/** The product photo in a page's schema.org data (`<script type="application/ld+json">`), or null. */
+function ldImage(html: string): string | null {
+  const pick = (v: unknown): string | null => {
+    if (typeof v === "string") return v;
+    if (Array.isArray(v)) return v.map(pick).find(Boolean) ?? null;
+    if (v && typeof v === "object") return pick((v as { url?: unknown; contentUrl?: unknown }).url ?? (v as { contentUrl?: unknown }).contentUrl);
+    return null;
+  };
+  const products: unknown[] = [];
+  const walk = (v: unknown) => {
+    if (Array.isArray(v)) return v.forEach(walk);
+    if (!v || typeof v !== "object") return;
+    const o = v as Record<string, unknown>;
+    const type = ([] as unknown[]).concat(o["@type"] ?? []).map(String);
+    if (type.includes("Product") && o.image) products.push(o.image);
+    if (o["@graph"]) walk(o["@graph"]);
+  };
+  for (const m of html.matchAll(/<script\b[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      walk(JSON.parse(m[1]));
+    } catch {
+      // broken JSON: skip this block
+    }
+  }
+  return products.map(pick).find(Boolean) ?? null;
 }

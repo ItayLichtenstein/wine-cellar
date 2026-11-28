@@ -3,7 +3,7 @@
 // AI the user lets make changes; a label photo too; one that only suggests is told so, and the
 // user makes the change on the site. Every change can be undone on /ai.
 
-import { DRINK_WINDOW_SOURCES } from "../drink-window-sources";
+import { DRINK_WINDOW_SOURCES, LABEL_SOURCES } from "../drink-window-sources";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { BODIES } from "../wine-extra";
@@ -14,6 +14,7 @@ import { CATALOG } from "../fridge-catalog";
 import { CHOOSABLE_PRESETS } from "../fridge-layout";
 import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } from "../fridges";
 import { imageMatchSchema, labelsPage, savedNote, saveWebLabel } from "./label-photos";
+import { optionalLeft } from "./format";
 
 export type ChangeKind = "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge" | "label";
 
@@ -196,6 +197,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
         }
         await logChange("wishlist", { winery: w.winery, name: w.name, year: w.year ?? null }, { item });
         lines.push(`${label(w)}: added to the wishlist.`);
+        lines.push(optionalLeft(label(w), [w.year == null ? "a specific vintage" : "", w.link ? "" : "a link to a shop or the winery", w.note ? "" : "a note (e.g. who recommended it)"].filter(Boolean)));
       }
       return done(lines);
     },
@@ -293,6 +295,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
         }
         await logChange("taste", { winery: w.winery, name: w.name, year: w.year ?? null }, { tasting });
         lines.push(`${label(w)}: recorded in the history${w.place ? ` (${w.place})` : ""}.`);
+        lines.push(optionalLeft(label(w), [w.score === undefined ? "a score (1-5)" : "", w.place ? "" : "where they drank it", w.notes ? "" : "tasting notes"].filter(Boolean)));
       }
       return done(lines);
     },
@@ -356,35 +359,44 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
     },
   );
 
+  const shelfSchema = z.object({
+    arrangement: z.enum(CHOOSABLE_PRESETS as [string, ...string[]]).describe("twoRows (back and front row), oneRow, doubleStack (a pile, two layers) or twoStacks (two piles, back and front)"),
+    size: z.number().int().min(1).max(50).describe("Bottles in the back row / the bottom layer"),
+    front: z.number().int().min(0).max(50).optional().describe("Bottles lying across the front of the shelf, in front of the rows or pile (e.g. 2 in front of a pile); leave out if none"),
+  });
   server.registerTool(
     "edit_fridge",
     {
       title: "Change the fridge's layout",
       description:
-        "Change a fridge's shelves as on the site's fridge settings: the number of bottles a zone holds (e.g. one more slot on shelf 5), new shelves at the bottom, removing an empty shelf, or its name. Call fridge_layout first for the numbers. A change that would take bottles out of the fridge is refused. Works only if the user lets you make changes yourself.",
+        "Change a fridge's shelves as on the site's fridge settings: the number of bottles a zone holds (e.g. one more slot on shelf 5), bottles lying across the front of a shelf, new shelves at the bottom, removing an empty shelf, its name, brand or model. Call fridge_layout first for the numbers. A change that would take bottles out of the fridge is refused. Works only if the user lets you make changes yourself.",
       inputSchema: {
         fridge: z.string().optional().describe("Fridge name or number from fridge_layout; needed when there are several"),
         resize: z
           .array(z.object({ shelf: z.number().int().min(1), zone: z.number().int().min(1).optional().describe("Default 1"), capacity: z.number().int().min(1).max(50).describe("The new number of bottles") }))
           .max(60)
           .optional(),
-        add_shelves: z
-          .array(z.object({ arrangement: z.enum(CHOOSABLE_PRESETS as [string, ...string[]]).describe("twoRows, oneRow, doubleStack (a pile) or twoStacks"), size: z.number().int().min(1).max(50).describe("Bottles in the bottom row / layer") }))
-          .max(10)
-          .optional(),
+        add_shelves: z.array(shelfSchema).max(10).optional(),
+        front: z
+          .array(z.object({ shelf: z.number().int().min(1), bottles: z.number().int().min(0).max(50).describe("How many lie across the front; 0 removes the front row") }))
+          .max(30)
+          .optional()
+          .describe("Bottles lying across the front of a shelf, in front of its rows or pile (adds, resizes or removes that row)"),
         remove_shelves: z.array(z.number().int().min(1)).max(10).optional().describe("Empty shelves to remove, by number"),
         name: z.string().min(1).max(60).optional().describe("A new name for the fridge"),
+        brand: z.string().max(60).optional().describe("Fill in or correct the brand (\"\" clears it)"),
+        model: z.string().max(60).optional().describe("Fill in or correct the model, as on its label (\"\" clears it)"),
       },
       annotations: write,
     },
-    async ({ fridge, resize, add_shelves, remove_shelves, name }) => {
+    async ({ fridge, resize, add_shelves, front, remove_shelves, name, brand, model }) => {
       if (!canEdit) return suggestOnly("change the fridge");
       const fridges = await getFridges(cellarId, db);
       const f = pickFridge(fridges, fridge);
       if (!f) return text(fridges.length ? `NOT changed – there is no fridge "${fridge}" (see fridge_layout).` : "NOT changed – there is no fridge yet: set one up with create_fridge.");
-      const r = applyFridgeEdit(f, { resize, add_shelves: add_shelves as never, remove_shelves, name });
+      const r = applyFridgeEdit(f, { resize, add_shelves: add_shelves as never, front, remove_shelves, name, brand, model });
       if (!r.ok) return text(`NOT changed – ${r.error}.`);
-      const { error } = await db.rpc("update_fridge", { p_fridge_id: f.id, p_name: r.name, p_shelves: r.shelves, p_brand: f.brand ?? undefined, p_model: f.model ?? undefined });
+      const { error } = await db.rpc("update_fridge", { p_fridge_id: f.id, p_name: r.name, p_shelves: r.shelves, p_brand: r.brand ?? undefined, p_model: r.model ?? undefined });
       if (error) return text("NOT changed – the database refused it (check the numbers with fridge_layout).");
       await logChange("fridge", { fridge: r.name }, { fridge: f.id, name: f.name, brand: f.brand, model: f.model, shelves: fridgeJson(f) });
       return done([`"${f.name}": ${r.summary.join("; ")}.`]);
@@ -396,8 +408,9 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
       title: "Set up a new fridge or cabinet",
       description:
         "Adds a new wine fridge, or a cabinet / rack (kind), as on the site's \"new fridge\" page: e.g. from a photo of it or the user's words. " +
-        "Pass the shelves from the top as you count them (in a photo: every shelf, how the bottles lie, how many in the back row). " +
-        "If you recognize the brand and model, pass them too: without shelves, a model in the app's list gets its usual layout. " +
+        "Pass the shelves from the top as you count them (in a photo: every shelf, how the bottles lie, how many in the back row, and any bottles lying across the front). " +
+        "Before you create a fridge, ask the user for its brand and model if you cannot read them (they are on a sticker inside, often on the side wall); if the user does not know, go on without. " +
+        "A model in the app's list gets its usual layout when you pass no shelves. " +
         "Then show the user what you set up and offer to fill it shelf by shelf (the fill_fridge prompt); the shelves can be changed later with edit_fridge. " +
         "Works only if the user lets you make changes yourself.",
       inputSchema: {
@@ -406,12 +419,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
         brand: z.string().max(60).optional().describe("Fridges only, e.g. Landers, Vinopo"),
         model: z.string().max(60).optional().describe("Fridges only, as on its label or the maker's site"),
         shelves: z
-          .array(
-            z.object({
-              arrangement: z.enum(CHOOSABLE_PRESETS as [string, ...string[]]).describe("twoRows (back and front row), oneRow, doubleStack (a pile, two layers) or twoStacks (two piles, back and front)"),
-              size: z.number().int().min(1).max(50).describe("Bottles in the back row / the bottom layer"),
-            }),
-          )
+          .array(shelfSchema)
           .min(1)
           .max(30)
           .optional()
@@ -436,6 +444,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
       const what = r.kind === "cabinet" ? "Cabinet" : "Fridge";
       return done([
         `${what} "${r.name}" set up: ${r.summary}.${r.fromCatalog ? " This is the app's estimate for the model: ask the user whether the shelves match." : ""}`,
+        optionalLeft(`"${r.name}"`, r.kind === "fridge" ? [r.brand ? "" : "brand", r.model ? "" : "model (on a sticker inside the fridge; add it with edit_fridge)"].filter(Boolean) : []),
         "Call fridge_layout to see it, then offer to fill it.",
       ]);
     },
@@ -448,6 +457,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
         "Gives wines already in the cellar a label photo from the web, or replaces the one they have (e.g. the user says the photo is wrong). " +
         "For each wine, find its page at a shop or the winery, or a direct image link, and say honestly how well it matches (image_match). " +
         `The user's own photos cannot be saved from the chat: for those, send them to ${labelsPage(siteUrl)}. Works only if the user lets you make changes yourself. ` +
+        LABEL_SOURCES + " " +
         ONE_CALL,
       inputSchema: {
         wines: z

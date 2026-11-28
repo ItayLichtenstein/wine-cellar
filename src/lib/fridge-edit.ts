@@ -4,10 +4,23 @@
 // bottle out of the fridge is refused here (the user does that on the site).
 
 import { estimateShelves, type ModelSpec } from "./fridge-catalog";
-import { SHELF_PRESETS, LIMITS, bottlesLeaving, type PresetKey } from "./fridge-layout";
+import { SHELF_PRESETS, LIMITS, FRONT_LABEL, bottlesLeaving, frontZone, type PresetKey } from "./fridge-layout";
 
 type Zone = { id: string; kind: "row" | "stack"; capacity: number; label: string; bottles: { slot: number | null }[] };
-type Fridge = { name: string; shelves: { id: string; zones: Zone[] }[] };
+type Fridge = { name: string; brand?: string | null; model?: string | null; shelves: { id: string; zones: Zone[] }[] };
+
+/** A shelf as an AI describes it: its arrangement, and maybe bottles lying across the front. */
+export type ShelfInput = { arrangement: PresetKey; size: number; front?: number };
+
+const fit = (n: number) => Math.min(LIMITS.capacity.max, Math.max(LIMITS.capacity.min, Math.round(n)));
+
+/** The shelf as update_fridge() takes it; a front row is the shelf's last zone, as on the site. */
+export function makeShelf(s: ShelfInput): FridgeShelfJson {
+  const shelf = SHELF_PRESETS[s.arrangement].make(fit(s.size)) as FridgeShelfJson;
+  const zones = [...shelf.zones];
+  if (s.front && s.front > 0) zones.push({ kind: "row", capacity: fit(s.front), label: FRONT_LABEL });
+  return { zones };
+}
 
 export type FridgeShelfJson = { id?: string; zones: { id?: string; kind: "row" | "stack"; capacity: number; label: string }[] };
 
@@ -15,10 +28,15 @@ export type FridgeEdit = {
   /** New size of a zone: shelf from the top, zone 1 = back row / upper layer / only row. */
   resize?: { shelf: number; zone?: number; capacity: number }[];
   /** New shelves at the bottom of the fridge. */
-  add_shelves?: { arrangement: PresetKey; size: number }[];
+  add_shelves?: ShelfInput[];
+  /** Bottles lying across the front of a shelf: adds, resizes or (0) removes that row. */
+  front?: { shelf: number; bottles: number }[];
   /** Empty shelves to remove, by number from the top. */
   remove_shelves?: number[];
   name?: string;
+  /** Fill in or correct the fridge's brand and model ("" clears). */
+  brand?: string;
+  model?: string;
 };
 
 /** The fridge as update_fridge() takes it (for an undo, too). */
@@ -26,7 +44,9 @@ export function fridgeJson(f: Fridge): FridgeShelfJson[] {
   return f.shelves.map((s) => ({ id: s.id, zones: s.zones.map(({ id, kind, capacity, label }) => ({ id, kind, capacity, label })) }));
 }
 
-export type FridgeEditResult = { ok: true; shelves: FridgeShelfJson[]; name: string; summary: string[] } | { ok: false; error: string };
+export type FridgeEditResult =
+  | { ok: true; shelves: FridgeShelfJson[]; name: string; brand: string | null; model: string | null; summary: string[] }
+  | { ok: false; error: string };
 
 export function applyFridgeEdit(f: Fridge, edit: FridgeEdit): FridgeEditResult {
   const shelves = fridgeJson(f);
@@ -42,6 +62,25 @@ export function applyFridgeEdit(f: Fridge, edit: FridgeEdit): FridgeEditResult {
     zone.capacity = r.capacity;
   }
 
+  for (const fr of edit.front ?? []) {
+    const shelf = shelves[fr.shelf - 1];
+    if (!shelf) return { ok: false, error: `there is no shelf ${fr.shelf}` };
+    const bottles = Math.round(fr.bottles);
+    if (bottles < 0 || bottles > LIMITS.capacity.max) return { ok: false, error: `a front row holds 1 to ${LIMITS.capacity.max} bottles (0 removes it)` };
+    const front = frontZone(shelf.zones);
+    if (front && bottles === 0) {
+      shelf.zones = shelf.zones.slice(0, -1);
+      summary.push(`shelf ${fr.shelf}: front row removed`);
+    } else if (front) {
+      summary.push(`shelf ${fr.shelf} front row: ${front.capacity} → ${bottles} bottles`);
+      front.capacity = bottles;
+    } else if (bottles > 0) {
+      if (shelf.zones.length >= LIMITS.zonesPerShelf.max) return { ok: false, error: `shelf ${fr.shelf} already has ${LIMITS.zonesPerShelf.max} zones` };
+      shelf.zones = [...shelf.zones, { kind: "row", capacity: bottles, label: FRONT_LABEL }];
+      summary.push(`shelf ${fr.shelf}: ${bottles} bottles across the front`);
+    }
+  }
+
   const remove = new Set(edit.remove_shelves ?? []);
   for (const n of remove) {
     const shelf = f.shelves[n - 1];
@@ -52,9 +91,8 @@ export function applyFridgeEdit(f: Fridge, edit: FridgeEdit): FridgeEditResult {
   const kept = shelves.filter((_, i) => !remove.has(i + 1));
 
   for (const a of edit.add_shelves ?? []) {
-    const size = Math.min(LIMITS.capacity.max, Math.max(LIMITS.capacity.min, Math.round(a.size)));
-    kept.push(SHELF_PRESETS[a.arrangement].make(size) as FridgeShelfJson);
-    summary.push(`a new shelf at the bottom (${a.arrangement}, ${size})`);
+    kept.push(makeShelf(a));
+    summary.push(`a new shelf at the bottom (${a.arrangement}, ${fit(a.size)}${a.front ? ` + ${fit(a.front)} in front` : ""})`);
   }
 
   if (kept.length < LIMITS.shelves.min || kept.length > LIMITS.shelves.max) {
@@ -69,8 +107,11 @@ export function applyFridgeEdit(f: Fridge, edit: FridgeEdit): FridgeEditResult {
   }
   const name = edit.name?.trim() || f.name;
   if (name !== f.name) summary.push(`renamed to "${name}"`);
+  const brand = edit.brand === undefined ? (f.brand ?? null) : edit.brand.trim() || null;
+  const model = edit.model === undefined ? (f.model ?? null) : edit.model.trim() || null;
+  if (brand !== (f.brand ?? null) || model !== (f.model ?? null)) summary.push(`model: ${[brand, model].filter(Boolean).join(" ") || "none"}`);
   if (summary.length === 0) return { ok: false, error: "nothing to change" };
-  return { ok: true, shelves: kept, name, summary };
+  return { ok: true, shelves: kept, name, brand, model, summary };
 }
 
 /** The catalog's brands as an AI reads them off the fridge (in Latin letters). */
@@ -82,7 +123,7 @@ export type NewFridge = {
   brand?: string;
   model?: string;
   /** Shelves from the top, as the AI counted them (from a photo or the user's words). */
-  shelves?: { arrangement: PresetKey; size: number }[];
+  shelves?: ShelfInput[];
 };
 
 export type NewFridgeResult =
@@ -111,7 +152,7 @@ export function buildNewFridge(input: NewFridge, catalog: { brand: string; model
 
   let shelves: FridgeShelfJson[];
   if (input.shelves?.length) {
-    shelves = input.shelves.map((s) => SHELF_PRESETS[s.arrangement].make(Math.min(LIMITS.capacity.max, Math.max(LIMITS.capacity.min, Math.round(s.size)))) as FridgeShelfJson);
+    shelves = input.shelves.map(makeShelf);
   } else if (spec) {
     shelves = estimateShelves(spec) as FridgeShelfJson[];
   } else {
