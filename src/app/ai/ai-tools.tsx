@@ -240,7 +240,7 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
                 {d.quantity > 1 && (
                   <>
                     {" "}
-                    <span className="text-muted" dir="ltr">
+                    <span className="whitespace-nowrap text-muted" dir="ltr">
                       ×{d.quantity}
                     </span>
                   </>

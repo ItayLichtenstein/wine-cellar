@@ -37,7 +37,7 @@ export function WineVintages({ vintages }: { vintages: WinePage["vintages"] }) {
                   {(v.drinkFrom || v.drinkTo) && (
                     <>
                       {" "}
-                      <span className="text-muted" dir="ltr">
+                      <span className="whitespace-nowrap text-muted" dir="ltr">
                         ({v.drinkFrom ?? "?"}–{v.drinkTo ?? "?"})
                       </span>
                     </>

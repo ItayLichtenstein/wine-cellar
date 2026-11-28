@@ -147,6 +147,8 @@ describe("several fridges", () => {
   it("tells the AI each bottle's exact place, with the fridge's name", () => {
     expect(bottlePlaces(both)).toEqual(new Map([["a", 'fridge "Kitchen" shelf 1 slot 1'], ["b", 'fridge "מקרר יין גדול" shelf 2 slot 2']]));
     expect(bottlePlaces([kitchen]).get("a")).toBe("shelf 1 slot 1");
+    const twoRows = { ...kitchen, shelves: [{ zones: [{ ...kitchen.shelves[0].zones[0], label: "אחורי", bottles: [] }, { ...kitchen.shelves[0].zones[0], label: "קדמי" }] }] };
+    expect(bottlePlaces([twoRows]).get("a")).toBe('shelf 1 zone 2 "קדמי" slot 1');
     expect(describeFridges(both)).toContain("always pass `fridge`");
     expect(describeFridges([kitchen])).not.toContain("always pass");
   });
