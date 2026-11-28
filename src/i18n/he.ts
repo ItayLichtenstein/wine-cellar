@@ -820,6 +820,8 @@ export const he = {
     anApp: "אפליקציה",
     asks: (name: string) => `בקשת גישה למרתף מ־${name}`,
     canRead: "הוא יוכל לקרוא את הבקבוקים, הציונים וההיסטוריה שלכם",
+    account: (name: string) => `מתחברים עם החשבון של ${name}`,
+    switchAccount: "להחליף חשבון",
     howTitle: "איך הוא יעזור?",
     editSelf: "עוזר בניהול המרתף",
     editSelfText: "כשתבקשו, הוא מוסיף, מעדכן ומזיז בקבוקים, ואפשר לבטל כל שינוי",

@@ -31,8 +31,12 @@ async function handle(request: Request): Promise<Response> {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   // Verifies the signature and expiry, not just that a token is present.
-  const { data: claims, error } = await db.auth.getClaims(token);
-  if (error || !claims?.claims?.sub) return unauthorized();
+  // getClaims alone checks the signature locally (asymmetric keys), so a
+  // token of a disconnected AI would still work until it expires (up to an
+  // hour). getUser asks the auth server, which refuses a token whose session
+  // ended (the user disconnected the AI, or signed out everywhere).
+  const [{ data: claims, error }, { error: sessionError }] = await Promise.all([db.auth.getClaims(token), db.auth.getUser(token)]);
+  if (error || sessionError || !claims?.claims?.sub) return unauthorized();
 
   const { data: cellarId } = await db.rpc("my_cellar_id");
   if (!cellarId) return unauthorized();

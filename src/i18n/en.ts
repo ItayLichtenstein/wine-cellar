@@ -807,6 +807,8 @@ export const en: Dictionary = {
     anApp: "An app",
     asks: (name: string) => `${name} is asking for access to your cellar`,
     canRead: "It will be able to read your bottles, ratings and history",
+    account: (name: string) => `Connecting ${name}'s account`,
+    switchAccount: "Use another account",
     howTitle: "How will it help?",
     editSelf: "Helps manage your cellar",
     editSelfText: "When you ask, it adds, updates and moves bottles, and you can undo any change",
