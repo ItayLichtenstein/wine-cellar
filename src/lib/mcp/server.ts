@@ -10,7 +10,7 @@ import { applyAdd, applyDrink, applyMove } from "../ai-apply";
 import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } from "../fridges";
 import { tasteProfile } from "../stats";
 import { getStatsData } from "../stats-data";
-import { APPROVE_ALL, formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
+import { APPROVE_ALL, PLACE_WORDS, formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
 import { registerMoreTools, type ChangeKind } from "./more-tools";
 
 /**
@@ -118,7 +118,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         },
         "state",
       );
-      return text(`${rows.length} vintages, ${rows.reduce((n, r) => n + r.bottles.length, 0)} bottles.\n${formatRows(rows, 40, bottlePlaces(fridges))}`);
+      return text(`${rows.length} vintages, ${rows.reduce((n, r) => n + r.bottles.length, 0)} bottles.\n${formatRows(rows, 40, bottlePlaces(fridges))}${rows.length ? `\n\n${PLACE_WORDS}` : ""}`);
     },
   );
 
@@ -132,7 +132,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
       annotations: read,
     },
     async () => {
-      const [bottles, stats] = await Promise.all([getCellarBottles(cellarId, db), getStatsData(cellarId, db)]);
+      const [bottles, stats, fridges] = await Promise.all([getCellarBottles(cellarId, db), getStatsData(cellarId, db), getFridges(cellarId, db)]);
       const urgent = drinkNow(bottles, 12);
       const likes = (["type", "country", "grape"] as const)
         .flatMap((f) => tasteProfile(stats.bottles, stats.ratings, f).slice(0, 3))
@@ -140,10 +140,11 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
       return text(
         [
           "Most urgent to drink:",
-          formatRows(urgent),
+          formatRows(urgent, 40, bottlePlaces(fridges)),
           "",
           likes.length ? `They rate highest: ${likes.join(", ")}.` : "Not enough ratings yet for a taste profile.",
           "For a specific occasion, also call search_cellar (e.g. by type) to see everything that fits.",
+          PLACE_WORDS,
         ].join("\n"),
       );
     },
@@ -166,7 +167,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         db.from("wines").select("winery, name, label_image_path").eq("cellar_id", cellarId),
       ]);
       const rows = buildRows(bottles, { ...EMPTY_FILTERS, text: query }, "year");
-      return text(formatWineDetails(rows, history, query, bottlePlaces(fridges)) + (rows.length ? formatLabelPhotos(wines ?? [], query, siteUrl) : ""));
+      return text(formatWineDetails(rows, history, query, bottlePlaces(fridges)) + (rows.length ? formatLabelPhotos(wines ?? [], query, siteUrl) + `\n\n${PLACE_WORDS}` : ""));
     },
   );
 

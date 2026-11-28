@@ -127,6 +127,14 @@ export function reportGaps(drafts: DraftGaps[]): string[] {
 }
 
 /**
+ * Places are numbers for the tools ("zone 2"), but a person looks for "the
+ * front row, third from the right", so the AI says it that way.
+ */
+export const PLACE_WORDS =
+  "When you tell the user where a bottle is, say it as they see the fridge: the shelf, the zone's name in plain words (e.g. \"קדמי\" → the front row, " +
+  "\"שכבה עליונה\" → the upper layer) rather than \"zone 2\", and the slot counted from the right (slot 1 = rightmost).";
+
+/**
  * Gemini asks the user to approve each kind of action the first time. That
  * is tiring, and one setting approves them all, so the AI tells the user once.
  */
