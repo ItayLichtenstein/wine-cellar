@@ -336,7 +336,7 @@ export const en: Dictionary = {
       add: ["Add a bottle", "Tap an empty place and that's where the bottle goes. Try it"],
       colors: ["The color says when to drink", "The number is the vintage, like 19 for 2019, and the color says when to drink. Tap a bottle"],
       drink: ["We opened a bottle", "Tap the bottle, then \"Drank it\", and give a score from 1 to 5. Try it"],
-      move: ["Move a bottle", "Tap a bottle, then its new place. Try it"],
+      move: ["Move a bottle", "Tap a bottle, then its new place (in the fridge itself you can also press and hold, then drag). Try it"],
       more: ["A few more things", "What else the app has, just so you know (it's all in the menu below)"],
       done: ["That's it, you're ready!", "Almost everything can be changed later, and the tour is always in \"More\""],
     } as Record<string, [string, string]>,

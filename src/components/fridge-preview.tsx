@@ -209,7 +209,11 @@ function ZoneLine({
               key={slot}
               type="button"
               onClick={() => onBottleClick(bottle, place)}
-              className={`${shape} ${bottle.id === activeBottleId ? "ring-2 ring-on-fridge ring-offset-2 ring-offset-shelf" : ""}`}
+              // For drag to move (drag-to-move.tsx): which bottle, and the place it marks as a target.
+              data-bottle={bottle.id}
+              data-zone={place.zoneId}
+              data-slot={place.slot ?? ""}
+              className={`${shape} select-none [-webkit-touch-callout:none] ${bottle.id === activeBottleId ? "ring-2 ring-on-fridge ring-offset-2 ring-offset-shelf" : ""}`}
               aria-label={`${bottle.title} ${bottle.year ?? "NV"}, ${isStack ? where : `${where} ${slot}`}`}
             >
               <BottleSlot bottle={bottle} view={view} shape={`${shape} !w-full`} />
@@ -226,6 +230,8 @@ function ZoneLine({
               key={slot}
               type="button"
               onClick={() => action(place)}
+              data-zone={place.zoneId}
+              data-slot={place.slot ?? ""}
               aria-pressed={isPicked}
               aria-label={isStack ? `${isPicked ? t.fridge.unpick : t.fridge.freePlace}, ${where}` : `${where} ${slot}`}
               className={`${shape} border-2 ${
