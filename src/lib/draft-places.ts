@@ -26,7 +26,7 @@ export function pickFridge<F extends { name: string }>(fridges: F[], name: strin
   return fridges.length === 1 ? fridges[0] : undefined; // one fridge: the name cannot be wrong
 }
 
-/** Every stored bottle's exact place, in the words fridge_layout uses (for the AI). */
+/** Every stored bottle's exact place, in the words fridge_layout uses (for the AI), with the zone's name ("קדמי"). */
 export function bottlePlaces(fridges: Fridge[]): Map<string, string> {
   const out = new Map<string, string>();
   const multi = fridges.length > 1;
@@ -35,7 +35,7 @@ export function bottlePlaces(fridges: Fridge[]): Map<string, string> {
       for (const [zi, z] of shelf.zones.entries()) {
         for (const b of z.bottles) {
           if (!b.id) continue;
-          out.set(b.id, [multi ? `fridge "${f.name}"` : "", `shelf ${si + 1}`, shelf.zones.length > 1 ? `zone ${zi + 1}` : "", b.slot ? `slot ${b.slot}` : ""].filter(Boolean).join(" "));
+          out.set(b.id, [multi ? `fridge "${f.name}"` : "", `shelf ${si + 1}`, shelf.zones.length > 1 ? `zone ${zi + 1}${z.label ? ` "${z.label}"` : ""}` : "", b.slot ? `slot ${b.slot}` : ""].filter(Boolean).join(" "));
         }
       }
     }
