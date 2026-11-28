@@ -157,6 +157,8 @@ async function WithData() {
 /** What to say to the connected AI, so the first conversation is easy. */
 function Examples({ ai, t }: { ai: AiKey; t: Dictionary }) {
   const examples = t.ai.examples;
+  const { tip, tipLink } = t.ai.setup[ai];
+  const url = AI_PROVIDERS[ai].permissionsUrl;
   return (
     <div className="flex flex-col gap-1 rounded-xl bg-surface p-4 text-sm shadow-sm">
       <p className="text-muted">{t.ai.setup[ai].chatHint ?? t.ai.examplesFor(AI_PROVIDERS[ai].name)}</p>
@@ -165,6 +167,20 @@ function Examples({ ai, t }: { ai: AiKey; t: Dictionary }) {
           <li key={e}>״{e}״</li>
         ))}
       </ul>
+      {/* Gemini asks before each kind of action: one setting stops that. */}
+      {tip && (
+        <p className="mt-2 text-muted">
+          {tip}
+          {url && tipLink && (
+            <>
+              {" "}
+              <a href={url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                {tipLink} ↗
+              </a>
+            </>
+          )}
+        </p>
+      )}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import type { LookupFunction } from "node:net";
 import sharp from "sharp";
 import { checkImageUrl, isPublicAddress } from "./web-address";
 import { findPageImage } from "./page-image";
-import { labelWindow, MAX_SIDE } from "./label-image";
+import { bottleColumns, labelWindow, MAX_SIDE } from "./label-image";
 
 const MAX_BYTES = 5_000_000;
 const TIMEOUT_MS = 8000;
@@ -131,8 +131,14 @@ export async function fetchLabelImage(link: string): Promise<WebImage> {
       if (!["jpeg", "png", "webp"].includes(meta.format ?? "")) return { ok: false, reason: "not a JPEG/PNG/WebP image" };
       // A shop photo of the whole bottle: trim the plain background, then
       // keep only the label (see labelWindow).
-      const upright = await sharp(got.body, { limitInputPixels: 40_000_000 }).rotate().toBuffer({ resolveWithObject: true });
-      const base = (await sharp(upright.data).trim({ threshold: 20 }).toBuffer({ resolveWithObject: true }).catch(() => null)) ?? upright;
+      const upright = await sharp(got.body, { limitInputPixels: 40_000_000 }).rotate().flatten({ background: "#ffffff" }).toBuffer({ resolveWithObject: true });
+      const trimmed = (await sharp(upright.data).trim({ threshold: 20 }).toBuffer({ resolveWithObject: true }).catch(() => null)) ?? upright;
+      // A shadow beside the bottle survives the trim: keep only the bottle's own columns.
+      const grey = await sharp(trimmed.data).greyscale().raw().toBuffer({ resolveWithObject: true });
+      const cols = bottleColumns(grey.data, grey.info.width, grey.info.height);
+      const base = cols
+        ? await sharp(trimmed.data).extract({ left: cols.left, top: 0, width: cols.width, height: trimmed.info.height }).toBuffer({ resolveWithObject: true })
+        : trimmed;
       const window = labelWindow(base.info.width, base.info.height);
       const webp = await (window ? sharp(base.data).extract(window) : sharp(base.data))
         .resize({ width: MAX_SIDE, height: MAX_SIDE, fit: "inside", withoutEnlargement: true })

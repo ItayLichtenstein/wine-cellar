@@ -439,6 +439,7 @@ export const he = {
         stepLinks: {} as Record<number, string>,
         afterApprove: [] as string[],
         tip: null as string | null,
+        tipLink: null as string | null,
         chatHint: null as string | null,
       },
       chatgpt: {
@@ -448,6 +449,7 @@ export const he = {
         stepLinks: {} as Record<number, string>,
         afterApprove: [] as string[],
         tip: null as string | null,
+        tipLink: null as string | null,
         chatHint: null as string | null,
       },
       gemini: {
@@ -461,7 +463,8 @@ export const he = {
         ],
         stepLinks: { 1: "פתיחת Gemini" } as Record<number, string>,
         afterApprove: ["בחזרה ב־Gemini לחצו Connect. עכשיו אפשר להחזיר את השפה לעברית"],
-        tip: "בפעם הראשונה ש־Gemini משנה משהו במרתף הוא שואל אם לאפשר, ושם לוחצים \"אפשר תמיד\"",
+        tip: "כדי ש־Gemini לא ישאל לפני כל פעולה, פתחו בהגדרות שלו את Wine Cellar, וליד ״קריאה בלבד״ וליד ״כתיבה / מחיקה״ בחרו ״אישור תמיד״" as string | null,
+        tipLink: "הגדרות האפליקציות ב־Gemini" as string | null,
         // Gemini reaches the cellar only once a chat names it (28 Nov 2026 tests).
         chatHint: "מעכשיו, בכל צ׳אט חדש ב־Gemini כתבו בהודעה הראשונה Wine Cellar (למשל ״מה לפתוח הערב מה־Wine Cellar שלי?״), ומשם ממשיכים כרגיל" as string | null,
       },

@@ -8,6 +8,8 @@ export type AiKey = "claude" | "chatgpt" | "gemini";
 
 export type AiProvider = {
   name: string;
+  /** Where the user approves all of the app's actions at once, so the AI stops asking before each one. */
+  permissionsUrl?: string;
   /**
    * Offered in "connect an AI". False where a regular (free or personal)
    * account can't connect it today: ChatGPT allows custom connections only on
@@ -64,6 +66,8 @@ export const AI_PROVIDERS: Record<AiKey, AiProvider> = {
   },
   gemini: {
     name: "Gemini",
+    // Checked live 28 Nov 2026: Connected apps → Wine Cellar has one switch per group of actions.
+    permissionsUrl: "https://gemini.google.com/customize/connectors",
     connectable: true,
     recommended: false,
     prefilled: false,

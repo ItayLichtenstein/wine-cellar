@@ -432,6 +432,7 @@ export const en: Dictionary = {
         stepLinks: {},
         afterApprove: [],
         tip: null,
+        tipLink: null,
         chatHint: null,
       },
       chatgpt: {
@@ -441,6 +442,7 @@ export const en: Dictionary = {
         stepLinks: {},
         afterApprove: [],
         tip: null,
+        tipLink: null,
         chatHint: null,
       },
       gemini: {
@@ -454,7 +456,8 @@ export const en: Dictionary = {
         ],
         stepLinks: { 1: "Open Gemini" },
         afterApprove: ["Back in Gemini, click Connect"],
-        tip: "The first time Gemini changes something in the cellar it asks to allow it, so choose \"Always allow\"",
+        tip: "So Gemini doesn't ask before every action, open Wine Cellar in its settings and choose \"Always allow\" for both groups of actions (read only, and write / delete)" as string | null,
+        tipLink: "Gemini's app settings" as string | null,
         chatHint: "From now on, in each new Gemini chat mention Wine Cellar in your first message (for example \"What should I open tonight from my Wine Cellar?\"), then carry on as usual",
       },
     },

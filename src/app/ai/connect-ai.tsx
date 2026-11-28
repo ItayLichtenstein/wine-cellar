@@ -117,7 +117,12 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
           </li>
         ))}
       </ol>
-      {setup.tip && <p className="text-sm text-muted">{setup.tip}</p>}
+      {setup.tip && (
+        <div className="flex flex-col text-sm text-muted">
+          <p>{setup.tip}</p>
+          {p.permissionsUrl && setup.tipLink && linkButton(p.permissionsUrl, setup.tipLink)}
+        </div>
+      )}
       <p className="text-xs text-muted">
         <span className="inline-block">{a.troubleshoot[0]}</span>{" "}
         <span className="inline-block">{a.troubleshoot[1]}</span>

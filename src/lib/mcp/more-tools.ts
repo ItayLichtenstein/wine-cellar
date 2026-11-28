@@ -14,7 +14,7 @@ import { CATALOG } from "../fridge-catalog";
 import { CHOOSABLE_PRESETS } from "../fridge-layout";
 import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } from "../fridges";
 import { imageMatchSchema, labelsPage, savedNote, saveWebLabel } from "./label-photos";
-import { optionalLeft } from "./format";
+import { APPROVE_ALL, optionalLeft } from "./format";
 
 export type ChangeKind = "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge" | "label";
 
@@ -38,7 +38,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
     );
   const done = (lines: string[]) =>
     text(
-      [`Done at once (the user lets you make changes yourself). They can undo any of these on ${siteUrl}/ai.`, ...lines, lines.some((l) => l.includes("NOT")) ? "Tell the user which ones did not work and why." : ""]
+      [`Done at once (the user lets you make changes yourself). They can undo any of these on ${siteUrl}/ai.`, ...lines, lines.some((l) => l.includes("NOT")) ? "Tell the user which ones did not work and why." : "", APPROVE_ALL]
         .filter(Boolean)
         .join("\n"),
     );

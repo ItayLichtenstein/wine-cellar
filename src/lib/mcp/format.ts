@@ -125,3 +125,12 @@ export function reportGaps(drafts: DraftGaps[]): string[] {
       : []),
   ];
 }
+
+/**
+ * Gemini asks the user to approve each kind of action the first time. That
+ * is tiring, and one setting approves them all, so the AI tells the user once.
+ */
+export const APPROVE_ALL =
+  "If the user had to approve this action in the chat (Gemini asks for each new kind of action), tell them once per chat, in one short line, " +
+  "that they can stop these questions: in Gemini's settings, Personalized AI → Connected apps → Wine Cellar (gemini.google.com/customize/connectors), " +
+  "choose \"Always allow\" next to \"Write / delete\" and \"Read only\". In other AI apps: the app's settings for the Wine Cellar connector.";

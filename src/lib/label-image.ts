@@ -103,3 +103,28 @@ export function labelWindow(width: number, height: number): { left: number; top:
   const top = Math.max(0, Math.min(height - h, Math.round(height * 0.68 - h / 2)));
   return { left: 0, top, width, height: h };
 }
+
+/**
+ * The columns the bottle itself fills, in a shop photo already trimmed of
+ * its plain background: a column counts only if a good part of its height
+ * is clearly unlike the background. A soft shadow beside the bottle's foot
+ * (common in shop photos) fills only a little height, so it is cut off and
+ * the bottle stays centered. `grey` is one byte per pixel; null = keep all.
+ */
+export function bottleColumns(grey: Uint8Array, width: number, height: number): { left: number; width: number } | null {
+  if (width < 10 || height < 10) return null;
+  const bg = (grey[0] + grey[width - 1]) / 2; // the top corners, beside the neck
+  const isContent = (x: number) => {
+    let n = 0;
+    for (let y = 0; y < height; y++) if (Math.abs(grey[y * width + x] - bg) > 60) n++;
+    return n >= height * 0.25;
+  };
+  let left = 0;
+  while (left < width && !isContent(left)) left++;
+  let right = width - 1;
+  while (right > left && !isContent(right)) right--;
+  const w = right - left + 1;
+  // Nothing clear found (a pale bottle on white), or nothing to cut: keep it as is.
+  if (left >= width || w < width * 0.15 || w > width * 0.95) return null;
+  return { left, width: w };
+}
