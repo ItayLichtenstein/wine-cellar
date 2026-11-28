@@ -24,6 +24,7 @@ export function formatRows(rows: ListRow[], limit = 40, places?: Map<string, str
     const parts = [
       `${b.winery} – ${b.name} ${b.year ?? "NV"}${r.bottles.length > 1 ? ` ×${r.bottles.length}` : ""}`,
       b.type,
+      b.body ? `${b.body.replace("_", "-")} body` : "",
       STATE_EN[b.state],
       b.drinkBy ? `drink by ${b.drinkBy}` : "",
       places ? whereAll(r, places) : b.where,
@@ -70,7 +71,7 @@ export function formatWineDetails(rows: ListRow[], history: HistoryEntry[], quer
   return lines.join("\n");
 }
 
-type DraftGaps = { winery: string; name: string; price: number | null; grape: string; country: string; region: string; drinkFrom: number | null; drinkTo: number | null; image: string };
+type DraftGaps = { winery: string; name: string; price: number | null; grape: string; body?: string | null; country: string; region: string; drinkFrom: number | null; drinkTo: number | null; image: string };
 
 /**
  * What is still empty in bottles the AI just added or suggested, so it has
@@ -83,6 +84,7 @@ export function reportGaps(drafts: DraftGaps[]): string[] {
       d.drinkFrom === null && d.drinkTo === null ? "drinking window" : "",
       d.price === null ? "price" : "",
       d.grape ? "" : "grape",
+      d.body ? "" : "body",
       d.country || d.region ? "" : "country/region",
       d.image ? "" : "label photo",
     ].filter(Boolean);

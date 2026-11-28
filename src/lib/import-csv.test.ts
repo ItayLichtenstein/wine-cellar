@@ -27,7 +27,8 @@ describe("guessMapping", () => {
       expect(m.status).toBe(4);
       expect(m.paid).toBe(13);
       expect(m.regular).toBe(14);
-      expect(m.link).toBe(20);
+      expect(m.body).toBe(17);
+      expect(m.link).toBe(21);
     }
   });
 
@@ -39,13 +40,13 @@ describe("guessMapping", () => {
 describe("buildImport", () => {
   it("round-trips our own export (Hebrew)", () => {
     const csv = toCsv(he.account.csvHeaders, [
-      ["Yatir", "Forest", "red", 2019, "במקרר", "Cabernet", "Israel", "", 14.5, 2022, 2030, null, null, 250, null, "", "כן", "2024-01-05", "", "=SUM(1)", "https://x.co"],
-      ["Castel", "Blanc", "white", "NV", "שתינו", "", "", "", null, null, null, null, null, null, 180, "כן", "", "2023-02-02", "2025-03-03", "", ""],
+      ["Yatir", "Forest", "red", 2019, "במקרר", "Cabernet", "Israel", "", 14.5, 2022, 2030, null, null, 250, null, "", "כן", "מלא", "2024-01-05", "", "=SUM(1)", "https://x.co"],
+      ["Castel", "Blanc", "white", "NV", "שתינו", "", "", "", null, null, null, null, null, null, 180, "כן", "", "", "2023-02-02", "2025-03-03", "", ""],
     ]);
     const [header, ...rows] = parseCsv(csv);
     const { bottles, errors } = buildImport(rows, guessMapping(header), TODAY);
     expect(errors).toEqual([]);
-    expect(bottles[0]).toMatchObject({ winery: "Yatir", name: "Forest", type: "red", year: 2019, status: "unplaced", kosher: "yes", alcohol: 14.5, paid: 250, note: "=SUM(1)", link_url: "https://x.co", added_on: "2024-01-05" });
+    expect(bottles[0]).toMatchObject({ winery: "Yatir", name: "Forest", type: "red", year: 2019, status: "unplaced", kosher: "yes", body: "full", alcohol: 14.5, paid: 250, note: "=SUM(1)", link_url: "https://x.co", added_on: "2024-01-05" });
     expect(bottles[1]).toMatchObject({ year: undefined, status: "consumed", consumed_on: "2025-03-03", regular: 180, is_gift: true });
   });
 
@@ -100,5 +101,13 @@ describe("guessMapping for other apps' exports", () => {
     expect(m.note).toBe(10);
     expect(m.link).toBe(12);
     expect(m.paid).toBe(13);
+  });
+});
+
+describe("the body column", () => {
+  it("reads Hebrew and English words, with a dash, a maqaf or a space", () => {
+    const rows = [["W", "A", "בינוני־מלא"], ["W", "B", "Medium Full"], ["W", "C", "מלא"], ["W", "D", "heavy"]];
+    const { bottles } = buildImport(rows, guessMapping(["יקב", "יין", "גוף"]), TODAY);
+    expect(bottles.map((b) => b.body)).toEqual(["medium_full", "medium_full", "full", undefined]);
   });
 });

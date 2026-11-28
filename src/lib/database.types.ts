@@ -519,14 +519,14 @@ isOneToOne: false
                   ]
                 },"wines": {
                   Row: {
-                    "cellar_id": string,"country": string | null,"created_at": string,"grape": string | null,"id": string,"import_id": string | null,"kosher": Database["public"]['Enums']["kosher_status"],"label_image_path": string | null,"label_thumb": string | null,"name": string,"region": string | null,"shape": Database["public"]['Enums']["bottle_shape"],"type": Database["public"]['Enums']["wine_type"],"updated_at": string,"winery": string
+                    "body": Database["public"]['Enums']["wine_body"] | null,"cellar_id": string,"country": string | null,"created_at": string,"grape": string | null,"id": string,"import_id": string | null,"kosher": Database["public"]['Enums']["kosher_status"],"label_image_path": string | null,"label_thumb": string | null,"name": string,"region": string | null,"shape": Database["public"]['Enums']["bottle_shape"],"type": Database["public"]['Enums']["wine_type"],"updated_at": string,"winery": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cellar_id": string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"import_id"?: string | null,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name": string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery": string
+                    "body"?: Database["public"]['Enums']["wine_body"] | null,"cellar_id": string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"import_id"?: string | null,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name": string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery": string
                   }
                   Update: {
-                    "cellar_id"?: string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"import_id"?: string | null,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name"?: string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery"?: string
+                    "body"?: Database["public"]['Enums']["wine_body"] | null,"cellar_id"?: string,"country"?: string | null,"created_at"?: string,"grape"?: string | null,"id"?: string,"import_id"?: string | null,"kosher"?: Database["public"]['Enums']["kosher_status"],"label_image_path"?: string | null,"label_thumb"?: string | null,"name"?: string,"region"?: string | null,"shape"?: Database["public"]['Enums']["bottle_shape"],"type"?: Database["public"]['Enums']["wine_type"],"updated_at"?: string,"winery"?: string
                   }
                   Relationships: [
                     {
@@ -752,14 +752,14 @@ isOneToOne: false
 { Args: { "p_brand"?: string,"p_fridge_id": string,"p_model"?: string,"p_name": string,"p_shelves": Json }; Returns: undefined
                            },
 "update_wine_details":
-{ Args: { "p_alcohol": number,"p_country": string,"p_critics"?: Json,"p_grape": string,"p_kosher": Database["public"]['Enums']["kosher_status"],"p_peak_from": number,"p_peak_to": number,"p_region": string,"p_shape": Database["public"]['Enums']["bottle_shape"],"p_vintage_id": string,"p_window_source": Database["public"]['Enums']["window_source"],"p_wine_id": string }; Returns: undefined
+{ Args: { "p_alcohol": number,"p_body"?: string,"p_country": string,"p_critics"?: Json,"p_grape": string,"p_kosher": Database["public"]['Enums']["kosher_status"],"p_peak_from": number,"p_peak_to": number,"p_region": string,"p_shape": Database["public"]['Enums']["bottle_shape"],"p_vintage_id": string,"p_window_source": Database["public"]['Enums']["window_source"],"p_wine_id": string }; Returns: undefined
                            },
 "user_last_active":
 { Args: { "p_user": string }; Returns: string
                            }
           }
           Enums: {
-            "bottle_shape": "standard"|"burgundy","bottle_status": "stored"|"unplaced"|"in_transit"|"consumed","draft_kind": "add_bottles"|"drink"|"move"|"delete"|"edit"|"wishlist"|"taste"|"fridge"|"label","draft_source": "mcp"|"paste","draft_status": "pending"|"approved"|"rejected","kosher_status": "yes"|"no"|"unknown","member_role": "member"|"viewer","window_source": "critic"|"estimate","wine_type": "red"|"white"|"rose"|"orange"|"sparkling"|"dessert"|"fortified"|"other","zone_kind": "row"|"stack"
+            "bottle_shape": "standard"|"burgundy","bottle_status": "stored"|"unplaced"|"in_transit"|"consumed","draft_kind": "add_bottles"|"drink"|"move"|"delete"|"edit"|"wishlist"|"taste"|"fridge"|"label","draft_source": "mcp"|"paste","draft_status": "pending"|"approved"|"rejected","kosher_status": "yes"|"no"|"unknown","member_role": "member"|"viewer","window_source": "critic"|"estimate","wine_body": "light"|"medium"|"medium_full"|"full","wine_type": "red"|"white"|"rose"|"orange"|"sparkling"|"dessert"|"fortified"|"other","zone_kind": "row"|"stack"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -879,7 +879,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "bottle_shape": ["standard", "burgundy"],"bottle_status": ["stored", "unplaced", "in_transit", "consumed"],"draft_kind": ["add_bottles", "drink", "move", "delete", "edit", "wishlist", "taste", "fridge", "label"],"draft_source": ["mcp", "paste"],"draft_status": ["pending", "approved", "rejected"],"kosher_status": ["yes", "no", "unknown"],"member_role": ["member", "viewer"],"window_source": ["critic", "estimate"],"wine_type": ["red", "white", "rose", "orange", "sparkling", "dessert", "fortified", "other"],"zone_kind": ["row", "stack"]
+            "bottle_shape": ["standard", "burgundy"],"bottle_status": ["stored", "unplaced", "in_transit", "consumed"],"draft_kind": ["add_bottles", "drink", "move", "delete", "edit", "wishlist", "taste", "fridge", "label"],"draft_source": ["mcp", "paste"],"draft_status": ["pending", "approved", "rejected"],"kosher_status": ["yes", "no", "unknown"],"member_role": ["member", "viewer"],"window_source": ["critic", "estimate"],"wine_body": ["light", "medium", "medium_full", "full"],"wine_type": ["red", "white", "rose", "orange", "sparkling", "dessert", "fortified", "other"],"zone_kind": ["row", "stack"]
           }
         }
 } as const

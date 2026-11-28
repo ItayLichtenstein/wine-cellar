@@ -71,7 +71,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
   const { data: b, error } = await supabase
     .from("bottles")
     .select(
-      "id, status, note, link_url, bottle_prices(paid, regular, is_gift), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, alcohol, window_source, wine_id, critic_scores(critic, score), wines(winery, name, type, grape, country, region, kosher, shape, cellar_id, label_image_path))",
+      "id, status, note, link_url, bottle_prices(paid, regular, is_gift), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, alcohol, window_source, wine_id, critic_scores(critic, score), wines(winery, name, type, grape, country, region, kosher, shape, body, cellar_id, label_image_path))",
     )
     .eq("id", bottleId)
     .single();
@@ -133,6 +133,7 @@ export async function loadBottleDetails(bottleId: string): Promise<BottleDetails
       region: v.wines?.region ?? "",
       kosher: v.wines?.kosher ?? "unknown",
       shape: v.wines?.shape ?? "standard",
+      body: v.wines?.body ?? "",
       alcohol: v.alcohol !== null ? String(v.alcohol) : "",
       peakFrom: v.peak_from ? String(v.peak_from) : "",
       peakTo: v.peak_to ? String(v.peak_to) : "",
@@ -174,6 +175,7 @@ export async function saveExtra(wineId: string, vintageId: string, bottleIds: st
     p_peak_to: intOrNull(e.peakTo) as number,
     p_window_source: (e.windowSource || null) as WindowSourceDb,
     p_critics: e.critics.map((c) => ({ critic: c.critic.trim(), score: c.score })),
+    p_body: e.body, // "" clears it
   });
   if (error) return false;
   const { error: linkError } = await supabase

@@ -96,6 +96,7 @@ export function fromSharedCellar(json: SharedCellarJson, year: number, locale: L
       country: b.country ?? "",
       kosher: b.kosher,
       shape: b.shape,
+      body: null,
       state,
       drinkBy: b.peak_to ?? b.drink_to,
       price: b.price,

@@ -5,6 +5,9 @@ import { he, type Dictionary } from "@/i18n/he";
 export type Kosher = "yes" | "no" | "unknown";
 export type Shape = "standard" | "burgundy";
 export type WindowSource = "critic" | "estimate";
+/** How heavy the wine feels, lightest first. */
+export const BODIES = ["light", "medium", "medium_full", "full"] as const;
+export type Body = (typeof BODIES)[number];
 export type CriticScore = { critic: string; score: number };
 
 export type WineExtra = {
@@ -13,6 +16,7 @@ export type WineExtra = {
   region: string;
   kosher: Kosher;
   shape: Shape;
+  body: Body | ""; // "" = not known
   alcohol: string; // kept as typed; parsed on save
   peakFrom: string;
   peakTo: string;
@@ -27,6 +31,7 @@ export const EMPTY_EXTRA: WineExtra = {
   region: "",
   kosher: "unknown",
   shape: "standard",
+  body: "",
   alcohol: "",
   peakFrom: "",
   peakTo: "",

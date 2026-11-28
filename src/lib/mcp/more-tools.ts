@@ -6,6 +6,7 @@
 import { DRINK_WINDOW_SOURCES } from "../drink-window-sources";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { BODIES } from "../wine-extra";
 import { DRAFT_TYPES } from "../drafts";
 import { findBottle, pickFridge } from "../draft-places";
 import { applyFridgeEdit, buildNewFridge, fridgeJson } from "../fridge-edit";
@@ -53,7 +54,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
     {
       title: "Fix a wine's details",
       description:
-        "Change details of wines already in the cellar: drinking window, peak, grape, country, region, type, kosher, bottle shape, alcohol, the price paid, or the user's note on the bottles. Window, alcohol and wine details apply to every bottle of that wine and vintage; the price and the note to every bottle of that vintage, or only the one at `at`. Only what you pass changes. Works only if the user lets you make changes yourself. " +
+        "Change details of wines already in the cellar: drinking window, peak, grape, country, region, type, body, kosher, bottle shape, alcohol, the price paid, or the user's note on the bottles. Window, alcohol and wine details apply to every bottle of that wine and vintage; the price and the note to every bottle of that vintage, or only the one at `at`. Only what you pass changes. Works only if the user lets you make changes yourself. " +
         ONE_CALL,
       inputSchema: {
         wines: z
@@ -72,6 +73,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
               grape: z.string().max(200).optional(),
               country: z.string().max(100).optional(),
               region: z.string().max(100).optional(),
+              body: z.enum(BODIES).nullable().optional().describe("light, medium, medium_full or full; null if not known"),
               kosher: z.enum(["yes", "no", "unknown"]).optional(),
               shape: z.enum(["standard", "burgundy"]).optional().describe("burgundy = the wide, sloping bottle (Pinot Noir, Chardonnay); it takes more room"),
               alcohol: z.number().min(0).max(25).nullable().optional().describe("% ABV, as on the label"),
@@ -107,7 +109,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
           bottleIds = [one.id];
         }
         const changes = Object.fromEntries(
-          (["drink_from", "drink_to", "peak_from", "peak_to", "price", "type", "grape", "country", "region", "kosher", "shape", "alcohol", "note"] as const)
+          (["drink_from", "drink_to", "peak_from", "peak_to", "price", "type", "grape", "country", "region", "body", "kosher", "shape", "alcohol", "note"] as const)
             .filter((k) => w[k] !== undefined)
             .map((k) => [k, w[k]]),
         );

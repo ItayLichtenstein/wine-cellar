@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { CriticScore, Kosher, Shape, WineExtra, WindowSource } from "@/lib/wine-extra";
+import { BODIES, type Body, type CriticScore, type Kosher, type Shape, type WineExtra, type WindowSource } from "@/lib/wine-extra";
 import { useT } from "@/i18n/provider";
 import { inputClass } from "./details";
 
@@ -12,7 +12,7 @@ import { inputClass } from "./details";
  */
 export function ExtraFields({ value, onChange }: { value: WineExtra; onChange: (v: WineExtra) => void }) {
   const t = useT();
-  const hasData = value.grape || value.country || value.critics.length > 0 || value.link || value.alcohol;
+  const hasData = value.grape || value.country || value.critics.length > 0 || value.link || value.alcohol || value.body;
   const [open, setOpen] = useState(Boolean(hasData));
   const set = <K extends keyof WineExtra>(key: K, v: WineExtra[K]) => onChange({ ...value, [key]: v });
 
@@ -56,6 +56,19 @@ export function ExtraFields({ value, onChange }: { value: WineExtra; onChange: (
             <option value="burgundy">{t.extra.burgundy}</option>
           </select>
         </Field>
+        {/* A full row, so the peak years below stay side by side. */}
+        <div className="col-span-2">
+          <Field label={t.extra.body}>
+            <select value={value.body} onChange={(e) => set("body", e.target.value as Body | "")} className={inputClass}>
+              <option value="">{t.extra.unknown}</option>
+              {BODIES.map((b) => (
+                <option key={b} value={b}>
+                  {t.body[b]}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
         <Field label={t.extra.peakFrom}>
           <input value={value.peakFrom} onChange={(e) => set("peakFrom", e.target.value)} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>

@@ -13,6 +13,7 @@ import {
   type SortKey,
 } from "@/lib/bottle-list";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
+import { BODIES } from "@/lib/wine-extra";
 import { useT } from "@/i18n/provider";
 
 const SORT_KEYS: SortKey[] = ["price", "state", "name", "year"];
@@ -130,6 +131,17 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
                 <option value="burgundy">{l.shapeBurgundy}</option>
               </select>
             </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-muted">{l.body}</span>
+              <select value={filters.body} onChange={(e) => set("body", e.target.value as Filters["body"])} className={inputClass}>
+                <option value="">{l.all}</option>
+                {BODIES.map((b) => (
+                  <option key={b} value={b}>
+                    {t.body[b]}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="flex items-center gap-2 pb-2">
               <input type="checkbox" checked={filters.kosherOnly} onChange={(e) => set("kosherOnly", e.target.checked)} />
               {l.kosherOnly}
@@ -200,6 +212,7 @@ function activeCount(f: Filters): number {
     (f.kosherOnly ? 1 : 0) +
     (f.country ? 1 : 0) +
     (f.shape ? 1 : 0) +
+    (f.body ? 1 : 0) +
     (f.priceMin !== null || f.priceMax !== null ? 1 : 0)
   );
 }

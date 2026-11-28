@@ -155,7 +155,7 @@ export async function getCellarBottles(cellarId: string, db?: Db, locale: Locale
   const { data, error } = await supabase
     .from("bottles")
     .select(
-      "id, status, bottle_prices(paid, regular), shelf_zones(shelves(position)), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, wines(winery, name, type, country, kosher, shape))",
+      "id, status, bottle_prices(paid, regular), shelf_zones(shelves(position)), wine_vintages(id, year, drink_from, drink_to, peak_from, peak_to, wines(winery, name, type, country, kosher, shape, body))",
     )
     .eq("cellar_id", cellarId)
     .neq("status", "consumed");
@@ -184,6 +184,7 @@ export async function getCellarBottles(cellarId: string, db?: Db, locale: Locale
         country: w.country ?? "",
         kosher: w.kosher,
         shape: w.shape,
+        body: w.body,
         state: drinkState({ drinkFrom: v.drink_from, drinkTo: v.drink_to, peakFrom: v.peak_from, peakTo: v.peak_to }, year),
         drinkBy: v.peak_to ?? v.drink_to,
         price: price?.regular ?? price?.paid ?? null,

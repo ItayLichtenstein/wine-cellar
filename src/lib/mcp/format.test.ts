@@ -4,7 +4,7 @@ import { formatHistory, formatRows, formatWineDetails, reportGaps } from "./form
 
 const bottle = (over: Partial<ListBottle> = {}): ListBottle => ({
   id: "b", status: "stored", vintageId: "v", winery: "Yatir", name: "Forest", type: "red", year: 2019,
-  country: "ישראל", kosher: "yes", shape: "standard", state: "now", drinkBy: 2027, price: 180, where: "מדף 3",
+  country: "ישראל", kosher: "yes", shape: "standard", body: null, state: "now", drinkBy: 2027, price: 180, where: "מדף 3",
   ...over,
 });
 const row = (n: number, over: Partial<ListBottle> = {}): ListRow => {
@@ -56,8 +56,14 @@ describe("formatWineDetails", () => {
   });
 });
 
+describe("body", () => {
+  it("shows the body in the rows the AI reads", () => {
+    expect(formatRows([row(1, { body: "medium_full" })])).toContain("medium-full body");
+  });
+});
+
 describe("reportGaps", () => {
-  const full = { winery: "Galil", name: "Alon", price: 65, grape: "Cabernet", country: "Israel", region: "", drinkFrom: 2024, drinkTo: 2028, image: "c/web-1.webp" };
+  const full = { winery: "Galil", name: "Alon", price: 65, grape: "Cabernet", body: "full", country: "Israel", region: "", drinkFrom: 2024, drinkTo: 2028, image: "c/web-1.webp" };
 
   it("says nothing is empty for a complete bottle", () => {
     const out = reportGaps([full]);
@@ -66,8 +72,8 @@ describe("reportGaps", () => {
   });
 
   it("lists each empty detail and a missing photo", () => {
-    const out = reportGaps([{ ...full, price: null, drinkFrom: null, drinkTo: null, image: "", country: "", grape: "" }]);
-    expect(out[0]).toBe("Galil – Alon: still empty – drinking window, price, grape, country/region, label photo.");
+    const out = reportGaps([{ ...full, price: null, drinkFrom: null, drinkTo: null, image: "", country: "", grape: "", body: null }]);
+    expect(out[0]).toBe("Galil – Alon: still empty – drinking window, price, grape, body, country/region, label photo.");
     expect(out.join(" ")).toContain("estimates");
   });
 
