@@ -616,8 +616,14 @@ isOneToOne: false
 "ai_delete_bottle":
 { Args: { "p_bottle_id": string }; Returns: Json
                            },
+"ai_edit_tasting":
+{ Args: { "p_changes": Json,"p_tasting": string }; Returns: Json
+                           },
 "ai_edit_wine":
 { Args: { "p_bottle_ids": (string)[],"p_changes": Json,"p_vintage_id": string }; Returns: Json
+                           },
+"ai_remove_wishlist_item":
+{ Args: { "p_item": string }; Returns: Json
                            },
 "can_read_cellar":
 { Args: { "p_cellar_id": string }; Returns: boolean

@@ -30,7 +30,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "The first time the user mentions the cellar in a chat, answer and then offer, in one short list, what you can do:",
         "(1) add bottles from a photo of a whole shelf, a label, a receipt or just their words, each straight into its place in the fridge;",
         "(2) recommend what to open tonight and what should be drunk soon; (3) mark bottles as drunk, move or rearrange them;",
-        "(4) fix a wine's details (drinking window, price, grape) and give wines a label photo from the web; (5) the wishlist and wines drunk outside the cellar (a restaurant);",
+        "(4) fix a wine's details (drinking window, price, grape, kosher) and give wines a label photo from the web; (5) the wishlist, wines drunk outside the cellar (a restaurant) and scores or notes of past bottles;",
         "(6) set up a new fridge or cabinet (e.g. from a photo of it) or change one (e.g. one more slot on shelf 5).",
         // Photos of shelves.
         "Shelf photos: the user can send a photo of a whole shelf (or several, one per shelf). Call fridge_layout first, identify every bottle and where it sits",
@@ -55,11 +55,12 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         // Changes and modes.
         "Changes: the user decides on the site, per AI and at any time, whether your changes take effect at once or wait for their approval as drafts.",
         "Every tool reply says which happened: repeat that to the user and never assume (a setting may have changed since your last call).",
-        "Mark as drunk / move: suggest_drink / suggest_move. Details: edit_wine. Wishlist: wishlist / add_to_wishlist. Outside the cellar: log_tasting.",
-        "A new fridge or cabinet: create_fridge; its shelves and zones: edit_fridge. Label photos: set_label_photo. These last six work only when the user lets you make changes;",
+        "Mark as drunk / move: suggest_drink / suggest_move. Details: edit_wine. Wishlist: wishlist / add_to_wishlist / remove_from_wishlist. Outside the cellar: log_tasting. A past tasting (score, notes): edit_tasting.",
+        "A new fridge or cabinet: create_fridge; its shelves and zones: edit_fridge. Label photos: set_label_photo. All of these, from edit_wine on, work only when the user lets you make changes;",
         "otherwise the reply says so: tell the user they can do it on the site, or let you make changes on its AI page.",
         "delete_bottle removes a bottle entered by mistake. A deleted bottle is not a drunk one: before deleting, always ask the user",
         "whether they want to delete it or mark it as drunk, and delete only after they say delete.",
+        "Bottles ordered that have not arrived: suggest_bottles with on_the_way. Fridges are never deleted from the chat: if the user asks, send them to the fridge's settings on the site.",
         "Every tool takes a list: several bottles go in ONE call, never in parallel calls.",
       ].join(" "),
     },
@@ -225,6 +226,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
                 )
                 .optional()
                 .describe("Where each bottle of this wine is (at most `quantity`). Omit if unknown: those bottles wait outside the fridge."),
+              on_the_way: z.boolean().optional().describe("true for bottles ordered that have not arrived yet (no places). When they arrive, put them in place with suggest_move"),
             }),
           )
           .min(1)
@@ -265,6 +267,10 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
             continue;
           }
           await logChange("add_bottles", d, { bottles: r.bottleIds });
+          if (d.onTheWay) {
+            lines.push(`${d.winery} – ${d.name}: added ${r.bottleIds.length} bottle(s) as on the way (not in the fridge yet).`);
+            continue;
+          }
           lines.push(`${d.winery} – ${d.name}: added ${r.bottleIds.length} bottle(s), ${r.placed} in the requested place(s)${r.placed < r.bottleIds.length ? ", the rest outside the fridge" + (d.places.length > r.placed ? " (a place you gave does not exist, is taken, or names no fridge: check fridge_layout and move them with suggest_move)" : "") : ""}.`);
         }
         return text(

@@ -246,6 +246,7 @@ export function PendingDrafts({ drafts, fridges, cellarId }: { drafts: PendingDr
               </span>
               <span className="text-xs text-muted">
                 {[
+                  d.onTheWay ? a.draftOnTheWay : "",
                   d.places.length ? `📍 ${d.places.length === 1 ? placeText(fridges, d.places[0], locale) : placesSummary(d.places)}` : "",
                   d.grape,
                   d.country,

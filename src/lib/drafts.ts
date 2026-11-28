@@ -27,6 +27,8 @@ export type BottleDraft = {
   note: string;
   /** Where the AI saw / suggests each bottle (at most `quantity`); the rest go "out of the fridge". */
   places: DraftPlace[];
+  /** Ordered and not here yet ("on the way"): no places, the site shows them as on their way. */
+  onTheWay?: boolean;
   /** A label photo the server fetched from a link the AI found (stored path), or "". */
   image: string;
 };
@@ -89,7 +91,8 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
 
   const price = int(pick(o, "price", "paid", "מחיר"));
   const rawPlaces = pick(o, "places", "place", "location", "locations", "מיקום");
-  const places = (Array.isArray(rawPlaces) ? rawPlaces : rawPlaces ? [rawPlaces] : []).flatMap(parsePlace).slice(0, quantity);
+  const onTheWay = pick(o, "on_the_way", "in_transit", "בדרך") === true;
+  const places = onTheWay ? [] : (Array.isArray(rawPlaces) ? rawPlaces : rawPlaces ? [rawPlaces] : []).flatMap(parsePlace).slice(0, quantity);
   return {
     ok: true,
     draft: {
@@ -106,6 +109,7 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
       drinkTo,
       note: text(pick(o, "note", "notes", "הערה"), 300),
       places,
+      ...(onTheWay && { onTheWay }),
       // Only a path our server wrote (web-image.ts); anything else is dropped.
       image: typeof o.image === "string" && WEB_IMAGE_PATH.test(o.image) ? o.image : "",
     },
