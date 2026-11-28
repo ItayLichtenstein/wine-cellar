@@ -50,7 +50,7 @@ export const he = {
   home: {
     hello: (name: string) => `שלום ${name}`,
     noFridgeTitle: "עוד אין כאן מקרר",
-    noFridgeText: ["נתחיל מהבסיס", "כמה מדפים יש ואיך כל מדף מסודר"],
+    noFridgeText: ["נתחיל מהבסיס –", "כמה מדפים יש ואיך כל מדף מסודר"],
     setUpFirst: "הגדרת המקרר הראשון",
     guideLink: "איך זה עובד? מדריך קצר למתחילים",
     fridgeEmpty: "המקרר עוד ריק",

@@ -22,7 +22,8 @@ const bottle = (id: string, state: DrinkState, year: number, label: string, slot
   thumb: null,
 });
 
-type Step = { emoji: string; title: string; text: string; demo?: React.ReactNode };
+// practice: a sample fridge to play with, so it gets the "nothing is saved" note.
+type Step = { emoji: string; title: string; text: string; demo?: React.ReactNode; practice?: boolean };
 
 /**
  * The beginner's guide as a short tour: one card at a time, a sentence or
@@ -44,30 +45,35 @@ export function GuideTour() {
       title: g.steps.draw[0],
       text: g.steps.draw[1],
       demo: <ArrangementDemo />,
+      practice: true,
     },
     {
       emoji: "🍾",
       title: g.steps.add[0],
       text: g.steps.add[1],
       demo: <PickDemo />,
+      practice: true,
     },
     {
       emoji: "🎨",
       title: g.steps.colors[0],
       text: g.steps.colors[1],
       demo: <ColorsDemo />,
+      practice: true,
     },
     {
       emoji: "🥂",
       title: g.steps.drink[0],
       text: g.steps.drink[1],
       demo: <DrinkDemo />,
+      practice: true,
     },
     {
       emoji: "↔️",
       title: g.steps.move[0],
       text: g.steps.move[1],
       demo: <MoveDemo />,
+      practice: true,
     },
     {
       emoji: "🤖",
@@ -124,7 +130,7 @@ export function GuideTour() {
         </div>
         <h2 className="text-xl font-bold">{step.title}</h2>
         <p className="text-muted">{step.text}</p>
-        {step.demo && i > 0 && (
+        {step.practice && (
           <p className="-mb-2 text-center text-xs text-muted">{t.guide.sample}</p>
         )}
         {step.demo}
