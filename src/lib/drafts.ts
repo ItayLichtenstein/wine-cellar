@@ -3,6 +3,7 @@
 // Written to be forgiving of weaker models: loose field names, numbers as
 // strings, Hebrew type names, and error messages that say how to fix it.
 
+import { DRINK_WINDOW_SOURCES } from "./drink-window-sources";
 import { dictionaries } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/locales";
 import { WEB_IMAGE_PATH } from "./draft-image";
@@ -187,8 +188,8 @@ export function buildPrompt(task: "add" | "drink", cellar: CellarLine[], extra: 
   }
   return [
     "I will send you a photo of wine labels or a receipt (or describe bottles). Identify every wine.",
-    "Fill in what you are confident about; leave unknown fields empty or null rather than guessing.",
-    "If you know the wine's typical drinking window, add it.",
+    "Fill in what you are confident about; leave unknown fields empty or null rather than guessing (the drinking window has its own rule below).",
+    DRINK_WINDOW_SOURCES,
     extra ? `Extra details from me: ${extra}` : "",
     "",
     "Answer with ONLY a JSON list in exactly this format (comments are for you, do not include them):",

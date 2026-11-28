@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildPrompt, parseAiAnswer, parseBottleDraft } from "./drafts";
+import { DRINK_WINDOW_SOURCES } from "./drink-window-sources";
 
 describe("parseBottleDraft", () => {
   it("accepts a forgiving shape: other key names, numbers as text, Hebrew type, NV", () => {
@@ -42,6 +43,16 @@ describe("parseAiAnswer", () => {
 });
 
 describe("buildPrompt", () => {
+  it("tells the AI where to take the drinking window from, experts first and a guess last", () => {
+    const p = buildPrompt("add", [], "");
+    expect(p).toContain(DRINK_WINDOW_SOURCES);
+    const at = (s: string) => DRINK_WINDOW_SOURCES.indexOf(s);
+    expect(at("critics")).toBeLessThan(at("winery"));
+    expect(at("winery")).toBeLessThan(at("wine shops"));
+    expect(at("wine shops")).toBeLessThan(at("estimate"));
+    expect(at("estimate")).toBeLessThan(at("no information"));
+  });
+
   const cellar = [{ title: "Yatir – Forest", year: 2019, count: 2, state: "בשיא", where: "מדף 1" }];
   it("includes the cellar and the answer format", () => {
     const p = buildPrompt("add", cellar, "");
