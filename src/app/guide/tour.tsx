@@ -2,9 +2,10 @@
 
 import { LineIcon, type IconName } from "@/components/line-icon";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GUIDE_SEEN_COOKIE } from "@/lib/guide-first";
 import { useT } from "@/i18n/provider";
+import { useDragToMove } from "@/components/drag-to-move";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
 import { ScoreInput } from "@/components/score-input";
 import { DRINK_STATES, DRINK_STATE_ORDER, type DrinkState } from "@/lib/drink-state";
@@ -338,31 +339,38 @@ function DrinkDemo() {
   );
 }
 
-/** Tap a bottle, then an empty place: it moves (or swaps with a bottle). */
+/**
+ * Long-press a bottle and drag it to another place: it moves (or swaps with a
+ * bottle). The same drag as in the real fridge (drag-to-move.tsx), so what
+ * the guide teaches is what works there.
+ */
 function MoveDemo() {
   const g = useT().guide;
   const [slots, setSlots] = useState<Record<string, number>>({ m1: 1, m2: 3 });
-  const [moving, setMoving] = useState<string | null>(null);
+  const [hint, setHint] = useState<"start" | "hold" | "moved">("start");
+  const box = useRef<HTMLDivElement>(null);
   const all = [bottle("m1", "now", 2019, "Rioja"), bottle("m2", "hold", 2020, "Barolo")];
   const shelves = [{ zones: [{ id: "m-row", kind: "row" as const, capacity: 4, label: "שורה", bottles: all.map((b) => ({ ...b, slot: slots[b.id] })) }] }];
-  function to(slot: number | null) {
-    if (!moving || slot === null) return;
+  useDragToMove(box, true, (id, place) => {
+    const slot = place.slot;
+    if (slot === null) return;
     setSlots((prev) => {
-      const other = Object.keys(prev).find((id) => prev[id] === slot && id !== moving);
-      return { ...prev, [moving]: slot, ...(other ? { [other]: prev[moving] } : {}) };
+      const other = Object.keys(prev).find((k) => prev[k] === slot && k !== id);
+      return { ...prev, [id]: slot, ...(other ? { [other]: prev[id] } : {}) };
     });
-    setMoving(null);
-  }
+    setHint("moved");
+  });
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={box} className="flex flex-col gap-3">
       <FridgePreview
         shelves={shelves}
-        activeBottleId={moving ?? undefined}
-        onPick={moving ? (p) => to(p.slot) : undefined}
-        onBottleClick={(b, p) => (moving && b.id !== moving ? to(p.slot) : setMoving(b.id === moving ? null : b.id))}
+        // Empty places are drop targets; tapping one does nothing here.
+        onPick={() => {}}
+        // A short tap: in the app it opens the bottle's card, here it explains the long press.
+        onBottleClick={() => setHint("hold")}
       />
       <p className="text-sm font-medium" aria-live="polite">
-        {moving ? g.tapNewPlace : g.tapToMove}
+        {hint === "moved" ? g.moved : hint === "hold" ? g.holdLonger : g.dragHint}
       </p>
     </div>
   );
