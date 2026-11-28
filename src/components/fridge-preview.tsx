@@ -268,7 +268,7 @@ function BottleSlot({ bottle, view, shape = SLOT_SHAPE[view] }: { bottle: Placed
       {view === "labels" && bottle.thumb ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element -- a 4KB data: URL; next/image adds nothing here */}
-          <img src={bottle.thumb} alt="" className="absolute inset-0 size-full object-cover" />
+          <img src={bottle.thumb} alt="" draggable={false} className="pointer-events-none absolute inset-0 size-full object-cover select-none [-webkit-user-drag:none]" />
           <span className="absolute bottom-0.5 end-0.5 shadow-sm">
             <YearBadge bottle={bottle} />
           </span>
