@@ -65,7 +65,7 @@ export function DetailsView({
             <dt className="text-muted">{t.bottle.peak}</dt>
             {/* The range reads left to right in both languages; the cell itself follows the page. */}
             <dd>
-              <span dir="ltr">
+              <span dir="ltr" className="whitespace-nowrap">
                 {d.peakFrom ?? "?"}–{d.peakTo ?? "?"}
               </span>
             </dd>
