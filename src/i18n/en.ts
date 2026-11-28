@@ -47,7 +47,7 @@ export const en: Dictionary = {
   home: {
     hello: (name: string) => `Hi ${name}`,
     noFridgeTitle: "No fridge here yet",
-    noFridgeText: ["Let's start with the basics,", "how many shelves and how each one is arranged"],
+    noFridgeText: ["Let's start with the basics –", "how many shelves and how each one is arranged"],
     setUpFirst: "Set up your first fridge",
     guideLink: "How does it work? A short beginner's guide",
     fridgeEmpty: "The fridge is still empty",
