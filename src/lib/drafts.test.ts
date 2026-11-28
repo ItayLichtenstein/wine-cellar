@@ -82,3 +82,15 @@ describe("bottles on their way", () => {
     expect(r.ok && "onTheWay" in r.draft).toBe(false);
   });
 });
+
+describe("a wine's body", () => {
+  it("reads it in any spelling the AI uses, and drops anything else", () => {
+    const body = (v: unknown) => {
+      const r = parseBottleDraft({ winery: "Tzora", name: "Shoresh", body: v }, 2026);
+      return r.ok ? (r.draft.body ?? null) : "error";
+    };
+    expect(body("Medium-full")).toBe("medium_full");
+    expect(body("full")).toBe("full");
+    expect(body("heavy")).toBe(null);
+  });
+});

@@ -10,12 +10,12 @@ import { he } from "@/i18n/he";
 
 export type ImportField =
   | "winery" | "name" | "type" | "year" | "status" | "quantity" | "grape" | "country" | "region" | "alcohol"
-  | "drinkFrom" | "drinkTo" | "peakFrom" | "peakTo" | "paid" | "regular" | "gift" | "kosher"
+  | "drinkFrom" | "drinkTo" | "peakFrom" | "peakTo" | "paid" | "regular" | "gift" | "kosher" | "body"
   | "added" | "consumed" | "note" | "link";
 
 export const IMPORT_FIELDS: ImportField[] = [
   "winery", "name", "year", "type", "quantity", "status", "grape", "country", "region", "alcohol",
-  "drinkFrom", "drinkTo", "peakFrom", "peakTo", "paid", "regular", "gift", "kosher", "added", "consumed", "note", "link",
+  "drinkFrom", "drinkTo", "peakFrom", "peakTo", "paid", "regular", "gift", "kosher", "body", "added", "consumed", "note", "link",
 ];
 
 /** Column index per field; a field missing from the file is not in the map. */
@@ -32,6 +32,7 @@ export type ImportBottle = {
   country?: string;
   region?: string;
   kosher?: "yes" | "no";
+  body?: "light" | "medium" | "medium_full" | "full";
   alcohol?: number;
   drink_from?: number;
   drink_to?: number;
@@ -124,6 +125,7 @@ const ALIASES: Record<ImportField, string[]> = {
   regular: ["מחיר רגיל", "regular price", "value", "שווי"],
   gift: ["מתנה", "gift"],
   kosher: ["כשר", "kosher", "כשרות"],
+  body: ["גוף", "body"],
   added: ["נוסף", "added", "תאריך הוספה", "date added", "purchased", "נקנה", "purchasedate", "purchase date", "scan date"],
   consumed: ["נשתה", "drunk", "consumed", "date drunk", "תאריך שתייה"],
   note: ["הערה", "note", "notes", "הערות", "personal note"],
@@ -156,6 +158,11 @@ const TYPE_BY_WORD = new Map<string, string>([
 const CONSUMED_WORDS = new Set(["consumed", "שתינו", "נשתה", "drunk", norm(en.account.csvStatus.consumed), norm(he.account.csvStatus.consumed)]);
 const TRANSIT_WORDS = new Set(["in_transit", "בדרך", "on the way", norm(en.account.csvStatus.in_transit)]);
 const YES = new Set(["כן", "yes", "y", "true", "1", "v", "✓", "כשר", "kosher"]);
+// "בינוני־מלא", "medium-full", "Medium Full": spaces and dashes (also the Hebrew maqaf) count as one.
+const BODY_BY_WORD = new Map<string, NonNullable<ImportBottle["body"]>>([
+  ["קל", "light"], ["light", "light"], ["בינוני", "medium"], ["medium", "medium"],
+  ["בינוני_מלא", "medium_full"], ["medium_full", "medium_full"], ["מלא", "full"], ["full", "full"],
+]);
 const NO = new Set(["לא", "no", "n", "false", "0", "לא כשר", "not kosher"]);
 
 /** The export prefixes a formula-like cell with ' (CSV injection guard); undo that. */
@@ -227,6 +234,7 @@ export function buildImport(rows: string[][], mapping: Mapping, today: string): 
       country: clip(get(r, "country"), 60),
       region: clip(get(r, "region"), 120),
       kosher: YES.has(kosherWord) ? "yes" : NO.has(kosherWord) ? "no" : undefined,
+      body: BODY_BY_WORD.get(norm(get(r, "body")).replace(/[\s\-־]+/g, "_")),
       alcohol: between(num(get(r, "alcohol")), 0, 25),
       drink_from: between(num(get(r, "drinkFrom")), 1900, 2200),
       drink_to: between(num(get(r, "drinkTo")), 1900, 2200),

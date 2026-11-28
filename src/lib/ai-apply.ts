@@ -41,7 +41,7 @@ export async function applyAdd(db: Db, cellarId: string, fridges: FridgeView[], 
   }
   if (res.error || !res.data?.length) return { ok: false };
 
-  if (!existing?.length && (d.grape || d.country || d.region)) {
+  if (!existing?.length && (d.grape || d.country || d.region || d.body)) {
     const { data: v } = await db.from("bottles").select("vintage_id, wine_vintages(wine_id)").eq("id", res.data[0]).single();
     if (v?.wine_vintages) {
       await db.rpc("update_wine_details", {
@@ -58,6 +58,7 @@ export async function applyAdd(db: Db, cellarId: string, fridges: FridgeView[], 
         p_peak_to: null as unknown as number,
         p_window_source: null as unknown as "critic",
         p_critics: [],
+        p_body: d.body ?? undefined,
       });
     }
   }

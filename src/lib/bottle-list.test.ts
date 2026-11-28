@@ -12,6 +12,7 @@ const bottle = (b: Partial<ListBottle>): ListBottle => ({
   country: "",
   kosher: "unknown",
   shape: "standard",
+  body: null,
   state: "hold",
   drinkBy: null,
   price: null,
@@ -80,5 +81,15 @@ describe("drinkNow", () => {
       bottle({ id: "6", vintageId: "hold", state: "hold" }),
     ]);
     expect(rows.map((r) => r.key)).toEqual(["past", "now-early", "now-late"]);
+  });
+});
+
+describe("the body filter", () => {
+  it("keeps only wines of that body, and hides wines whose body is not known", () => {
+    const f = { ...EMPTY_FILTERS, body: "full" as const };
+    expect(matches(bottle({ body: "full" }), f)).toBe(true);
+    expect(matches(bottle({ body: "light" }), f)).toBe(false);
+    expect(matches(bottle({ body: null }), f)).toBe(false);
+    expect(matches(bottle({ body: null }), EMPTY_FILTERS)).toBe(true);
   });
 });

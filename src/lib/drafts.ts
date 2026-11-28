@@ -3,6 +3,7 @@
 // Written to be forgiving of weaker models: loose field names, numbers as
 // strings, Hebrew type names, and error messages that say how to fix it.
 
+import { BODIES, type Body } from "./wine-extra";
 import { DRINK_WINDOW_SOURCES } from "./drink-window-sources";
 import { dictionaries } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/locales";
@@ -20,6 +21,8 @@ export type BottleDraft = {
   quantity: number;
   price: number | null;
   grape: string;
+  /** light | medium | medium_full | full, or null when not known. */
+  body?: Body | null;
   country: string;
   region: string;
   drinkFrom: number | null;
@@ -92,6 +95,8 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
   const price = int(pick(o, "price", "paid", "מחיר"));
   const rawPlaces = pick(o, "places", "place", "location", "locations", "מיקום");
   const onTheWay = pick(o, "on_the_way", "in_transit", "בדרך") === true;
+  const rawBody = String(pick(o, "body", "גוף") ?? "").toLowerCase().replace(/[\s-]+/g, "_");
+  const body = (BODIES as readonly string[]).includes(rawBody) ? (rawBody as Body) : null;
   const places = onTheWay ? [] : (Array.isArray(rawPlaces) ? rawPlaces : rawPlaces ? [rawPlaces] : []).flatMap(parsePlace).slice(0, quantity);
   return {
     ok: true,
@@ -103,6 +108,7 @@ export function parseBottleDraft(input: unknown, thisYear: number): ParseResult 
       quantity,
       price: price !== null && price <= 100000 ? price : null,
       grape: text(pick(o, "grape", "grapes", "variety", "זן"), 100),
+      ...(body && { body }),
       country: text(pick(o, "country", "ארץ"), 60),
       region: text(pick(o, "region", "אזור"), 80),
       drinkFrom,
@@ -168,6 +174,7 @@ export const DRAFT_FORMAT = `[
     "quantity": 1,
     "price": 120,            // per bottle in ₪, or null
     "grape": "", "country": "", "region": "",
+    "body": "light | medium | medium_full | full",   // or null if you do not know
     "drink_from": 2024, "drink_to": 2030,   // drinking window if you know it, else null
     "note": "",
     "places": [{ "shelf": 3, "zone": 1, "slot": 2 }]   // optional: where each bottle is (see the fridge layout); omit if unknown

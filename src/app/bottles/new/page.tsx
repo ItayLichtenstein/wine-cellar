@@ -86,7 +86,7 @@ async function loadDraft(cellarId: string, id: string, fridges: FridgeView[]): P
     price: d.price,
     drinkFrom: d.drinkFrom,
     drinkTo: d.drinkTo,
-    extra: { grape: d.grape, country: d.country, region: d.region },
+    extra: { grape: d.grape, country: d.country, region: d.region, body: d.body ?? "" },
     // Where the AI saw the bottles: picked already, when those spots are free.
     places: resolvePlaces(fridges, d.places),
     onTheWay: d.onTheWay,

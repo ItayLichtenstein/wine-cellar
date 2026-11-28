@@ -70,6 +70,7 @@ export function DetailsView({
         )}
         {[
           [t.bottle.grape, d.extra.grape],
+          [t.bottle.body, d.extra.body ? t.body[d.extra.body] : ""],
           [t.bottle.origin, [d.extra.region, d.extra.country].filter(Boolean).join(", ")],
           [t.bottle.critics, criticSummary(d.extra.critics, t) ?? ""],
           [t.bottle.alcohol, d.extra.alcohol ? `${d.extra.alcohol}%` : ""],
