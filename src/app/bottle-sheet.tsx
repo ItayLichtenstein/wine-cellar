@@ -10,7 +10,8 @@ import { EditForm } from "./bottle/edit-form";
 type Props = {
   bottleId: string;
   onClose: () => void;
-  onMove: () => void;
+  /** Only in the fridge itself: moving needs the fridge on screen. Elsewhere there is no move button. */
+  onMove?: () => void;
   /** Called after a change, so the page reloads its data. */
   onChanged: () => void;
 };

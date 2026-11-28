@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FridgePreview, type Place } from "@/components/fridge-preview";
 import type { ListRow } from "@/lib/bottle-list";
@@ -39,14 +39,7 @@ export function CellarView({
   const router = useRouter();
   const t = useT();
   const [openId, setOpenId] = useState<string | null>(null);
-  // "?move=<id>" (from the list page's "move" button) starts in move mode –
-  // only for a bottle that is really in this cellar.
-  const moveParam = useSearchParams().get("move");
-  const known = (id: string | null) =>
-    !!id &&
-    (loose.some((b) => b.id === id) ||
-      fridges.some((f) => f.shelves.some((s) => s.zones.some((z) => z.bottles.some((b) => b.id === id)))));
-  const [movingId, setMovingId] = useState<string | null>(known(moveParam) ? moveParam : null);
+  const [movingId, setMovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useFridgeView();
   // Several fridges: one at a time, with tabs (a long page of fridges is
@@ -276,8 +269,9 @@ function DrinkNow({ rows, onOpen }: { rows: ListRow[]; onOpen: (id: string) => v
 /** What the year-badge colors mean. */
 function Legend() {
   const t = useT();
+  // One state per line: the names are long, and a mix of one and two per line looked messy.
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-label={t.home.legend}>
+    <ul className="flex flex-col gap-1 text-xs text-muted" aria-label={t.home.legend}>
       {DRINK_STATE_ORDER.filter((s) => s !== "none").map((s) => (
         <li key={s} className="flex items-center gap-1.5">
           <span className="size-3 rounded-sm" style={{ backgroundColor: DRINK_STATES[s].color }} aria-hidden="true" />

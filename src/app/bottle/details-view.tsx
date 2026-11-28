@@ -19,7 +19,7 @@ export function DetailsView({
 }: {
   details: BottleDetails;
   onDrink: () => void;
-  onMove: () => void;
+  onMove?: () => void;
   onEdit: () => void;
   onClose: () => void;
   onDeleted: () => void;
@@ -108,13 +108,15 @@ export function DetailsView({
       </dl>
 
       {canDrink && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className={`grid gap-2 ${onMove ? "grid-cols-2" : "grid-cols-1"}`}>
           <button type="button" onClick={onDrink} className="rounded-full bg-accent px-4 py-3 font-medium text-white dark:text-black">
             {t.bottle.drank}
           </button>
-          <button type="button" onClick={onMove} className="rounded-full border border-muted/40 px-4 py-3">
-            {d.status === "stored" ? t.bottle.move : t.bottle.place}
-          </button>
+          {onMove && (
+            <button type="button" onClick={onMove} className="rounded-full border border-muted/40 px-4 py-3">
+              {d.status === "stored" ? t.bottle.move : t.bottle.place}
+            </button>
+          )}
         </div>
       )}
       <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm">
