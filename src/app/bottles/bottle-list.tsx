@@ -194,7 +194,6 @@ export function BottleList({ bottles }: { bottles: ListBottle[] }) {
         <BottleSheet
           bottleId={openId}
           onClose={() => setOpenId(null)}
-          onMove={() => router.push(`/?move=${openId}`)}
           onChanged={() => {
             setOpenId(null);
             router.refresh();
