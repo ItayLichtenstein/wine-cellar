@@ -72,7 +72,7 @@ export function resolvePlaces(fridges: Fridge[], places: DraftPlace[], taken: Se
 
 /** The fridges as the AI should read them: numbered like the screen, with free slots. */
 export function describeFridges(fridges: Fridge[]): string {
-  if (fridges.length === 0) return "No fridge yet. Ask the user to set one up on the site first (סידור המקרר).";
+  if (fridges.length === 0) return "No fridge yet. Offer to set one up with create_fridge (from a photo of it, its brand and model, or the user's description), or the user can do it on the site.";
   return fridges
     .map((f, i) => {
       const shelves = f.shelves.map((s, si) => {

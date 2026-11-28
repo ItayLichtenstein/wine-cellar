@@ -610,6 +610,9 @@ isOneToOne: false
               "banned": boolean,"bottles": number,"cellar_name": string,"created_at": string,"display_name": string,"is_admin": boolean,"is_me": boolean,"last_active": string,"members": number,"user_id": string
             }[]
                            },
+"ai_create_fridge":
+{ Args: { "p_brand"?: string,"p_kind"?: string,"p_model"?: string,"p_name": string,"p_shelves": Json }; Returns: string
+                           },
 "ai_delete_bottle":
 { Args: { "p_bottle_id": string }; Returns: Json
                            },

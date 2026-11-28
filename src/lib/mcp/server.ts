@@ -31,7 +31,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "(1) add bottles from a photo of a whole shelf, a label, a receipt or just their words, each straight into its place in the fridge;",
         "(2) recommend what to open tonight and what should be drunk soon; (3) mark bottles as drunk, move or rearrange them;",
         "(4) fix a wine's details (drinking window, price, grape) and give wines a label photo from the web; (5) the wishlist and wines drunk outside the cellar (a restaurant);",
-        "(6) change the fridge itself (e.g. one more slot on shelf 5).",
+        "(6) set up a new fridge or cabinet (e.g. from a photo of it) or change one (e.g. one more slot on shelf 5).",
         // Photos of shelves.
         "Shelf photos: the user can send a photo of a whole shelf (or several, one per shelf). Call fridge_layout first, identify every bottle and where it sits",
         "(zone and slot, slot 1 = rightmost as the user looks at it), and add them in ONE suggest_bottles call with `places`, so the shelf goes in exactly as it is.",
@@ -56,7 +56,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "Changes: the user decides on the site, per AI and at any time, whether your changes take effect at once or wait for their approval as drafts.",
         "Every tool reply says which happened: repeat that to the user and never assume (a setting may have changed since your last call).",
         "Mark as drunk / move: suggest_drink / suggest_move. Details: edit_wine. Wishlist: wishlist / add_to_wishlist. Outside the cellar: log_tasting.",
-        "The fridge's shelves and zones: edit_fridge. Label photos: set_label_photo. These last five work only when the user lets you make changes;",
+        "A new fridge or cabinet: create_fridge; its shelves and zones: edit_fridge. Label photos: set_label_photo. These last six work only when the user lets you make changes;",
         "otherwise the reply says so: tell the user they can do it on the site, or let you make changes on its AI page.",
         "delete_bottle removes a bottle entered by mistake. A deleted bottle is not a drunk one: before deleting, always ask the user",
         "whether they want to delete it or mark it as drunk, and delete only after they say delete.",
@@ -512,7 +512,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
             type: "text",
             text: [
               "Help me enter every bottle I already have into my wine cellar app, each in its place.",
-              "1. Call fridge_layout to see my shelves, zones and free slots.",
+              "1. Call fridge_layout to see my shelves, zones and free slots. If I have no fridge yet, first set it up with create_fridge (ask me for a photo of it, open, or its model).",
               "2. Ask me for photos one shelf at a time (from the front, labels visible as much as possible), or a list if I prefer to type.",
               "3. For each shelf: identify every wine (winery, name, vintage, type; grape/country/region and drinking window if you know them),",
               "   and where it sits (zone and slot, slot 1 = rightmost as I look at it). If unsure about a bottle, ask me rather than guess.",

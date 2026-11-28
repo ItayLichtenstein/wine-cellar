@@ -3,6 +3,7 @@
 // kept, so every bottle stays where it is; a change that would push a
 // bottle out of the fridge is refused here (the user does that on the site).
 
+import { estimateShelves, type ModelSpec } from "./fridge-catalog";
 import { SHELF_PRESETS, LIMITS, bottlesLeaving, type PresetKey } from "./fridge-layout";
 
 type Zone = { id: string; kind: "row" | "stack"; capacity: number; label: string; bottles: { slot: number | null }[] };
@@ -70,4 +71,61 @@ export function applyFridgeEdit(f: Fridge, edit: FridgeEdit): FridgeEditResult {
   if (name !== f.name) summary.push(`renamed to "${name}"`);
   if (summary.length === 0) return { ok: false, error: "nothing to change" };
   return { ok: true, shelves: kept, name, summary };
+}
+
+/** The catalog's brands as an AI reads them off the fridge (in Latin letters). */
+const BRAND_NAMES: Record<string, string> = { "לנדרס": "Landers", "וינופו": "Vinopo", "האייר": "Haier", "קאסו": "Caso", "ויין בר": "WineBar", "יורוקייב": "EuroCave" };
+
+export type NewFridge = {
+  name: string;
+  kind?: "fridge" | "cabinet";
+  brand?: string;
+  model?: string;
+  /** Shelves from the top, as the AI counted them (from a photo or the user's words). */
+  shelves?: { arrangement: PresetKey; size: number }[];
+};
+
+export type NewFridgeResult =
+  | { ok: true; name: string; kind: "fridge" | "cabinet"; brand: string | null; model: string | null; shelves: FridgeShelfJson[]; fromCatalog: boolean; summary: string }
+  | { ok: false; error: string };
+
+/**
+ * A new fridge or cabinet for create_fridge(), as the AI describes it. The
+ * shelves it counted win; without them a known model gets the same starting
+ * layout as the site's model picker. A cabinet has no brand or model.
+ */
+export function buildNewFridge(input: NewFridge, catalog: { brand: string; models: ModelSpec[] }[], taken: string[]): NewFridgeResult {
+  const name = input.name.trim();
+  if (!name || name.length > LIMITS.name) return { ok: false, error: `the name must be 1 to ${LIMITS.name} characters` };
+  if (taken.some((t) => t.trim().toLowerCase() === name.toLowerCase())) {
+    return { ok: false, error: `there is already a fridge called "${name}": pick another name, or change that one with edit_fridge` };
+  }
+  const kind = input.kind ?? "fridge";
+  let brand = kind === "cabinet" ? null : input.brand?.trim() || null;
+  const model = kind === "cabinet" ? null : input.model?.trim() || null;
+  const lower = (s: string) => s.toLowerCase().replace(/[\s-]/g, "");
+  const asked = brand;
+  const known = asked ? catalog.find((b) => lower(b.brand) === lower(asked) || lower(BRAND_NAMES[b.brand] ?? "") === lower(asked)) : undefined;
+  const spec = known && model ? known.models.find((m) => lower(m.model) === lower(model)) : undefined;
+  if (known) brand = known.brand; // as the site's picker names it
+
+  let shelves: FridgeShelfJson[];
+  if (input.shelves?.length) {
+    shelves = input.shelves.map((s) => SHELF_PRESETS[s.arrangement].make(Math.min(LIMITS.capacity.max, Math.max(LIMITS.capacity.min, Math.round(s.size)))) as FridgeShelfJson);
+  } else if (spec) {
+    shelves = estimateShelves(spec) as FridgeShelfJson[];
+  } else {
+    return {
+      ok: false,
+      error: brand && model
+        ? `"${brand} ${model}" is not in the app's model list, so pass the shelves you count (from the photo, or ask the user)`
+        : "pass the shelves (from the top: arrangement and bottles per row), or a brand and model from the app's list",
+    };
+  }
+  if (shelves.length < LIMITS.shelves.min || shelves.length > LIMITS.shelves.max) {
+    return { ok: false, error: `a fridge has ${LIMITS.shelves.min} to ${LIMITS.shelves.max} shelves` };
+  }
+  const total = shelves.reduce((n, s) => n + s.zones.reduce((m, z) => m + z.capacity, 0), 0);
+  const how = input.shelves?.length ? "the shelves you gave" : `the app's layout for ${brand} ${model}`;
+  return { ok: true, name, kind, brand, model, shelves, fromCatalog: !input.shelves?.length, summary: `${shelves.length} shelves, ${total} bottles (${how})` };
 }

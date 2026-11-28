@@ -10,6 +10,8 @@ export type AiChange = {
   id: string;
   kind: "add_bottles" | "drink" | "move" | "delete" | "edit" | "wishlist" | "taste" | "fridge" | "label";
   title: string;
+  /** A fridge the AI set up, not one it changed. */
+  created?: boolean;
   count: number;
   when: string;
 };
@@ -55,7 +57,7 @@ export function AiChanges({ changes }: { changes: AiChange[] }) {
     fridge: a.changeFridge,
     label: a.changeLabel,
   };
-  const verb = (c: AiChange) => (c.kind === "add_bottles" ? a.changeAdd(c.count) : verbs[c.kind]);
+  const verb = (c: AiChange) => (c.kind === "add_bottles" ? a.changeAdd(c.count) : c.created ? a.changeFridgeNew : verbs[c.kind]);
 
   const row = (c: AiChange) => (
     <li

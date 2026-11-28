@@ -410,6 +410,7 @@ export const he = {
       "מה כדאי לשתות בקרוב לפני שייצא מחלון השתייה?",
       "איזה יין שתינו בקיץ ואהבנו במיוחד?",
       "תוסיף עוד מקום לבקבוק במדף 5",
+      "צילמתי את המקרר החדש שלי, תגדיר אותו באפליקציה",
     ],
     // Connecting: copy the address, the assistant's own steps, then approve here.
     pickAi: "איזה AI לחבר",
@@ -482,6 +483,7 @@ export const he = {
     changeWishlist: "הוסיף לרשימת המשאלות",
     changeTaste: "רשם טעימה",
     changeFridge: "שינה את סידור המקרר",
+    changeFridgeNew: "הוסיף מקרר חדש",
     changeLabel: "שם תמונת תווית מהאינטרנט",
     undo: "ביטול",
     undone: "בוטל ✓",

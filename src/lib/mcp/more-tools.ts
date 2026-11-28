@@ -8,7 +8,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { DRAFT_TYPES } from "../drafts";
 import { findBottle, pickFridge } from "../draft-places";
-import { applyFridgeEdit, fridgeJson } from "../fridge-edit";
+import { applyFridgeEdit, buildNewFridge, fridgeJson } from "../fridge-edit";
+import { CATALOG } from "../fridge-catalog";
 import { CHOOSABLE_PRESETS } from "../fridge-layout";
 import { getCellarBottles, getFridges, getLooseBottles, type Db } from "../fridges";
 import { imageMatchSchema, labelsPage, savedNote, saveWebLabel } from "./label-photos";
@@ -268,13 +269,63 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
       if (!canEdit) return suggestOnly("change the fridge");
       const fridges = await getFridges(cellarId, db);
       const f = pickFridge(fridges, fridge);
-      if (!f) return text(fridges.length ? `NOT changed – there is no fridge "${fridge}" (see fridge_layout).` : "NOT changed – there is no fridge yet; the user sets one up on the site.");
+      if (!f) return text(fridges.length ? `NOT changed – there is no fridge "${fridge}" (see fridge_layout).` : "NOT changed – there is no fridge yet: set one up with create_fridge.");
       const r = applyFridgeEdit(f, { resize, add_shelves: add_shelves as never, remove_shelves, name });
       if (!r.ok) return text(`NOT changed – ${r.error}.`);
       const { error } = await db.rpc("update_fridge", { p_fridge_id: f.id, p_name: r.name, p_shelves: r.shelves, p_brand: f.brand ?? undefined, p_model: f.model ?? undefined });
       if (error) return text("NOT changed – the database refused it (check the numbers with fridge_layout).");
       await logChange("fridge", { fridge: r.name }, { fridge: f.id, name: f.name, brand: f.brand, model: f.model, shelves: fridgeJson(f) });
       return done([`"${f.name}": ${r.summary.join("; ")}.`]);
+    },
+  );
+  server.registerTool(
+    "create_fridge",
+    {
+      title: "Set up a new fridge or cabinet",
+      description:
+        "Adds a new wine fridge, or a cabinet / rack (kind), as on the site's \"new fridge\" page: e.g. from a photo of it or the user's words. " +
+        "Pass the shelves from the top as you count them (in a photo: every shelf, how the bottles lie, how many in the back row). " +
+        "If you recognize the brand and model, pass them too: without shelves, a model in the app's list gets its usual layout. " +
+        "Then show the user what you set up and offer to fill it shelf by shelf (the fill_fridge prompt); the shelves can be changed later with edit_fridge. " +
+        "Works only if the user lets you make changes yourself.",
+      inputSchema: {
+        name: z.string().min(1).max(60).describe("What the user calls it, e.g. \"Kitchen\" or \"מקרר סלון\""),
+        kind: z.enum(["fridge", "cabinet"]).optional().describe("fridge (default), or cabinet for a cupboard, rack or shelf unit"),
+        brand: z.string().max(60).optional().describe("Fridges only, e.g. Landers, Vinopo"),
+        model: z.string().max(60).optional().describe("Fridges only, as on its label or the maker's site"),
+        shelves: z
+          .array(
+            z.object({
+              arrangement: z.enum(CHOOSABLE_PRESETS as [string, ...string[]]).describe("twoRows (back and front row), oneRow, doubleStack (a pile, two layers) or twoStacks (two piles, back and front)"),
+              size: z.number().int().min(1).max(50).describe("Bottles in the back row / the bottom layer"),
+            }),
+          )
+          .min(1)
+          .max(30)
+          .optional()
+          .describe("From the top shelf down"),
+      },
+      annotations: write,
+    },
+    async ({ name, kind, brand, model, shelves }) => {
+      if (!canEdit) return suggestOnly("set up a fridge");
+      const fridges = await getFridges(cellarId, db);
+      const r = buildNewFridge({ name, kind, brand, model, shelves: shelves as never }, CATALOG, fridges.map((f) => f.name));
+      if (!r.ok) return text(`NOT created – ${r.error}.`);
+      const { data: id, error } = await db.rpc("ai_create_fridge", {
+        p_name: r.name,
+        p_shelves: r.shelves,
+        p_kind: r.kind,
+        p_brand: r.brand ?? undefined,
+        p_model: r.model ?? undefined,
+      });
+      if (error || !id) return text("NOT created – the database refused it (at most 20 fridges, 30 shelves and 6 zones a shelf).");
+      await logChange("fridge", { fridge: r.name, created: true }, { created: id });
+      const what = r.kind === "cabinet" ? "Cabinet" : "Fridge";
+      return done([
+        `${what} "${r.name}" set up: ${r.summary}.${r.fromCatalog ? " This is the app's estimate for the model: ask the user whether the shelves match." : ""}`,
+        "Call fridge_layout to see it, then offer to fill it.",
+      ]);
     },
   );
   server.registerTool(
