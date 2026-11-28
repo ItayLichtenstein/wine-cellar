@@ -1,14 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import { aiDisplayName, identifyAi, type AiKey } from "./ai-providers";
+import { aiDisplayName, identifyAi } from "./ai-providers";
+import { mergeSameAi, type ConnectedAi } from "./ai-merge";
 
-export type ConnectedAi = {
-  clientId: string;
-  name: string;
-  key: AiKey | null;
-  since: string;
-  /** "Helps manage the cellar" (ADR 0013); otherwise it only suggests drafts. */
-  canEdit: boolean;
-};
+export type { ConnectedAi } from "./ai-merge";
 
 /**
  * The AI assistants the signed-in user approved on the consent screen
@@ -23,14 +17,10 @@ export async function getConnectedAis(): Promise<ConnectedAi[]> {
   ]);
   if (error || !data) return [];
   const editing = new Set((edits ?? []).map((e) => e.client_id));
-  return data.map((g) => {
-    const name = g.client.name || "AI";
-    return {
-      clientId: g.client.id,
-      name: aiDisplayName(name),
-      key: identifyAi(name),
-      since: g.granted_at,
-      canEdit: editing.has(g.client.id),
-    };
-  });
+  return mergeSameAi(
+    data.map((g) => {
+      const name = g.client.name || "AI";
+      return { clientIds: [g.client.id], name: aiDisplayName(name), key: identifyAi(name), since: g.granted_at, canEdit: editing.has(g.client.id) };
+    }),
+  );
 }

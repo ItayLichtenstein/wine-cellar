@@ -19,21 +19,28 @@ export function ConnectedAis({ ais }: { ais: ConnectedAi[] }) {
   const [failed, setFailed] = useState(false);
 
   // "Helps manage the cellar" on or off: a row the database guard reads.
-  async function setEdit(clientId: string, on: boolean) {
+  async function setEdit(clientIds: string[], on: boolean) {
     setFailed(false);
     const grants = createClient().from("ai_edit_grants");
-    const { error } = on ? await grants.insert({ client_id: clientId }) : await grants.delete().eq("client_id", clientId);
+    const { error } = on
+      ? await grants.upsert(
+          clientIds.map((client_id) => ({ client_id })),
+          { onConflict: "user_id,client_id", ignoreDuplicates: true },
+        )
+      : await grants.delete().in("client_id", clientIds);
     if (error) return setFailed(true);
     router.refresh();
   }
 
-  async function disconnect(clientId: string) {
+  async function disconnect(clientIds: string[]) {
     setFailed(false);
     const supabase = createClient();
-    const { error } = await supabase.auth.oauth.revokeGrant({ clientId });
-    if (error) return setFailed(true);
+    for (const clientId of clientIds) {
+      const { error } = await supabase.auth.oauth.revokeGrant({ clientId });
+      if (error) return setFailed(true);
+    }
     // Reconnecting asks again what it may change.
-    await supabase.from("ai_edit_grants").delete().eq("client_id", clientId);
+    await supabase.from("ai_edit_grants").delete().in("client_id", clientIds);
     router.refresh();
   }
 
@@ -41,18 +48,19 @@ export function ConnectedAis({ ais }: { ais: ConnectedAi[] }) {
     <>
       <ul className="flex flex-col divide-y divide-muted/20 rounded-xl bg-surface shadow-sm">
         {ais.map((g) => (
-          <li key={g.clientId} className="flex items-center justify-between gap-2 px-4 py-3">
+          <li key={g.clientIds[0]} className="flex items-center justify-between gap-2 px-4 py-3">
             <span className="flex flex-col">
-              <span dir="auto" className="font-medium">
-                {g.name}
+              {/* bdi, not dir="auto": a Latin name would otherwise sit on the left of a Hebrew column. */}
+              <span className="font-medium">
+                <bdi>{g.name}</bdi>
               </span>
               <span className="text-xs text-muted">{a.connectedSince(dateFormat.format(new Date(g.since)))}</span>
               <label className="mt-1 flex cursor-pointer items-center gap-2 text-sm">
-                <input type="checkbox" checked={g.canEdit} onChange={(e) => setEdit(g.clientId, e.target.checked)} className="size-4 accent-[var(--accent)]" />
+                <input type="checkbox" checked={g.canEdit} onChange={(e) => setEdit(g.clientIds, e.target.checked)} className="size-4 accent-[var(--accent)]" />
                 {a.editSelfSwitch}
               </label>
             </span>
-            <button type="button" onClick={() => disconnect(g.clientId)} className="text-sm text-muted underline underline-offset-2">
+            <button type="button" onClick={() => disconnect(g.clientIds)} className="text-sm text-muted underline underline-offset-2">
               {a.disconnect}
             </button>
           </li>
