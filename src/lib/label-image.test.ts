@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coverCrop, fitSize, labelPath, labelWindow } from "./label-image";
+import { bottleColumns, coverCrop, fitSize, labelPath, labelWindow } from "./label-image";
 
 describe("fitSize", () => {
   it("shrinks the longer side to the maximum, keeping the ratio", () => {
@@ -46,5 +46,21 @@ describe("labelWindow", () => {
     const w = labelWindow(500, 900)!;
     expect(w.top + w.height).toBeLessThanOrEqual(900);
     expect(w.top).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("bottleColumns", () => {
+  // White photo, a dark bottle in the middle, a grey shadow at its foot on the left.
+  const photo = (w: number, h: number) => {
+    const g = new Uint8Array(w * h).fill(255);
+    for (let y = 0; y < h; y++) for (let x = 40; x < 60; x++) g[y * w + x] = 30;
+    for (let y = h - 8; y < h; y++) for (let x = 0; x < 40; x++) g[y * w + x] = 150;
+    return g;
+  };
+  it("keeps the bottle and cuts the shadow beside it", () => {
+    expect(bottleColumns(photo(80, 100), 80, 100)).toEqual({ left: 40, width: 20 });
+  });
+  it("keeps the photo as it is when there is nothing clear to cut", () => {
+    expect(bottleColumns(new Uint8Array(80 * 100).fill(255), 80, 100)).toBeNull();
   });
 });

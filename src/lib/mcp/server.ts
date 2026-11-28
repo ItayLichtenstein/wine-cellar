@@ -10,7 +10,7 @@ import { applyAdd, applyDrink, applyMove } from "../ai-apply";
 import { getCellarBottles, getFridges, getHistory, getLooseBottles, type Db } from "../fridges";
 import { tasteProfile } from "../stats";
 import { getStatsData } from "../stats-data";
-import { formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
+import { APPROVE_ALL, formatHistory, formatRows, formatWineDetails, reportGaps } from "./format";
 import { registerMoreTools, type ChangeKind } from "./more-tools";
 
 /**
@@ -62,6 +62,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "Use search_cellar to see what they have, wine_details for everything about one wine (including its label photo), what_to_drink for a recommendation, history for what they drank.",
         // Changes and modes.
         "Changes: the user decides on the site, per AI and at any time, whether your changes take effect at once or wait for their approval as drafts.",
+        APPROVE_ALL,
         "Every tool reply says which happened: repeat that to the user and never assume (a setting may have changed since your last call).",
         "Mark as drunk / move: suggest_drink / suggest_move. Details: edit_wine. Wishlist: wishlist / add_to_wishlist / remove_from_wishlist. Outside the cellar: log_tasting. A past tasting (score, notes): edit_tasting.",
         "A new fridge or cabinet: create_fridge; its shelves and zones: edit_fridge. Label photos: set_label_photo. All of these, from edit_wine on, work only when the user lets you make changes;",
@@ -290,6 +291,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         return text(
           [
             "Added at once (the user lets you make changes yourself).",
+            APPROVE_ALL,
             ...lines,
             `The user can undo any of these on ${siteUrl}/ai.`,
             ...imageNotes,
@@ -392,6 +394,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
           : `Not done yet: the user set you to suggest only, so these wait for their approval at ${siteUrl}/ai. Say so; never claim they were done.`,
         ...lines,
         lines.some((l) => l.includes("NOT")) ? "Tell the user which ones did not work and why." : "",
+        APPROVE_ALL,
       ]
         .filter(Boolean)
         .join("\n"),

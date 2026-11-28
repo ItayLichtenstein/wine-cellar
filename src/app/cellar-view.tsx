@@ -76,16 +76,20 @@ export function CellarView({
   return (
     <>
       {movingId && (
-        <div className="sticky top-2 z-30 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-accent px-4 py-3 text-white shadow-lg dark:text-black">
-          <span className="font-medium">{t.cellar.moving}</span>
-          <span className="flex gap-2 text-sm">
-            <button type="button" onClick={() => moveTo(null)} className="underline underline-offset-2">
-              {t.cellar.takeOut}
-            </button>
-            <button type="button" onClick={() => setMovingId(null)} className="underline underline-offset-2">
-              {t.cellar.cancel}
-            </button>
-          </span>
+        // Just above the bottom navigation (about 57px tall), so the page stays where it is
+        // and the fridge stays in view while picking the new place.
+        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 mx-auto max-w-xl px-4">
+          <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-accent px-4 py-3 text-white shadow-lg dark:text-black">
+            <span className="font-medium text-balance">{t.cellar.moving}</span>
+            <span className="flex gap-2 text-sm">
+              <button type="button" onClick={() => moveTo(null)} className="underline underline-offset-2">
+                {t.cellar.takeOut}
+              </button>
+              <button type="button" onClick={() => setMovingId(null)} className="underline underline-offset-2">
+                {t.cellar.cancel}
+              </button>
+            </span>
+          </div>
         </div>
       )}
       {error && (
@@ -94,7 +98,8 @@ export function CellarView({
         </p>
       )}
 
-      {drinkNow.length > 0 && !movingId && <DrinkNow rows={drinkNow} onOpen={setOpenId} />}
+      {/* Stays while moving, so the fridge below does not jump up. */}
+      {drinkNow.length > 0 && <DrinkNow rows={drinkNow} onOpen={(id) => !movingId && setOpenId(id)} />}
 
       <div className="flex items-center justify-end">
         {/* One on/off button: labels are on unless the user turns them off. */}
@@ -181,6 +186,8 @@ export function CellarView({
         </Link>
       )}
 
+      {/* Room for the banner, so the lowest shelves can still be reached. */}
+      {movingId && <div className="h-24" aria-hidden="true" />}
       {openId && sheet && sheet(openId, () => setOpenId(null))}
       {openId && !sheet && (
         <BottleSheet
@@ -189,7 +196,6 @@ export function CellarView({
           onMove={() => {
             setMovingId(openId);
             setOpenId(null);
-            window.scrollTo({ top: 0, behavior: "smooth" });
           }}
           onChanged={refresh}
         />
