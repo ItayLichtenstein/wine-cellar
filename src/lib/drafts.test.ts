@@ -94,3 +94,12 @@ describe("a wine's body", () => {
     expect(body("heavy")).toBe(null);
   });
 });
+
+describe("more details in a bottle draft", () => {
+  it("keeps kosher, alcohol, shape and peak when given, and drops what is unclear", () => {
+    const r = parseBottleDraft({ winery: "W", name: "N", kosher: "yes", alcohol: "13.5%", shape: "burgundy", peak_from: 2027, peak_to: 2029 }, 2026);
+    expect(r.ok && r.draft).toMatchObject({ kosher: "yes", alcohol: 13.5, shape: "burgundy", peakFrom: 2027, peakTo: 2029 });
+    const bad = parseBottleDraft({ winery: "W", name: "N", kosher: "maybe", alcohol: 80, peak_from: 2030, peak_to: 2027 }, 2026);
+    expect(bad.ok && [bad.draft.kosher, bad.draft.alcohol, bad.draft.peakFrom]).toEqual([undefined, undefined, undefined]);
+  });
+});

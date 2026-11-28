@@ -1,4 +1,4 @@
-import { DRINK_WINDOW_SOURCES } from "../drink-window-sources";
+import { DRINK_WINDOW_SOURCES, LABEL_SOURCES } from "../drink-window-sources";
 import { countMissing, formatLabelPhotos, imageMatchSchema, missingNote, savedNote, saveWebLabel } from "./label-photos";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
@@ -27,6 +27,9 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
       instructions: [
         "This is the user's home wine cellar (Hebrew-first app; wine names are usually in their original language). Answer in the user's language.",
         "Be an active, helpful cellar assistant: after each action, offer the natural next step.",
+        // Optional details: the user does not know what else can be filled in unless told.
+        "Whenever you add or set up something (bottles, a fridge, a wish, a tasting), first ask the user for what you can neither see nor look up (e.g. a fridge's model),",
+        "and afterwards tell them in one short line which optional details are still empty (the tool reply lists them) and that they can add them; if they prefer to leave them empty, that is fine.",
         // What to offer: the user does not know what is possible until told.
         "The first time the user mentions the cellar in a chat, answer and then offer, in one short list, what you can do:",
         "(1) add bottles from a photo of a whole shelf, a label, a receipt or just their words, each straight into its place in the fridge;",
@@ -37,15 +40,19 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "Shelf photos: the user can send a photo of a whole shelf (or several, one per shelf). Call fridge_layout first, identify every bottle and where it sits",
         "(zone and slot, slot 1 = rightmost as the user looks at it), and add them in ONE suggest_bottles call with `places`, so the shelf goes in exactly as it is.",
         "If a label or a position is unclear, ask the user rather than guess. A whole fridge: shelf by shelf (the fill_fridge prompt).",
+        "After placing bottles from a photo, list where you put each one and ask the user whether it is right; if not, fix it with suggest_move.",
         "Not only wine: whisky, arak, liqueurs or any other bottle can be kept too. Use type 'other', the maker as winery, no drinking window,",
         "and year only if the label has one (otherwise null). Do not refuse or warn that the app is for wine.",
         // Details from the web.
         "Adding bottles: fill in what the user did not say. Use web search to look up the drinking window, grape, body, country, region and a typical price",
         "for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess: ask the user to turn on web search in this chat",
         "(the tools menu of the message box), or to say they prefer to skip it. Afterwards tell the user, in one line, which details you found and which you could not.",
+        "Prices: if the user did not say what they paid, do not just report the price as missing. Ask them which they prefer: they tell you the prices,",
+        "you look up a typical price on the web (Israeli shops first, in ₪), or they tell you the shop they bought from and you look for the price there. Then save it with edit_wine.",
         DRINK_WINDOW_SOURCES,
         // Label photos: what is possible and what to tell the user.
         "Label photos: photos the user sends you in the chat cannot be saved to the app (the chat does not pass files to tools), so never promise that.",
+        LABEL_SOURCES,
         "Instead, for each wine find its page at a shop or the winery (or a direct image link) and pass it as image_url, with image_match saying honestly",
         "whether it is this exact wine and vintage, another vintage, or only similar. When it is not exact, tell the user plainly what you used",
         "(e.g. \"I only found the 2022 label, not the 2021\") and that they can keep it or replace it with their own photo on the bottle's card in the app",
@@ -209,12 +216,17 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
               region: z.string().optional(),
               drink_from: z.number().int().nullable().optional().describe(DRINK_WINDOW_SOURCES),
               drink_to: z.number().int().nullable().optional(),
-              note: z.string().optional(),
+              peak_from: z.number().int().nullable().optional().describe("Its best years inside the window, if a source gives them"),
+              peak_to: z.number().int().nullable().optional(),
+              kosher: z.enum(["yes", "no"]).optional().describe("From the label or the winery; leave out if unknown"),
+              alcohol: z.number().min(0).max(25).optional().describe("% ABV, as on the label"),
+              shape: z.enum(["standard", "burgundy"]).optional().describe("burgundy = the wide bottle with sloping shoulders"),
+              note: z.string().optional().describe("The user's own note on these bottles (e.g. a gift from Dan)"),
               image_url: z
                 .string()
                 .optional()
                 .describe(
-                  "An https link for this wine's label photo: its product page at a shop or the winery (the server takes the page's main photo), or the image file itself (JPEG, PNG or WebP, up to 5MB). Not a search results page. The reply says for each bottle whether it was saved.",
+                  "An https link for this wine's label photo: its product page at a shop or the winery (the server takes the page's main photo), or the image file itself (JPEG, PNG or WebP, up to 5MB). Not a search results page. The reply says for each bottle whether it was saved. " + LABEL_SOURCES,
                 ),
               image_match: imageMatchSchema,
               places: z
@@ -283,6 +295,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
             ...imageNotes,
             missingNote(await countMissing(db, cellarId, good), siteUrl),
             ...reportGaps(good),
+            good.some((d) => d.places.length > 0) ? "Then list where each bottle went and ask the user whether the places are right (fix with suggest_move)." : "",
             ...errors,
             errors.length ? `Fix and call again. Expected shape:\n${DRAFT_FORMAT}` : "",
           ]

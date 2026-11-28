@@ -33,3 +33,14 @@ describe("findPageImage", () => {
     expect(findPageImage("<html><head><title>Alon</title></head></html>", page)).toBeNull();
   });
 });
+
+describe("schema.org product photo", () => {
+  it("finds the product photo when the page has no preview tags", () => {
+    const html = `<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"La Felisa","image":["//images.example.com/l.jpg"]}</script>`;
+    expect(findPageImage(html, "https://shop.example.com/w/1")).toBe("https://images.example.com/l.jpg");
+  });
+  it("prefers the preview tag, and skips broken data", () => {
+    const html = `<meta property="og:image" content="https://a.example.com/og.jpg"><script type="application/ld+json">{broken</script>`;
+    expect(findPageImage(html, "https://shop.example.com/")).toBe("https://a.example.com/og.jpg");
+  });
+});

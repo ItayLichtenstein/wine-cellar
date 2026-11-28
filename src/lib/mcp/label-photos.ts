@@ -16,7 +16,7 @@ export const imageMatchSchema = z
   .enum(IMAGE_MATCHES)
   .optional()
   .describe(
-    "How well the photo at image_url matches: exact = this wine and vintage; other_vintage = the same wine, another vintage; similar = not sure it is the same label. Be honest: the reply tells you what to say to the user.",
+    "How well the photo at image_url matches: exact = this wine and vintage; other_vintage = the same wine, another vintage; similar = this winery's same wine, but not sure the label looks the same. A photo of a different wine would mislead the user, so it is better to leave that one without a photo. Be honest: the reply tells you what to say to the user.",
   );
 
 /** Where the user can see every wine without a photo, and replace a web photo with their own. */
@@ -36,7 +36,7 @@ export async function saveWebLabel(db: Db, cellarId: string, link: string, match
 
 /** One line for the tool reply about a saved photo: what to tell the user when it is not an exact match. */
 export function savedNote(who: string, match: ImageMatch, siteUrl: string): string {
-  if (match === "exact") return `${who}: label image saved.`;
+  if (match === "exact") return `${who}: label image saved (tell the user it is a photo from the web, and they can replace it with their own on the bottle's card).`;
   const what = match === "other_vintage" ? "a photo of another vintage of this wine" : "a photo you are not sure is this exact label";
   return `${who}: label image saved, but it is ${what}. Tell the user plainly (e.g. "I only found the 2022 label, not the 2021, so I used it"), and that they can keep it or replace it with their own photo on the bottle's card or at ${labelsPage(siteUrl)}.`;
 }
@@ -44,7 +44,7 @@ export function savedNote(who: string, match: ImageMatch, siteUrl: string): stri
 /** The closing line when some wines are left without a photo. */
 export function missingNote(count: number, siteUrl: string): string {
   return count
-    ? `${count} wine(s) have no label photo now. Tell the user they can take the photos themselves at ${labelsPage(siteUrl)} (every wine without a photo, one tap each), or you can look for another link.`
+    ? `${count} wine(s) have no label photo now. Before telling the user, try once more for each with set_label_photo and another source (the winery's own site, Vivino, or another shop; some shops block downloads). Then tell the user which are still missing and that they can take the photos themselves at ${labelsPage(siteUrl)} (every wine without a photo, one tap each).`
     : "";
 }
 

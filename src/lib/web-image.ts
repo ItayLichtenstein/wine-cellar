@@ -14,7 +14,7 @@ const MAX_BYTES = 5_000_000;
 const TIMEOUT_MS = 8000;
 const MAX_REDIRECTS = 3;
 const MAX_PAGE_BYTES = 1_000_000;
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const PAGE_TYPES = ["text/html", "application/xhtml+xml"];
 
 export type WebImage = { ok: true; webp: Buffer } | { ok: false; reason: string };
@@ -42,7 +42,7 @@ function getOnce(url: URL, pageAllowed: boolean): Promise<Got> {
   return new Promise((resolve) => {
     const req = request(
       url,
-      { method: "GET", lookup: publicLookup, timeout: TIMEOUT_MS, headers: { accept: "image/jpeg,image/png,image/webp,text/html;q=0.8", "user-agent": "Mozilla/5.0 (compatible; WineCellarApp/1.0; label photo)" } },
+      { method: "GET", lookup: publicLookup, timeout: TIMEOUT_MS, headers: { accept: "text/html,image/webp,image/png,image/jpeg;q=0.9,*/*;q=0.8", "user-agent": "Mozilla/5.0 (compatible; WineCellarApp/1.0; label photo)" } },
       (res) => {
         const status = res.statusCode ?? 0;
         if (status >= 300 && status < 400 && res.headers.location) {

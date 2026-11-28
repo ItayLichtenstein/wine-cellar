@@ -74,7 +74,6 @@ export function LabelPhoto({
         <img src={url} alt={t.bottle.photo.alt} className="max-h-56 rounded-lg object-contain shadow-sm" />
       )}
       {/* An AI found it on the web: it may be another vintage, so say so and offer the user's own photo. */}
-      {current?.includes("/web-") && <p className="text-center text-xs text-muted">{t.bottle.photo.fromWeb}</p>}
       {canEdit && (
         <label className="cursor-pointer text-sm underline underline-offset-2">
           {busy ? t.bottle.photo.uploading : current ? t.bottle.photo.replace : t.bottle.photo.take}
