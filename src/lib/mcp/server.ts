@@ -1,3 +1,4 @@
+import { DRINK_WINDOW_SOURCES } from "../drink-window-sources";
 import { countMissing, formatLabelPhotos, imageMatchSchema, missingNote, savedNote, saveWebLabel } from "./label-photos";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
@@ -41,6 +42,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
         "Adding bottles: fill in what the user did not say. Use web search to look up the drinking window, grape, country, region and a typical price",
         "for that exact wine and vintage before calling suggest_bottles. If you have no web search, do not guess: ask the user to turn on web search in this chat",
         "(the tools menu of the message box), or to say they prefer to skip it. Afterwards tell the user, in one line, which details you found and which you could not.",
+        DRINK_WINDOW_SOURCES,
         // Label photos: what is possible and what to tell the user.
         "Label photos: photos the user sends you in the chat cannot be saved to the app (the chat does not pass files to tools), so never promise that.",
         "Instead, for each wine find its page at a shop or the winery (or a direct image link) and pass it as image_url, with image_match saying honestly",
@@ -202,7 +204,7 @@ export function buildMcpServer({ db, cellarId, siteUrl, canEdit = false }: { db:
               grape: z.string().optional(),
               country: z.string().optional(),
               region: z.string().optional(),
-              drink_from: z.number().int().nullable().optional(),
+              drink_from: z.number().int().nullable().optional().describe(DRINK_WINDOW_SOURCES),
               drink_to: z.number().int().nullable().optional(),
               note: z.string().optional(),
               image_url: z

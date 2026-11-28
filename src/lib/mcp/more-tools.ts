@@ -3,6 +3,7 @@
 // AI the user lets make changes; a label photo too; one that only suggests is told so, and the
 // user makes the change on the site. Every change can be undone on /ai.
 
+import { DRINK_WINDOW_SOURCES } from "../drink-window-sources";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { DRAFT_TYPES } from "../drafts";
@@ -61,7 +62,7 @@ export function registerMoreTools(server: McpServer, { db, cellarId, siteUrl, ca
               name: z.string().describe("Exactly as in search_cellar"),
               year: z.number().int().nullable().optional().describe("Vintage; null for NV"),
               at: placeSchema.optional().describe("Only for a price of one bottle: where it is"),
-              drink_from: z.number().int().nullable().optional(),
+              drink_from: z.number().int().nullable().optional().describe(DRINK_WINDOW_SOURCES),
               drink_to: z.number().int().nullable().optional(),
               peak_from: z.number().int().nullable().optional(),
               peak_to: z.number().int().nullable().optional(),
