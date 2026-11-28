@@ -15,24 +15,27 @@ import {
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { useT } from "@/i18n/provider";
 
-const SORT_KEYS: SortKey[] = ["state", "name", "year", "price"];
+const SORT_KEYS: SortKey[] = ["price", "state", "name", "year"];
 
 export function BottleList({ bottles }: { bottles: ListBottle[] }) {
   const router = useRouter();
   const t = useT();
   const l = t.list;
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [sort, setSort] = useState<SortKey>("state");
+  // Null until the user picks one: by price, or by readiness when there are no prices.
+  const [picked, setSort] = useState<SortKey | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+
+  // No prices (a friend who doesn't share them, or none entered): no price sort or filter.
+  const hasPrices = useMemo(() => bottles.some((b) => b.price !== null), [bottles]);
+  const sortKeys = hasPrices ? SORT_KEYS : SORT_KEYS.filter((k) => k !== "price");
+  const sort: SortKey = picked && sortKeys.includes(picked) ? picked : hasPrices ? "price" : "state";
 
   const rows = useMemo(() => buildRows(bottles, filters, sort), [bottles, filters, sort]);
   const countries = useMemo(() => countriesOf(bottles), [bottles]);
   const shown = rows.reduce((n, r) => n + r.bottles.length, 0);
   const active = activeCount(filters);
-  // No prices (a friend who doesn't share them, or none entered): no price sort or filter.
-  const hasPrices = useMemo(() => bottles.some((b) => b.price !== null), [bottles]);
-  const sortKeys = hasPrices ? SORT_KEYS : SORT_KEYS.filter((k) => k !== "price");
 
   const set = <K extends keyof Filters>(key: K, value: Filters[K]) => setFilters((f) => ({ ...f, [key]: value }));
   const toggle = <T,>(list: T[], item: T) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);

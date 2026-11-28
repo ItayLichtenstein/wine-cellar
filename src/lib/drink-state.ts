@@ -38,12 +38,12 @@ export function drinkState(w: DrinkWindow, year: number): DrinkState {
  * color stays light enough for black text.
  */
 export const DRINK_STATES: Record<DrinkState, { label: string; color: string }> = {
-  past:  { label: "עבר את השיא",              color: "#C49A74" }, // warm brown
-  now:   { label: "בשיא",                       color: "#2E9E4A" }, // deep green
-  soon:  { label: "בשיא, אפשר לחכות שנה",      color: "#86D97A" }, // light green
-  hold:  { label: "בשיא, אפשר להחזיק כמה שנים", color: "#43C4A8" }, // green-turquoise
-  near:  { label: "נכנס לחלון בשנה הבאה",       color: "#BCD0E2" }, // pale blue-gray
-  young: { label: "עוד לא בשיא",              color: "#949BA8" }, // gray
+  past:  { label: "עבר את חלון השתייה",       color: "#C49A74" }, // warm brown
+  now:   { label: "מוכן לשתייה, כדאי לפתוח השנה", color: "#2E9E4A" }, // deep green
+  soon:  { label: "מוכן לשתייה, אפשר לחכות שנה", color: "#86D97A" }, // light green
+  hold:  { label: "מוכן לשתייה, אפשר להחזיק כמה שנים", color: "#43C4A8" }, // green-turquoise
+  near:  { label: "נכנס עוד שנה לחלון השתייה",   color: "#BCD0E2" }, // pale blue-gray
+  young: { label: "עוד לא מוכן לשתייה",         color: "#949BA8" }, // gray
   none:  { label: "בלי חלון שתייה",            color: "#E6E1DA" }, // neutral
 };
 

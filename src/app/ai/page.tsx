@@ -157,7 +157,7 @@ function Examples({ ai, t }: { ai: AiKey; t: Dictionary }) {
   const examples = t.ai.examples;
   return (
     <div className="flex flex-col gap-1 rounded-xl bg-surface p-4 text-sm shadow-sm">
-      <p className="text-muted">{t.ai.examplesFor(AI_PROVIDERS[ai].name)}</p>
+      <p className="text-muted">{t.ai.setup[ai].chatHint ?? t.ai.examplesFor(AI_PROVIDERS[ai].name)}</p>
       <ul className="flex flex-col gap-1">
         {examples.map((e) => (
           <li key={e}>״{e}״</li>
