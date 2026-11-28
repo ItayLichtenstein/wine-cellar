@@ -75,7 +75,7 @@ export function ConnectAi({ except = [] }: { except?: AiKey[] }) {
     ...(p.prefilled ? [aiSteps[0], copyStep, ...aiSteps.slice(1)] : [copyStep, ...aiSteps]),
     { text: a.approveStep, extra: null },
     ...setup.afterApprove.map((text) => ({ text, extra: null })),
-    { text: a.doneStep(p.name), extra: null },
+    { text: setup.chatHint ?? a.doneStep(p.name), extra: null },
   ];
 
   return (
