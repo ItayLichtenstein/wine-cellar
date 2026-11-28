@@ -9,6 +9,7 @@ import type { ListRow } from "@/lib/bottle-list";
 import { DRINK_STATES, DRINK_STATE_ORDER } from "@/lib/drink-state";
 import { fridgeCapacity } from "@/lib/fridge-layout";
 import type { FridgeView, LooseBottle } from "@/lib/fridges";
+import { applyMove } from "@/lib/optimistic-move";
 import { useT } from "@/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 import { BottleSheet } from "./bottle-sheet";
@@ -19,7 +20,7 @@ import { useFridgeView } from "./use-fridge-view";
  * tap a bottle → its card; "move" → tap a new place (an occupied slot swaps).
  */
 export function CellarView({
-  fridges,
+  fridges: serverFridges,
   loose,
   drinkNow,
   canEdit = true,
@@ -43,6 +44,15 @@ export function CellarView({
   const [movingId, setMovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useFridgeView();
+  // A move shows at once (applyMove), before the server answers; the fresh
+  // data from the refresh replaces it. A failed move puts things back.
+  const [pending, setPending] = useState<{ bottleId: string; place: Place } | null>(null);
+  const [seen, setSeen] = useState(serverFridges);
+  if (seen !== serverFridges) {
+    setSeen(serverFridges);
+    setPending(null);
+  }
+  const fridges = pending ? applyMove(serverFridges, pending.bottleId, pending.place) : serverFridges;
   // Several fridges: one at a time, with tabs (a long page of fridges is
   // hard to use on a phone). A moved bottle can still go to another fridge.
   const [fridgeId, setFridgeId] = useState<string | null>(null);
@@ -57,12 +67,17 @@ export function CellarView({
   async function moveTo(place: Place | null, bottleId = movingId) {
     if (!bottleId) return;
     setError(null);
+    if (place) {
+      setPending({ bottleId, place });
+      setMovingId(null);
+    }
     const { error: rpcError } = await createClient().rpc("move_bottle", {
       p_bottle_id: bottleId,
       p_zone_id: place?.zoneId as string, // null = out of the fridge
       p_slot: place?.slot ?? undefined,
     });
     if (rpcError) {
+      setPending(null);
       setError(rpcError.code === "23514" ? t.cellar.noRoom : t.cellar.moveFailed);
       return;
     }
